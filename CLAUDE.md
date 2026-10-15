@@ -23,7 +23,7 @@ The product owner is **not a developer**. Explain what you did in plain language
 - No new paid services or heavy libraries without approval. Keep it cheap and fast on low-end phones.
 
 ## Stack
-Next.js (App Router, TypeScript), Tailwind + shadcn/ui, Supabase (Postgres, Auth, Storage, Realtime, Edge Functions, pg_cron), Zod, Resend, Daraja (M-Pesa), Vitest, Playwright, Vercel.
+Next.js 16 (App Router), React 19, TypeScript 6 (move to 7 once typescript-eslint supports it), Tailwind CSS 4, ESLint 10, Vitest 5, Node 22+. Keep these on their latest releases. Also: shadcn/ui, Supabase (Postgres, Auth, Storage, Realtime, Edge Functions, pg_cron), Zod, Resend, Daraja (M-Pesa), Vitest, Playwright, Vercel.
 
 ## Commands (keep this section updated)
 - `npm run dev` — run locally

@@ -8,7 +8,7 @@ The digital platform of the Menyenya SDA High School Alumni Association: members
 
 ## Run it on your computer
 
-You need Node.js 20 or newer.
+You need Node.js 22 or newer. The project uses Next.js 16, React 19, TypeScript 6, Tailwind CSS 4, ESLint 10 and Vitest 5, kept on their latest releases.
 
 ```bash
 npm install

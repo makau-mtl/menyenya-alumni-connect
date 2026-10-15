@@ -29,7 +29,7 @@ export default async function CausePage({ params }: Params) {
   return (
     <article>
       <header className="bg-surface">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-12 pt-10 lg:grid-cols-[1fr_1fr] lg:items-end">
+        <div className="section grid gap-10 pb-12 pt-10 lg:grid-cols-[1fr_1fr] lg:items-end">
           <div className="max-w-xl">
             {preparing && (
               <p className="mb-4 inline-block rounded-full bg-gold-tint px-3 py-1 text-sm font-semibold">
@@ -68,7 +68,7 @@ export default async function CausePage({ params }: Params) {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-14 px-4 pt-14 lg:grid-cols-[1.4fr_1fr]">
+      <div className="section grid gap-14 pt-14 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-14">
           <section>
             <h2 className="text-3xl font-bold">Why this matters</h2>

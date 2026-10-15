@@ -1,6 +1,6 @@
 // Small shared UI pieces. Kept in one file while the set is small.
 
-type Variant = "primary" | "secondary" | "quiet";
+type Variant = "primary" | "secondary" | "quiet" | "gold" | "light";
 type Size = "sm" | "md" | "lg";
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md") {
@@ -15,6 +15,8 @@ export function buttonClass(variant: Variant = "primary", size: Size = "md") {
     primary: "bg-tea text-white hover:bg-tea-dark",
     secondary: "border-2 border-ink text-ink hover:bg-ink hover:text-white",
     quiet: "text-tea underline underline-offset-4 hover:text-tea-dark",
+    gold: "bg-gold font-bold text-ink hover:bg-[#f0b95f]",
+    light: "border-2 border-white text-white hover:bg-white hover:text-ink",
   };
   return `${base} ${variant === "quiet" ? "" : sizes[size]} ${variants[variant]}`;
 }

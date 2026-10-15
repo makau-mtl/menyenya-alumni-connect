@@ -1,5 +1,14 @@
 # Progress
 
+## 15 October 2026 (evening): public website redesigned
+
+Following feedback, the public site now follows the pattern of Trees for the Future's site.
+- Header on every page: Who we are, Our work, Ways to give, News and events, plus Log in, Join and Donate.
+- Home: hero with Donate and Join, the Chairman's video message, who we are, the tuition block, "Your support, your choice", news and events, closing call to action.
+- New pages: Who we are (mission, story, what we do, vision, values, governance), Leadership and secretariat, Careers, Ways to give, Donate, Join (with the registration form, preview only), Log in (preview only), News and events, Contact.
+- Photo and video spaces show what belongs in each until real photos and the Chairman's video are supplied.
+- Mission, vision, values, story and leadership titles are drafts for the officials to approve (`src/content/site.ts`).
+
 ## 15 October 2026: project set up and first public screens (preview)
 
 **Built**

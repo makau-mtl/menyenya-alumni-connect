@@ -1,48 +1,62 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { listCauses } from "@/lib/data";
+import { ImageSlot } from "@/components/media";
+import { PageHero } from "@/components/page-hero";
 import { buttonClass } from "@/components/ui";
 
-export const metadata: Metadata = { title: "Causes" };
+export const metadata: Metadata = { title: "Our work" };
 
-const kindLabel = {
-  campaign: "Campaign",
-  ongoing_fund: "Ongoing fund",
-  general: "General fund",
-  appeal: "Appeal",
-} as const;
+const images: Record<string, string> = {
+  "tuition-block": "the planned tuition block",
+  "keep-a-child-in-school": "a student in class",
+  "where-most-needed": "alumni and students together",
+};
 
-export default async function CausesPage() {
+const comingNext = [
+  { title: "Mentorship", text: "Pairing established alumni with recent graduates and students choosing careers." },
+  { title: "Welfare", text: "Standing with members and their families at times of need, where classes choose to take part." },
+  { title: "Events and homecoming", text: "Regional meet-ups, class reunions and an annual homecoming at the school." },
+];
+
+export default async function OurWorkPage() {
   const causes = await listCauses();
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-12">
-      <h1 className="text-4xl font-bold">Causes</h1>
-      <p className="mt-3 max-w-prose text-lg text-ink-soft">
-        Choose where your gift goes. Each cause has its own fund, and every shilling is recorded and reported.
-      </p>
-      <ul className="mt-10 divide-y divide-line border-y border-line">
-        {causes.map((c) => (
-          <li key={c.slug} className="grid gap-4 py-6 md:grid-cols-[1fr_auto] md:items-center">
-            <div className="max-w-prose">
-              <p className="text-sm text-ink-soft">{kindLabel[c.kind]}</p>
-              <h2 className="mt-1 text-2xl font-bold">
-                <Link href={`/causes/${c.slug}`} className="hover:text-tea">
-                  {c.title}
+    <>
+      <PageHero
+        title="Our work"
+        intro="Projects and funds that support the school and its students. Each has its own fund, and every shilling is recorded and reported."
+      />
+      <section className="section flex flex-col gap-14 pt-14">
+        {causes.map((c, i) => (
+          <article key={c.slug} className={`grid items-center gap-8 md:grid-cols-2 ${i % 2 ? "md:[&>*:first-child]:order-2" : ""}`}>
+            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} ratio="landscape" />
+            <div className="max-w-lg">
+              <h2 className="text-3xl font-bold">{c.title}</h2>
+              <p className="mt-3 text-lg text-ink-soft">{c.summary}</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href={`/give/${c.slug}`} className={buttonClass("gold")}>
+                  Donate
                 </Link>
-              </h2>
-              <p className="mt-2 text-ink-soft">{c.summary}</p>
+                <Link href={`/causes/${c.slug}`} className={buttonClass("secondary")}>
+                  Learn more
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href={`/causes/${c.slug}`} className={buttonClass("secondary", "sm")}>
-                Read more
-              </Link>
-              <Link href={`/give/${c.slug}`} className={buttonClass("primary", "sm")}>
-                Give
-              </Link>
-            </div>
-          </li>
+          </article>
         ))}
-      </ul>
-    </div>
+      </section>
+      <section className="section pt-20">
+        <h2 className="text-3xl font-bold">Coming next</h2>
+        <div className="mt-8 grid gap-8 md:grid-cols-3">
+          {comingNext.map((c) => (
+            <div key={c.title} className="border-t-4 border-tea pt-4">
+              <h3 className="text-2xl font-bold">{c.title}</h3>
+              <p className="mt-2 text-ink-soft">{c.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

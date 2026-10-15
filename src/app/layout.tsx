@@ -29,9 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <p className="bg-gold-tint px-4 py-2 text-center text-sm text-ink">
-          Preview for the Technical Committee. Figures other than the plenary pledges are sample data, and nothing you
-          enter here is kept.
+        <p className="bg-gold-tint px-4 py-1.5 text-center text-xs text-ink sm:text-sm">
+          Preview for the Technical Committee: sample content and photo spaces; nothing you enter is kept.
         </p>
         <SiteHeader />
         <main id="main" className="flex-1">

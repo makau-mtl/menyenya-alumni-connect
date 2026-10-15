@@ -15,6 +15,10 @@ npm install
 npm run dev        # open http://localhost:3000
 ```
 
+## Database
+
+See `docs/SETUP-SUPABASE.md` for the one-time setup. To work against the database locally, copy `.env.example` to `.env.local` and fill in the two values.
+
 ## Checks
 
 ```bash
@@ -31,5 +35,8 @@ npm run build
 | `src/app` | Pages (home, causes, give, pledge, thank-you) and form actions |
 | `src/components` | Shared pieces: header, footer, brick-wall progress, form fields |
 | `src/lib` | Money formatting, references, validation, and the data layer |
-| `src/lib/data` | `index.ts` is the only way pages read or write data. It currently uses sample data in `sample.ts`; it will be switched to Supabase without changing the pages. |
+| `src/lib/data` | `index.ts` is the only way pages read or write data. With Supabase keys set it uses the database (`supabase-store.ts`); without them, in-memory sample data (`sample-store.ts`). |
+| `src/lib/supabase` | Supabase settings and clients |
+| `supabase/migrations` | Database changes, applied in order by the **Database** GitHub workflow when they reach `main` |
+| `tests/db` | Database tests: every migration is applied to a local Postgres and the access rules are checked |
 | `tests` | Unit tests |

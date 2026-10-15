@@ -30,4 +30,5 @@ Next.js 16 (App Router), React 19, TypeScript 6 (move to 7 once typescript-eslin
 - `npm run test` — unit tests
 - `npm run test:e2e` — end-to-end tests
 - `npm run lint` / `npm run typecheck`
-- Database changes: add a new SQL file in `supabase/migrations/`; never edit an applied migration.
+- Database changes: add a new SQL file in `supabase/migrations/` (timestamped name); never edit an applied migration. `npm test` applies all migrations to a local Postgres (PGlite) with a Supabase stand-in (`tests/db/supabase-stub.sql`) and runs the access-rule tests.
+- Migrations reach Supabase through the **Database** GitHub workflow on `main`. Setup: `docs/SETUP-SUPABASE.md`.

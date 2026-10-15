@@ -19,6 +19,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return cause ? { title: cause.title, description: cause.summary } : {};
 }
 
+// Progress figures refresh at least once a minute; pledges also refresh them straight away.
+export const revalidate = 60;
+
 export default async function CausePage({ params }: Params) {
   const cause = await getCause((await params).slug);
   if (!cause) notFound();

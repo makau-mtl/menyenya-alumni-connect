@@ -2,9 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createDonation, createPledge, getCause } from "@/lib/data";
+import { GivingError, getCause, recordGift, recordPledge } from "@/lib/data";
 import { parseKes } from "@/lib/money";
-import type { Donor, PledgeType } from "@/lib/types";
+import type { Donor, PledgeType, RecordedGift } from "@/lib/types";
 import { donationSchema, fieldErrors, pledgeSchema, type FieldErrors } from "@/lib/validation";
 
 export type FormState = { errors: FieldErrors; values: Record<string, string> } | null;
@@ -38,6 +38,23 @@ function donorFrom(d: {
   };
 }
 
+function giftUrl(r: RecordedGift) {
+  return `/thank-you/${encodeURIComponent(r.reference)}?t=${encodeURIComponent(r.receiptToken)}`;
+}
+
+function failure(e: unknown, values: Record<string, string>): FormState {
+  const message = e instanceof GivingError ? e.message : "We could not record this right now. Please try again in a moment.";
+  if (!(e instanceof GivingError)) console.error(e);
+  return { errors: { form: message }, values };
+}
+
+/** Progress figures change when a pledge is recorded; refresh the pages that show them. */
+function refreshProgress(slug: string) {
+  revalidatePath("/");
+  revalidatePath("/donate");
+  revalidatePath(`/causes/${slug}`);
+}
+
 export async function submitDonation(_prev: FormState, formData: FormData): Promise<FormState> {
   const values = valuesOf(formData);
   const parsed = donationSchema.safeParse(values);
@@ -49,20 +66,19 @@ export async function submitDonation(_prev: FormState, formData: FormData): Prom
     return { errors: { frequency: "Choose one of the options shown" }, values };
   }
 
-  const record = await createDonation({
-    causeSlug: cause.slug,
-    amount: parsed.data.amount,
-    frequency: parsed.data.frequency,
-    dedication: parsed.data.dedication || undefined,
-    donor: donorFrom(parsed.data),
-  });
-  redirect(`/thank-you/${record.reference}`);
-}
-
-/** Progress figures change when a pledge is recorded; refresh the pages that show them. */
-function refreshProgress(slug: string) {
-  revalidatePath("/");
-  revalidatePath(`/causes/${slug}`);
+  let recorded: RecordedGift;
+  try {
+    recorded = await recordGift({
+      causeSlug: cause.slug,
+      amount: parsed.data.amount,
+      frequency: parsed.data.frequency,
+      dedication: parsed.data.dedication || undefined,
+      donor: donorFrom(parsed.data),
+    });
+  } catch (e) {
+    return failure(e, values);
+  }
+  redirect(giftUrl(recorded));
 }
 
 export async function submitPledge(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -76,19 +92,19 @@ export async function submitPledge(_prev: FormState, formData: FormData): Promis
   }
 
   const type = parsed.data.pledgeType as PledgeType;
-  const perPeriod = type === "in_kind" ? null : parseKes(parsed.data.amountPerPeriod ?? "");
-  const periods = type === "in_kind" ? null : type === "one_time" ? 1 : Number(parsed.data.numberOfPeriods);
-
-  const record = await createPledge({
-    causeSlug: cause.slug,
-    pledgeType: type,
-    amountPerPeriod: perPeriod,
-    numberOfPeriods: periods,
-    totalAmount: perPeriod !== null && periods !== null ? perPeriod * periods : null,
-    inKindDescription: type === "in_kind" ? parsed.data.inKindDescription : undefined,
-    isFounding: cause.lifecycle === "preparation",
-    donor: donorFrom(parsed.data),
-  });
+  let recorded: RecordedGift;
+  try {
+    recorded = await recordPledge({
+      causeSlug: cause.slug,
+      pledgeType: type,
+      amountPerPeriod: type === "in_kind" ? null : parseKes(parsed.data.amountPerPeriod ?? ""),
+      numberOfPeriods: type === "in_kind" ? null : type === "one_time" ? 1 : Number(parsed.data.numberOfPeriods),
+      inKindDescription: type === "in_kind" ? parsed.data.inKindDescription : undefined,
+      donor: donorFrom(parsed.data),
+    });
+  } catch (e) {
+    return failure(e, values);
+  }
   refreshProgress(cause.slug);
-  redirect(`/thank-you/${record.reference}`);
+  redirect(giftUrl(recorded));
 }

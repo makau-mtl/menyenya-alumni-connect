@@ -1,5 +1,20 @@
 # Progress
 
+## 16 October 2026: M1, database, roles and admin sign-in (with giving brought forward)
+
+**Built**
+- Six database migrations (`supabase/migrations`): people and contacts, membership profiles, next of kin, consents, duplicate flags; pick lists (categories, levels, clusters, counties, classes 1975–2026); roles with scope and term, and the `has_role()` check; payment channels, funds, causes, gifts, recurring gifts, pledges, payments and allocations; audit log and sensitive-access log; starting data including the plenary's founding pledges.
+- Access rules on every table. Visitors give only through `give()` and `make_pledge()`, which validate, match or create the person, flag possible duplicates, and return a reference with a private receipt token.
+- Money safeguards: payments can't be recorded twice, edited (except status) or deleted; allocations can't exceed the payment.
+- 23 database tests against a local Postgres, including class reps seeing only their class and next of kin hidden from reps.
+- Website: giving and pledging save to the database when connected; the thank-you page needs the private token; progress comes from the database.
+- Sign-in: email and password, emailed sign-in link, Google (once switched on). `/admin` shows totals, latest pledges and gifts to the Chairman, Treasurer and administrators.
+- GitHub workflows: **Checks** (lint, types, tests, build) and **Database** (applies migrations to Supabase).
+
+**For the product owner**: follow `docs/SETUP-SUPABASE.md`.
+
+**Not yet**: registration saving (M3), payment entry and imports (M4), emails (confirmation messages say "will be sent").
+
 ## 15 October 2026 (evening): public website redesigned
 
 Following feedback, the public site now follows the pattern of Trees for the Future's site.

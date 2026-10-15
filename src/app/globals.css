@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+/* Brand tokens. Navy ink and gold progress match the leadership deck; tea green marks actions. */
+@theme {
+  --color-paper: #f7f7f4;
+  --color-surface: #ffffff;
+  --color-ink: #17283b;
+  --color-ink-soft: #4a5868;
+  --color-line: #dcdfe2;
+  --color-tea: #2e6b4f;
+  --color-tea-dark: #22533c;
+  --color-tea-tint: #e6efe9;
+  --color-gold: #e9a94b;
+  --color-gold-tint: #fbf0dc;
+  --color-brick-empty: #e4e2dc;
+  --color-alert: #9b2c1f;
+
+  --font-display: "Domine", Georgia, serif;
+  --font-sans: "Nunito Sans Variable", "Nunito Sans", system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes lay-brick {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

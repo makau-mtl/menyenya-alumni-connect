@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const choices = [
   {
     title: "Give today",
-    text: "A one-off gift of any amount, to the tuition block, a student in need, or wherever it is most needed.",
+    text: "A one-off gift of any amount, to the tuition block, a student in need, or the Menyenya Alumni Fund.",
     cta: "Donate",
     href: "/donate",
     image: "a student reading in the library",

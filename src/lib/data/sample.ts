@@ -67,10 +67,10 @@ export const causes: Cause[] = [
     ],
   },
   {
-    slug: "where-most-needed",
-    title: "Where most needed",
+    slug: "alumni-fund",
+    title: "Menyenya Alumni Fund",
     summary:
-      "Give to the association's general fund. Leaders direct it to the most urgent need, and report how it was used.",
+      "Flexible support for the association's work and the school's urgent needs, directed by elected leaders and reported to members.",
     story: [
       "Gifts to this fund support the association's work: running costs, events that bring alumni together, and urgent needs at the school.",
       "Every shilling is recorded and reported in the association's annual financial report.",

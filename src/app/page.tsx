@@ -73,8 +73,10 @@ export default async function HomePage() {
           <div>
             <h2 className="text-3xl font-bold sm:text-4xl">A message from our Chairman</h2>
             <p className="mt-4 text-lg text-ink-soft">{chairMessage.summary}</p>
-            <p className="mt-6 font-semibold">{chairMessage.name}</p>
-            <p className="text-ink-soft">{chairMessage.role}, Menyenya SDA High School Alumni Association</p>
+            {chairMessage.name && <p className="mt-6 font-semibold">{chairMessage.name}</p>}
+            <p className={chairMessage.name ? "text-ink-soft" : "mt-6 font-semibold"}>
+              {chairMessage.role}, Menyenya SDA High School Alumni Association
+            </p>
           </div>
         </div>
       </section>

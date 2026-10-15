@@ -92,22 +92,19 @@ export function VideoSlot({ youtubeId, title, caption }: { youtubeId: string | n
   );
 }
 
-/** Portrait placeholder for a person, showing initials until a photo is uploaded. */
-export function PersonPhoto({ name, src }: { name: string; src?: string }) {
-  if (src) return <img src={src} alt={name} className="aspect-[4/5] w-full rounded-xl object-cover" />;
-  const initials = name
-    .replace(/^(Prof|Dr|Mr|Mrs|Ms)\.?\s+/i, "")
-    .split(/\s+/)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("");
+/** Portrait placeholder for a person, shown until a photo is uploaded. */
+export function PersonPhoto({ name, role, src }: { name: string | null; role: string; src?: string }) {
+  if (src) return <img src={src} alt={name ?? role} className="aspect-[4/5] w-full rounded-xl object-cover" />;
   return (
     <div
       role="img"
-      aria-label={`Photo of ${name} to come`}
-      className="flex aspect-[4/5] w-full items-center justify-center rounded-xl bg-[linear-gradient(160deg,#e6efe9_0%,#dcdfe2_100%)]"
+      aria-label={`Photo of the ${role} to come`}
+      className="flex aspect-[4/5] w-full items-end justify-center overflow-hidden rounded-xl bg-[linear-gradient(160deg,#e6efe9_0%,#dcdfe2_100%)]"
     >
-      <span className="font-display text-5xl font-bold text-ink/30">{initials}</span>
+      <svg aria-hidden viewBox="0 0 100 100" className="w-3/4 text-ink/15" fill="currentColor">
+        <circle cx="50" cy="36" r="18" />
+        <path d="M14 100c0-22 16-36 36-36s36 14 36 36z" />
+      </svg>
     </div>
   );
 }

@@ -253,7 +253,7 @@ Callbacks are routed per channel (a separate secret callback path per channel). 
 |---|---|---|
 | slug | TEXT UNIQUE | for URL and QR code |
 | title, summary, story_md | TEXT | problem statement and story |
-| kind | ENUM('campaign','ongoing_fund','general','appeal') | `general` = "Where most needed" |
+| kind | ENUM('campaign','ongoing_fund','general','appeal') | `general` = "Menyenya Alumni Fund" (unrestricted) |
 | fund_id | UUID → funds | |
 | target_amount | NUMERIC NULL | campaigns |
 | official_start_date / end_date | DATE NULL | campaign clock starts at official launch |
@@ -480,7 +480,7 @@ Behaviour:
 ### 6.5 Giving — pledges and donations (no account needed)
 
 **Donation journey (3 steps, Trees-for-the-Future style):**
-1. **Amount** — cause pre-selected from its page (or "Where most needed"); Give once / Recurring (monthly, quarterly, annually — only periods allowed by the cause); preset amounts; custom amount; currency (KES default; USD/GBP when card payments are on); optional dedication and comment.
+1. **Amount** — cause pre-selected from its page (or the Menyenya Alumni Fund); Give once / Recurring (monthly, quarterly, annually — only periods allowed by the cause); preset amounts; custom amount; currency (KES default; USD/GBP when card payments are on); optional dedication and comment.
 2. **Details** — first and last name, email, phone (required for M-Pesa); "Donate as an organisation" (organisation name, contact person, type); "Donate anonymously"; "Update me on my impact" (consent).
 3. **Payment** — M-Pesa STK push (Phase 1, Sprint 8) / card (Phase 2); optional "cover transaction costs"; total shown. **Before payments are live (record-only mode):** show Paybill/bank instructions with the reference as account number, and record the donation as `initiated`.
 
@@ -563,7 +563,7 @@ Admin moves a campaign through `preparation → live → construction → closed
 
 ## 7. Feature Specs — Phase 2 (Apr–Sep 2027)
 
-- **Causes and full donation form:** "Where most needed" + multiple causes (Keep a Child in School, appeals); card payments via Paystack; currency selection; cover-fees.
+- **Causes and full donation form:** the Menyenya Alumni Fund + multiple causes (Keep a Child in School, appeals); card payments via Paystack; currency selection; cover-fees.
 - **Initiative/cause setup with approvals:** admin creates causes with all metadata in §5.4; publication goes through the workflow (§5.7); media galleries with ordering and purposes.
 - **Sponsorship units:** donors fund units (e.g. one term's fees); page shows units funded vs needed; beneficiaries managed privately by the committee and school liaison; never named publicly.
 - **Events engine with approvals:** cohort/cluster reps propose events by type; workflow per type (events coordinator; chair for association-wide; school liaison if at school); changes-requested loop; publish; tickets; check-in; linked giving; post-event report with photos.
@@ -716,7 +716,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 - Levels: Foundation (token fee e.g. KES 20, one-off; can_request_mentor), Launch (low; can_request_mentor), Growth (medium; can_mentor), Impact (highest; can_mentor). Fees initially 0 / switched off until leadership decides.
 - Clusters: Nairobi, Kisii, Nyamira, Nakuru, Eldoret, Kisumu, Mombasa, Diaspora.
 - Cohorts: one per year from 1975 to current year.
-- Funds/causes: General Fund ("Where most needed"); Tuition Block Fund + "Tuition Block" campaign (target KES 100,000,000, lifecycle `preparation`).
+- Funds/causes: General Fund (shown as "Menyenya Alumni Fund"); Tuition Block Fund + "Tuition Block" campaign (target KES 100,000,000, lifecycle `preparation`).
 - Roles: §4.2. Workflows: §5.7 defaults.
 - Message templates: registration welcome, pledge confirmation, donation receipt, OTP, recurring reminder, pledge reminder, monthly statement, verification approved.
 

@@ -9,13 +9,9 @@ export const metadata: Metadata = { title: "Leadership and secretariat" };
 function PersonCard({ person }: { person: Person }) {
   return (
     <li>
-      <PersonPhoto name={person.name} />
-      <h3 className="mt-4 text-xl font-bold">{person.name}</h3>
-      <p className="text-ink-soft">
-        {person.role}
-        {!person.roleConfirmed && <span className="text-sm"> (title to confirm)</span>}
-      </p>
-      {person.classOf && <p className="text-sm text-ink-soft">Class of {person.classOf}</p>}
+      <PersonPhoto name={person.name} role={person.role} />
+      <h3 className="mt-4 text-xl font-bold">{person.role}</h3>
+      <p className="text-ink-soft">{person.name ?? "Name to be added"}</p>
     </li>
   );
 }
@@ -29,7 +25,7 @@ export default function TeamPage() {
       />
 
       <div className="section pt-8">
-        <DraftNote>names and titles are shown for review. Photos and short biographies will be added with each person&rsquo;s consent.</DraftNote>
+        <DraftNote>the roles shown are for review. Names, photos and short biographies will be added once each person agrees to be listed.</DraftNote>
       </div>
 
       <section className="section pt-14">
@@ -37,7 +33,7 @@ export default function TeamPage() {
         <p className="mt-3 max-w-2xl text-ink-soft">Elected by members to lead the association.</p>
         <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {leadership.map((p) => (
-            <PersonCard key={p.name} person={p} />
+            <PersonCard key={p.role} person={p} />
           ))}
         </ul>
       </section>
@@ -46,7 +42,7 @@ export default function TeamPage() {
         <h2 className="text-3xl font-bold">Our partner at the school</h2>
         <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {school.map((p) => (
-            <PersonCard key={p.name} person={p} />
+            <PersonCard key={p.role} person={p} />
           ))}
         </ul>
       </section>

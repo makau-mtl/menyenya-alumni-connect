@@ -12,7 +12,7 @@ export const org = {
 /** Video message from the Chairman. Set youtubeId once the video is recorded. */
 export const chairMessage = {
   youtubeId: null as string | null,
-  name: "Justin Mabeya",
+  name: null as string | null,
   role: "Chairman",
   summary:
     "A short welcome from our Chairman on why the association matters, what we are building together, and how every alumnus can play a part.",
@@ -51,22 +51,22 @@ export const pillars = [
 ];
 
 export type Person = {
-  name: string;
   role: string;
-  roleConfirmed: boolean;
-  classOf?: string;
+  /** Leave null until the person has agreed to be listed. */
+  name: string | null;
 };
 
+// Names are added only after each person confirms their role and consents to be listed.
 export const leadership: Person[] = [
-  { name: "Justin Mabeya", role: "Chairman", roleConfirmed: true },
-  { name: "Prof Kefa Otiso", role: "Official", roleConfirmed: false },
-  { name: "Benjamin Onyancha", role: "Official", roleConfirmed: false },
-  { name: "Mercy Nyabiba", role: "Official", roleConfirmed: false },
-  { name: "Jones Nyachiro", role: "Legal adviser", roleConfirmed: false },
-  { name: "Nehemiah Makau", role: "Technical Committee; alumni platform", roleConfirmed: false, classOf: "2010" },
+  { role: "Chairman", name: null },
+  { role: "Vice Chairman", name: null },
+  { role: "Secretary", name: null },
+  { role: "Treasurer", name: null },
+  { role: "Events Coordinator", name: null },
+  { role: "Welfare Coordinator", name: null },
 ];
 
-export const school: Person[] = [{ name: "Samwel Abuga", role: "Principal, Menyenya SDA High School", roleConfirmed: true }];
+export const school: Person[] = [{ role: "Principal, Menyenya SDA High School", name: null }];
 
 export const secretariat = [
   {

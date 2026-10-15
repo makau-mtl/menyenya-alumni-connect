@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Our work" };
 const images: Record<string, string> = {
   "tuition-block": "the planned tuition block",
   "keep-a-child-in-school": "a student in class",
-  "where-most-needed": "alumni and students together",
+  "alumni-fund": "alumni and students together",
 };
 
 const comingNext = [

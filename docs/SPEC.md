@@ -183,7 +183,7 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | skills | TEXT[] | |
 | willing_to_volunteer | BOOLEAN DEFAULT false | |
 | mentoring_offer | ENUM('none','can_mentor','wants_mentor') | allowed values depend on level flags |
-| membership_status | ENUM('registered','verified','active','lapsed','terminated') | `active` = paid-up when fees are on; `terminated` replaces `exited` (§6.3a) |
+| membership_status | ENUM('registered','verified','active','lapsed','terminated') | `active` = paid-up when fees are on; `terminated` replaces `exited` (§6.3a). Standing shown to members is **Active / Inactive** (decided 17 Oct 2026): Active = paid for the current calendar year, or last year's until 31 March; fees are paid per year with no arrears; everyone registered is Active while fees are off. Only Active members vote. |
 | terminated_at, termination_reason, rejoin_until | | set when the member terminates (§6.3a) |
 | deletion_requested_at | TIMESTAMPTZ NULL | deletion runs when `rejoin_until` passes |
 | registered_at | TIMESTAMPTZ | when the last registration step was submitted |
@@ -631,7 +631,7 @@ Admin moves a campaign through `preparation → live → construction → closed
 
 ## 8. Feature Specs — Phase 3 (Oct 2027–Mar 2028)
 
-- **Membership levels and fees in use:** fee per level (one-off or annual), renewal reminders, `lapsed` status, level targeting of initiatives/events/messages, reports by level.
+- **Membership levels and fees in use:** fee per level (one-off or annual), renewal reminders (Jan–Mar), Active/Inactive standing (calendar year, grace to 31 March, no arrears), level targeting of initiatives/events/messages, reports by level.
 - **Governance:** offices and terms, handover, committees, meetings and minutes, document repository with visibility levels.
 - **Mentorship:** mentor/mentee profiles governed by level flags, matching by field and interests, requests, sessions log.
 - **Group chats:** automatic channel per cohort and per cluster; interest group and committee channels; text, photos, links, shared events/causes; @mentions, replies; moderation by reps (remove, mute), member reporting; push notifications; mute per chat.
@@ -819,6 +819,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | One "Our people" page (Leadership · Secretariat · Members) with trees.org-style cards and pop-ups; no contact details but LinkedIn. Leadership is the board; positions (including ex officio roles like the school principal) are managed in the admin area; terms are visible to members only and administrators are alerted when they end. Holding office implies being shown publicly. |
 | 17 Oct 2026 | Membership standing: **Active** = paid up for the current calendar year (Jan–Dec); **Inactive** = not paid up. Only active members may vote and take part in decisions. Until membership fees are switched on, every registered member counts as active. |
+| 17 Oct 2026 | Grace period: last year's paid-up members stay Active until **31 March**, with regular reminders to renew; unpaid after that, they become Inactive. A member may choose to stay inactive for a year and pay later: they pay only for the year they want to be active, **never arrears**. |
 | 17 Oct 2026 | Under Ways to support: a **Corporate sponsorships** page (sponsorship packages editable by administrators, amounts left blank until leadership approves them) and a **Strategic partnerships** page, both showcasing institutional sponsors and partners (logos managed in the admin area), modelled on trees.org/support/corporate-sponsors. |
 | 17 Oct 2026 | **Alumni merchandise** now as a catalogue plus order requests (item, size, quantity, pickup); the secretariat confirms and the buyer pays through the official Paybill. The full shop with checkout stays in Phase 4. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |

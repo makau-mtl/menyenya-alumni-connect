@@ -4,13 +4,26 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Log in" };
 
-export default function LoginPage() {
+const errors: Record<string, string> = {
+  link: "That sign-in link has expired or was already used. Request a new one below.",
+  google: "Google sign-in isn't switched on yet. Use your email and password, or email yourself a sign-in link.",
+  "not-connected": "Member log-in opens with registration in January 2027.",
+};
+
+type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function LoginPage({ searchParams }: Props) {
+  const q = await searchParams;
+  const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+  const nextParam = first(q.next);
+  const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/admin";
+  const error = errors[first(q.error)];
   return (
     <div className="section grid gap-12 pt-12 lg:grid-cols-2 lg:pt-20">
       <div className="mx-auto w-full max-w-md lg:mx-0">
         <h1 className="text-4xl font-bold">Log in</h1>
         <p className="mt-3 text-ink-soft">For registered members of the association.</p>
-        <LoginForm />
+        <LoginForm next={next} initialError={error} />
         <p className="mt-8 text-ink-soft">
           Not a member yet?{" "}
           <Link href="/join" className="font-semibold text-tea underline underline-offset-4">

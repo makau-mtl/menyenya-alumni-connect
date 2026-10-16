@@ -8,6 +8,9 @@ import { ImageSlot, VideoSlot } from "@/components/media";
 import { NewsCard } from "@/components/news-card";
 import { buttonClass } from "@/components/ui";
 
+// Progress figures refresh at least once a minute; pledges also refresh them straight away.
+export const revalidate = 60;
+
 export default async function HomePage() {
   const block = await getCause("tuition-block");
   if (!block || !block.targetAmount) notFound();

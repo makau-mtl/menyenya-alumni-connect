@@ -12,6 +12,9 @@ const images: Record<string, string> = {
   "alumni-fund": "alumni and students together",
 };
 
+// Progress figures refresh at least once a minute; pledges also refresh them straight away.
+export const revalidate = 60;
+
 export default async function DonatePage() {
   const causes = await listCauses();
   const progress = await getCauseProgress("tuition-block");

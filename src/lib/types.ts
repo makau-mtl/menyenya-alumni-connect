@@ -19,7 +19,7 @@ export interface Fund {
 }
 
 export type CauseKind = "campaign" | "ongoing_fund" | "general" | "appeal";
-export type Lifecycle = "preparation" | "live" | "construction" | "closed";
+export type Lifecycle = "draft" | "in_review" | "approved" | "preparation" | "live" | "construction" | "closed";
 export type RecurringPeriod = "monthly" | "quarterly" | "annually";
 
 export interface SuggestedPledge {
@@ -99,4 +99,44 @@ export interface CauseProgress {
   received: number;
   pledgeCount: number;
   updatedAt: string;
+}
+
+/** What the thank-you page shows. Read with the private receipt token. */
+export interface Receipt {
+  kind: "donation" | "pledge";
+  reference: string;
+  causeSlug: string;
+  causeTitle: string;
+  firstName: string;
+  email: string | null;
+  amount?: number;
+  frequency?: "once" | RecurringPeriod;
+  pledgeType?: PledgeType;
+  amountPerPeriod?: number | null;
+  numberOfPeriods?: number | null;
+  totalAmount?: number | null;
+  inKindDescription?: string | null;
+  isFounding?: boolean;
+}
+
+export interface GiftInput {
+  causeSlug: string;
+  amount: number;
+  frequency: "once" | RecurringPeriod;
+  dedication?: string;
+  donor: Donor;
+}
+
+export interface PledgeInput {
+  causeSlug: string;
+  pledgeType: PledgeType;
+  amountPerPeriod: number | null;
+  numberOfPeriods: number | null;
+  inKindDescription?: string;
+  donor: Donor;
+}
+
+export interface RecordedGift {
+  reference: string;
+  receiptToken: string;
 }

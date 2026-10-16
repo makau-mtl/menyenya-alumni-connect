@@ -1,14 +1,17 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { findByReference, getCause, getChannelForCause } from "@/lib/data";
+import { getCause, getChannelForCause, getReceipt } from "@/lib/data";
 import { formatKes } from "@/lib/money";
 import { isReference } from "@/lib/references";
 import { buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Thank you", robots: { index: false } };
 
-type Params = { params: Promise<{ reference: string }> };
+type Params = {
+  params: Promise<{ reference: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 const periodUnit: Record<string, string> = { monthly: "months", quarterly: "quarters", annual: "years" };
 
@@ -19,45 +22,47 @@ const periodText: Record<string, string> = {
   annual: "every year",
 };
 
-export default async function ThankYouPage({ params }: Params) {
+export default async function ThankYouPage({ params, searchParams }: Params) {
   const { reference } = await params;
-  if (!isReference(reference)) notFound();
-  const found = await findByReference(reference);
-  if (!found) notFound();
-  const cause = await getCause(found.record.causeSlug);
+  const t = (await searchParams).t;
+  const token = Array.isArray(t) ? t[0] : t;
+  if (!isReference(reference) || !token || !/^[0-9a-f-]{36}$/i.test(token)) notFound();
+  const receipt = await getReceipt(reference, token);
+  if (!receipt) notFound();
+  const cause = await getCause(receipt.causeSlug);
   if (!cause) notFound();
   const channel = await getChannelForCause(cause);
-  const { donor } = found.record;
 
   let summary: string;
-  if (found.kind === "donation") {
-    const d = found.record;
-    summary = `${formatKes(d.amount)}${d.frequency === "once" ? "" : ` ${periodText[d.frequency]}`}`;
+  if (receipt.kind === "donation") {
+    const freq = receipt.frequency ?? "once";
+    summary = `${formatKes(receipt.amount ?? 0)}${freq === "once" ? "" : ` ${periodText[freq]}`}`;
   } else {
-    const p = found.record;
+    const type = receipt.pledgeType ?? "one_time";
     summary =
-      p.pledgeType === "in_kind"
-        ? `In kind: ${p.inKindDescription}`
-        : p.pledgeType === "one_time"
-          ? formatKes(p.totalAmount ?? 0)
-          : `${formatKes(p.amountPerPeriod ?? 0)} ${periodText[p.pledgeType]} for ${p.numberOfPeriods} ${periodUnit[p.pledgeType]}, ${formatKes(p.totalAmount ?? 0)} in total`;
+      type === "in_kind"
+        ? `In kind: ${receipt.inKindDescription}`
+        : type === "one_time"
+          ? formatKes(receipt.totalAmount ?? 0)
+          : `${formatKes(receipt.amountPerPeriod ?? 0)} ${periodText[type]} for ${receipt.numberOfPeriods} ${periodUnit[type]}, ${formatKes(receipt.totalAmount ?? 0)} in total`;
   }
+  const email = receipt.email ?? "your email";
 
   const joinHref = `/join?from=donation&ref=${encodeURIComponent(reference)}`;
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-12">
-      <h1 className="text-4xl font-bold">Thank you, {donor.firstName}</h1>
+      <h1 className="text-4xl font-bold">Thank you, {receipt.firstName}</h1>
       <p className="mt-3 text-lg text-ink-soft">
-        {found.kind === "pledge" ? "Your pledge" : "Your gift"} to {cause.title.toLowerCase()} is recorded.
-        {found.kind === "pledge" && found.record.isFounding && " It counts as a founding pledge."}
+        {receipt.kind === "pledge" ? "Your pledge" : "Your gift"} to {cause.title.toLowerCase()} is recorded.
+        {receipt.kind === "pledge" && receipt.isFounding && " It counts as a founding pledge."}
       </p>
 
       <section className="mt-8 rounded-lg border border-line bg-surface p-6">
         <p className="text-ink-soft">Your reference</p>
         <p className="mt-1 font-display text-3xl font-bold tracking-wide sm:text-4xl">{reference}</p>
         <p className="mt-4">{summary}</p>
-        <p className="mt-1 text-[0.95rem] text-ink-soft">Confirmation sent to {donor.email}</p>
+        <p className="mt-1 text-[0.95rem] text-ink-soft">A confirmation will be sent to {email}</p>
       </section>
 
       <section className="mt-10">
@@ -75,7 +80,7 @@ export default async function ThankYouPage({ params }: Params) {
         ) : (
           <div className="mt-4 rounded-lg bg-gold-tint p-5">
             <p>
-              The Paybill for this cause is being confirmed. We will send it to {donor.email} with your reference. When
+              The Paybill for this cause is being confirmed. We will send it to {email} with your reference. When
               you pay, enter <strong>{reference}</strong> as the account number so your payment is matched to you.
             </p>
           </div>

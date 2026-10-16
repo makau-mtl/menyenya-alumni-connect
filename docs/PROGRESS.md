@@ -1,5 +1,12 @@
 # Progress
 
+## 17 October 2026: everyone in the directory
+
+- Every current member appears in the member directory for signed-in members (no opt-out; terminated members drop out). Their photo is visible to fellow members.
+- Members choose who sees their phone and email: only the association (default), their class, or all members. The member card shows Call, WhatsApp and Email when allowed.
+- Registration consent and the privacy policy say so plainly; the directory tick-box is gone.
+
+
 ## 17 October 2026: M6, member area
 
 **Built**

@@ -30,7 +30,7 @@ export default async function ProfilePage() {
   const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase
       .from("member_profiles")
-      .select("headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
+      .select("contact_visibility, headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
       .eq("person_id", member.personId!)
       .single(),
     member.supabase.from("consents").select("purpose, granted, created_at").order("created_at", { ascending: false }),
@@ -57,7 +57,7 @@ export default async function ProfilePage() {
         </nav>
       </div>
 
-      <Section id="photo" title="Your photo" intro="A passport-style photo helps classmates put a face to the name. Your Google or LinkedIn photo is used until you upload one. Only signed-in members see it, and only if you agree to be in the directory.">
+      <Section id="photo" title="Your photo" intro="A passport-style photo helps classmates put a face to the name. Your Google or LinkedIn photo is used until you upload one. Fellow members see it in the member directory; the public sees it only if you switch on a public profile.">
         <div className="flex flex-wrap items-start gap-6">
           {photo ? (
             <div className="flex flex-col items-start gap-2">
@@ -112,7 +112,7 @@ export default async function ProfilePage() {
       </Section>
 
       <Section id="choices" title="Privacy choices" intro={<>Change these whenever you like. See the <Link href="/privacy" className="underline">privacy policy</Link>.</>}>
-        <ChoicesForm current={consents} />
+        <ChoicesForm current={consents} contactVisibility={p?.contact_visibility ?? "hidden"} />
         {consents.public_profile && member.personId && (
           <p className="mt-6">
             <Link href={`/people/${member.personId}`} className="font-semibold text-tea underline underline-offset-4">View my public profile</Link>

@@ -176,7 +176,7 @@ export async function saveWelfareContact(_prev: ActionState, formData: FormData)
   return done("Saved. Only you and the Welfare Coordinator can see this.");
 }
 
-const choiceKeys = ["directory_listing", "email_updates", "whatsapp_updates", "public_profile"] as const;
+const choiceKeys = ["email_updates", "whatsapp_updates", "public_profile"] as const;
 
 export async function saveChoices(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const m = await memberOrError();
@@ -193,6 +193,10 @@ export async function saveChoices(_prev: ActionState, formData: FormData): Promi
     .map((k) => ({ purpose: k, granted: formData.get(k) === "on" }))
     .filter((c) => current.get(c.purpose) !== c.granted)
     .map((c) => ({ ...c, person_id: m.personId, wording_version: "v1" }));
+  const visibility = String(formData.get("contact_visibility") ?? "hidden");
+  if (!["hidden", "cohort", "members"].includes(visibility)) return fail("Choose who can see your phone and email.");
+  const { error: visError } = await m.supabase.from("member_profiles").update({ contact_visibility: visibility }).eq("person_id", m.personId);
+  if (visError) return fail("Your choices could not be saved. Please try again.");
   if (changes.length) {
     const { error } = await m.supabase.from("consents").insert(changes);
     if (error) {
@@ -200,7 +204,7 @@ export async function saveChoices(_prev: ActionState, formData: FormData): Promi
       return fail("Your choices could not be saved. Please try again.");
     }
   }
-  return done(changes.length ? "Your choices are saved." : "Nothing changed.");
+  return done("Your choices are saved.");
 }
 
 // Confirming members (when switched on) --------------------------------------------------------------

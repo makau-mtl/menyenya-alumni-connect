@@ -39,8 +39,8 @@ const sections: { h: string; p: React.ReactNode[] }[] = [
   {
     h: "Who can see it",
     p: [
-      "Your phone number and email are never shown publicly or in the member directory.",
-      "If you agree to be listed, signed-in members can see your name, class, region, photo and work summary.",
+      "Being a member means fellow signed-in members can see your name, class, region, photo and work summary in the member directory.",
+      "Your phone number and email are never shown publicly. Other members see them only if you choose: your class, or all members. By default only the association sees them.",
       "If you switch on a public profile, anyone can see your name, class, one-line summary, photo and links. It is off unless you switch it on.",
       "Your class rep and the officials who manage membership see the details they need to confirm and support members.",
       "Welfare programme details, including your emergency contact, are seen only by you and the Welfare Coordinator. Each time the coordinator looks, it is recorded.",

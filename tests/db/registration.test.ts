@@ -236,15 +236,11 @@ describe("after registration", () => {
     await as(db, { user: outsider }, async () => {
       expect((await db.query("select name from storage.objects where bucket_id = 'member-photos'")).rows.length).toBe(0);
     });
-    // Another member sees it only once the owner agrees to be in the directory.
+    // Every current member is in the directory, so fellow members see the photo.
     const peer = await createLogin(db, "peer@example.com");
     await register(peer, alumnus({ full_name: "Peer Member", phone: "0711 666 888" }));
     const visible = () => as(db, { user: peer }, async () =>
       (await db.query("select name from storage.objects where bucket_id = 'member-photos' and name like $1", [`${p}/%`])).rows.length);
-    expect(await visible()).toBe(1); // agreed to the directory when registering
-    await db.query("insert into public.consents (person_id, purpose, granted) values ($1, 'directory_listing', false)", [p]);
-    expect(await visible()).toBe(0); // withdrew
-    await db.query("insert into public.consents (person_id, purpose, granted) values ($1, 'directory_listing', true)", [p]);
     expect(await visible()).toBe(1);
   });
 });

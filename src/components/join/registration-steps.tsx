@@ -191,7 +191,7 @@ function Steps({ lists, defaultName, email, storageKey, invite, adminTesting }: 
         occupation_status: a.category === "alumnus" ? (a.occupation || null) : null,
         level: a.category === "alumnus" ? a.level || null : null,
         invite: invite?.token ?? null,
-        consents: { ...a.consents, membership_data: true },
+        consents: { ...a.consents, membership_data: true, directory_listing: true },
       });
       // Success redirects to the welcome page; we only get here if something needs fixing.
       if (result?.error) setServerError(result.error);
@@ -446,8 +446,7 @@ function Steps({ lists, defaultName, email, storageKey, invite, adminTesting }: 
             <fieldset className="flex flex-col gap-4">
               <legend className="mb-1 font-semibold">Your choices</legend>
               {[
-                { k: "membership_data" as const, t: "I agree to the association processing my personal data (required)", d: <>To keep the register and run my membership, as set out in the <Link href="/privacy" target="_blank" className="underline">privacy policy</Link>. You can leave at any time.</> },
-                { k: "directory_listing" as const, t: "List me in the member directory", d: "Signed-in members can see your name, class, region, photo and work summary. Never your phone or email." },
+                { k: "membership_data" as const, t: "I agree to the association processing my personal data (required)", d: <>To keep the register and run my membership, as set out in the <Link href="/privacy" target="_blank" className="underline">privacy policy</Link>. Fellow members will see my name, class, region, photo and work summary in the member directory; my phone and email stay private unless I choose to share them. I can leave at any time.</> },
                 { k: "email_updates" as const, t: "Email me news and updates", d: "About once a month." },
                 { k: "whatsapp_updates" as const, t: "Send me updates on WhatsApp", d: "Only important notices." },
                 { k: "public_profile" as const, t: "Show a short public profile", d: "Anyone can see your name, class, one-line summary and links. You can switch it off anytime." },

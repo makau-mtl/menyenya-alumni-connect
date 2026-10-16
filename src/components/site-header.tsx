@@ -10,7 +10,7 @@ export const mainNav: NavItem[] = [
     href: "/who-we-are",
     children: [
       { label: "About us", href: "/who-we-are", text: "Our mission, vision and story" },
-      { label: "Leadership and secretariat", href: "/who-we-are/team", text: "The people who serve the association" },
+      { label: "Our people", href: "/our-people", text: "Leadership, secretariat and members" },
       { label: "Careers", href: "/careers", text: "Internships and roles with the association" },
     ],
   },

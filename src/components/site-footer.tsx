@@ -7,7 +7,7 @@ const columns = [
     title: "Who we are",
     links: [
       { label: "About us", href: "/who-we-are" },
-      { label: "Leadership and secretariat", href: "/who-we-are/team" },
+      { label: "Our people", href: "/our-people" },
       { label: "Careers", href: "/careers" },
       { label: "News and events", href: "/news" },
     ],

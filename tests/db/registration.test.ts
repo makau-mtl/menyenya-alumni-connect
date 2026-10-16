@@ -261,3 +261,12 @@ describe("giving officials a role", () => {
     });
   });
 });
+
+describe("links the website names", () => {
+  it("keeps the database link names the website uses to read a member's profile", async () => {
+    // member_profiles points at persons three ways, so the website names this link explicitly.
+    const r = await db.query<{ conname: string }>(
+      "select conname from pg_constraint where conname = 'member_profiles_person_id_fkey'");
+    expect(r.rows.length).toBe(1);
+  });
+});

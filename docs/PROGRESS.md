@@ -1,5 +1,11 @@
 # Progress
 
+## 16 October 2026: logo
+
+- The association's logo is **mhs.alumni** (chosen by the product owner). It is in the website header and footer, and is the browser tab and phone home-screen icon.
+- Logo files for print and social media are in `public/brand/`; usage, colours and fonts in `docs/BRAND.md`.
+
+
 ## 16 October 2026 (evening): M3, registration
 
 Agreed with the product owner first, and written into the spec (§4.3, §5.1, §5.2, §6.2, §6.4, §12, decisions log).

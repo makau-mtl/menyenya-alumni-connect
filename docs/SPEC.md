@@ -765,5 +765,6 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Alumni get a suggested level (never Impact); friends have no level. Fees, if switched on, are applied at the end of registration. |
 | 16 Oct 2026 | Next of kin moves out of registration into welfare; seen by the member and Welfare Coordinator only (cohort rep only during an open case), every view logged. |
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
+| 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

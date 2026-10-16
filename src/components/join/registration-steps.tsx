@@ -151,7 +151,7 @@ function Steps({ lists, defaultName, email, storageKey, invite, adminTesting }: 
       if (!a.occupation) e.occupation = "Choose one.";
       if (!a.level) e.level = "Choose a level.";
     } else if (key === "finish") {
-      if (!a.consents.membership_data) e.membership_data = "Please agree so we can keep your membership details.";
+      if (!a.consents.membership_data) e.membership_data = "Please agree to the processing of your personal data. Without it we can't register you.";
     }
     return e;
   }
@@ -446,7 +446,7 @@ function Steps({ lists, defaultName, email, storageKey, invite, adminTesting }: 
             <fieldset className="flex flex-col gap-4">
               <legend className="mb-1 font-semibold">Your choices</legend>
               {[
-                { k: "membership_data" as const, t: "Keep my membership details", d: <>Required. The association keeps your details to run your membership, as set out in the <Link href="/privacy" target="_blank" className="underline">privacy policy</Link>.</> },
+                { k: "membership_data" as const, t: "I agree to the association processing my personal data (required)", d: <>To keep the register and run my membership, as set out in the <Link href="/privacy" target="_blank" className="underline">privacy policy</Link>. You can leave at any time.</> },
                 { k: "directory_listing" as const, t: "List me in the member directory", d: "Signed-in members can see your name, class, region, photo and work summary. Never your phone or email." },
                 { k: "email_updates" as const, t: "Email me news and updates", d: "About once a month." },
                 { k: "whatsapp_updates" as const, t: "Send me updates on WhatsApp", d: "Only important notices." },

@@ -191,7 +191,7 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | registration_source | TEXT | e.g. `web`, `post_donation`, `invite`, `import` |
 | directory_visibility | JSONB | per-field: `members` / `cohort` / `hidden` |
 
-**`next_of_kin`** — part of welfare, not registration (decided 16 Oct 2026): asked for in the profile's "Welfare and emergency contact" section and when a member joins a welfare scheme. Highly restricted.
+**`next_of_kin`** — part of the welfare programme only (decided 16 Oct 2026): never asked at registration or in the ordinary profile. Administrators configure and switch on the welfare programme; members are then notified and choose to opt in; on opting in they give the emergency contact together with family, dependants and supporting documents the programme requires. Members who don't opt in are never asked. Highly restricted.
 | Column | Type | Notes |
 |---|---|---|
 | person_id | UUID → persons | |
@@ -452,9 +452,9 @@ Revised 16 Oct 2026 with the product owner. Single link for everyone: `/join`. S
 2. **Your Menyenya link** — alumni: year left (→ cohort), optional admission year and class/stream; friends: relationship to the school (parent, former parent, teacher, former teacher, local business, neighbour, SDA faithful, other).
 3. **Where you live** — county (or Outside Kenya); region filled from the county, changeable. ⓘ "Regions organise meet-ups and networking".
 4. **Membership level** (alumni only; friends skip) — "What do you do now?" (occupation status) plus year left suggest a level: studying or left within 5 years → Foundation; early career → Launch; established professional or business owner → Growth. Impact is never suggested; the member chooses it. Each level has an ⓘ (tap or hover) with description, what it offers and fee.
-5. **Consents and finish** — a short summary with Change links; membership data (required, links to the privacy policy); email updates, WhatsApp updates, directory listing and public profile, all unticked until the member ticks them (consent must be given, not assumed). Shows the fee if one applies. Submit.
+5. **Consents and finish** — a short summary with Change links; "I agree to the association processing my personal data" (required, links to the privacy policy); email updates, WhatsApp updates, directory listing and public profile, all unticked until the member ticks them (consent must be given, not assumed). Shows the fee if one applies. Submit.
 
-**Afterwards (optional, any time from `/app/profile`):** passport-style photo, LinkedIn link and other links, one-line professional summary, profession, employer or business, products or services, skills, willing to volunteer, mentoring ("I can mentor" only if the level has `can_mentor`; "I would like a mentor" only if `can_request_mentor`), and the **Welfare and emergency contact** (next of kin).
+**Afterwards (optional, any time from `/app/profile`):** passport-style photo (the Google or LinkedIn photo is used until the member uploads one), LinkedIn link and other links, one-line professional summary, profession, employer or business, products or services, skills (picked from a shared, admin-editable `skills` list with type-ahead; a skill not listed can still be added), willing to volunteer, mentoring ("I can mentor" only if the level has `can_mentor`; "I would like a mentor" only if `can_request_mentor`). LinkedIn sign-in provides only name, email and photo; work details can't be imported from LinkedIn. Names typed all in capitals or lower case are tidied ("Grace Kerubo").
 
 Behaviour:
 - The final submit calls one database function that, in one go: links to the existing person with the same verified email (for example a donor) or creates one; adds the phone; creates `member_profiles` (status `registered`, `registered_at`) and `consents`; runs duplicate detection (same phone, same email, or same name + cohort) → `duplicate_flags`, never merges; if a fee applies (level fee, or category fee for friends) and `membership_fees` is on, creates a `membership_dues` row and the finish page shows how to pay; queues the welcome email.
@@ -768,6 +768,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Next of kin moves out of registration into welfare; seen by the member and Welfare Coordinator only (cohort rep only during an open case), every view logged. |
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
 | 16 Oct 2026 | Member confirmation (verification) is a setting: on or off, and which roles confirm, changeable by administrators. |
+| 16 Oct 2026 | Names are tidied; the sign-in photo is the default photo; skills come from a shared list with type-ahead; emergency contact only within the opt-in welfare programme. |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

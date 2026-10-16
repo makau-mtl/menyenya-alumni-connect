@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSessionClient } from "@/lib/supabase/server";
+import { providerPhotoUrl } from "./provider-photo";
 
 // The signed-in person, if any, and whether they have finished registering.
 export const getMember = cache(async () => {
@@ -28,6 +29,8 @@ export const getMember = cache(async () => {
     userId: c.sub,
     email: (c.email as string | undefined) ?? "",
     nameFromSignIn: String(meta.full_name ?? meta.name ?? "").trim(),
+    providerPhoto: providerPhotoUrl(meta),
+    provider: String((c.app_metadata as Record<string, unknown> | undefined)?.provider ?? "email"),
     personId: person?.id ?? null,
     fullName: person?.full_name ?? null,
     registered: Boolean(profile),

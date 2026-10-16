@@ -6,6 +6,7 @@ import type { ActionState } from "@/lib/admin/staff";
 import { phoneCountries } from "@/lib/phone";
 import { occupationOptions } from "@/lib/registration";
 import { Field, buttonClass, inputClass } from "@/components/ui";
+import { SkillsInput } from "./skills-input";
 
 type Action = (prev: ActionState, fd: FormData) => Promise<ActionState>;
 
@@ -51,37 +52,37 @@ export type WorkValues = {
   canRequestMentor: boolean;
 };
 
-export function WorkForm({ v }: { v: WorkValues }) {
+export function WorkForm({ v, skillOptions }: { v: WorkValues; skillOptions: string[] }) {
   const { state, saving, onSubmit, err } = useForm(saveWork);
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <Field label="One-line summary" name="headline" hint="For example: Civil engineer building roads in Western Kenya." error={err("headline")}>
+      <Field label="One-line summary (optional)" name="headline" hint="For example: Civil engineer building roads in Western Kenya." error={err("headline")}>
         <input id="headline" name="headline" defaultValue={v.headline} maxLength={160} className={inputClass} />
       </Field>
       <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="What you do now" name="occupation_status">
+        <Field label="What you do now (optional)" name="occupation_status">
           <select id="occupation_status" name="occupation_status" defaultValue={v.occupation_status} className={inputClass}>
             <option value="">Choose</option>
             {occupationOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </Field>
-        <Field label="Profession or field" name="profession" error={err("profession")}>
+        <Field label="Profession or field (optional)" name="profession" error={err("profession")}>
           <input id="profession" name="profession" defaultValue={v.profession} maxLength={80} className={inputClass} />
         </Field>
       </div>
-      <Field label="Employer or business name" name="employer_or_business" error={err("employer_or_business")}>
+      <Field label="Employer or business name (optional)" name="employer_or_business" error={err("employer_or_business")}>
         <input id="employer_or_business" name="employer_or_business" defaultValue={v.employer_or_business} maxLength={120} className={inputClass} />
       </Field>
-      <Field label="Products or services you offer" name="products_services" hint="If you run a business, so fellow alumni can find you." error={err("products_services")}>
+      <Field label="Products or services you offer (optional)" name="products_services" hint="If you run a business, so fellow alumni can find you." error={err("products_services")}>
         <textarea id="products_services" name="products_services" defaultValue={v.products_services} rows={2} maxLength={300} className={inputClass} />
       </Field>
-      <Field label="Skills" name="skills" hint="Separate with commas, for example: accounting, project management, Python." error={err("skills")}>
-        <input id="skills" name="skills" defaultValue={v.skills.join(", ")} className={inputClass} />
+      <Field label="Skills (optional)" name="skills" hint="Type to find a skill and press Enter to add it, then the next. Up to 15." error={err("skills")}>
+        <SkillsInput options={skillOptions} initial={v.skills} />
       </Field>
-      <Field label="LinkedIn profile" name="linkedin_url" hint="On LinkedIn, open your profile and copy the address." error={err("linkedin_url")}>
+      <Field label="LinkedIn profile (optional)" name="linkedin_url" hint="On LinkedIn, open your profile and copy the address from the browser." error={err("linkedin_url")}>
         <input id="linkedin_url" name="linkedin_url" defaultValue={v.linkedin_url} placeholder="https://www.linkedin.com/in/…" className={inputClass} />
       </Field>
-      <Field label="Website or portfolio" name="profile_link" error={err("profile_link")}>
+      <Field label="Website or portfolio (optional)" name="profile_link" error={err("profile_link")}>
         <input id="profile_link" name="profile_link" defaultValue={v.profile_link} placeholder="https://…" className={inputClass} />
       </Field>
       <fieldset className="flex flex-col gap-3">

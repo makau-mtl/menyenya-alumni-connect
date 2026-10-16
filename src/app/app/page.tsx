@@ -42,13 +42,11 @@ export default async function MemberHome() {
     .eq("person_id", member.personId!)
     .single();
   const photo = await memberPhotoUrl(member.supabase, p?.photo_path ?? null, "small");
-  const { data: kin } = await member.supabase.from("next_of_kin").select("id").limit(1).maybeSingle();
   const checks = [
     { done: !!p?.photo_path, label: "A passport-style photo" },
     { done: !!p?.headline, label: "A one-line summary of what you do" },
     { done: !!p?.linkedin_url, label: "Your LinkedIn link" },
     { done: (p?.skills?.length ?? 0) > 0, label: "Your skills" },
-    { done: !!kin, label: "Welfare and emergency contact" },
   ];
   const pct = Math.round((checks.filter((c) => c.done).length / checks.length) * 100);
   const cat = p?.member_categories as unknown as { key: string; name: string } | null;

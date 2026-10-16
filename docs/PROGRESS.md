@@ -1,5 +1,15 @@
 # Progress
 
+## 16 October 2026 (night): profile polish
+
+- Names typed all in capitals or lower case are tidied automatically (existing records too).
+- The Google or LinkedIn photo is used by default until a member uploads their own; a "Use my Google photo" button for existing members.
+- Clearer consent at registration: "I agree to the association processing my personal data (required)".
+- Skills: type to search a shared list of about 200 skills, Enter to add; unlisted skills can still be added.
+- Optional fields are labelled "(optional)".
+- Emergency contact removed from the profile; it will come with the opt-in welfare programme.
+
+
 ## 16 October 2026: logo
 
 - The association's logo is **mhs.alumni** (chosen by the product owner). It is in the website header and footer, and is the browser tab and phone home-screen icon.

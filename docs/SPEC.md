@@ -191,7 +191,8 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | verified_at | TIMESTAMPTZ NULL | |
 | invited_by_person_id | UUID → persons NULL | from invite link |
 | registration_source | TEXT | e.g. `web`, `post_donation`, `invite`, `import` |
-| directory_visibility | JSONB | per-field: `members` / `cohort` / `hidden` |
+| directory_visibility | JSONB | per-field: `members` / `cohort` / `hidden` (reserved) |
+| contact_visibility | TEXT | who sees phone and email: `hidden` (only the association, default), `cohort` (my class), `members` (all members); mentors/mentees added with the mentorship module |
 
 **`next_of_kin`** — part of the welfare programme only (decided 16 Oct 2026): never asked at registration or in the ordinary profile. Administrators configure and switch on the welfare programme; members are then notified and choose to opt in; on opting in they give the emergency contact together with family, dependants and supporting documents the programme requires. Members who don't opt in are never asked. Highly restricted.
 | Column | Type | Notes |
@@ -454,7 +455,7 @@ Revised 16 Oct 2026 with the product owner. Single link for everyone: `/join`. S
 2. **Your Menyenya link** — alumni: year left (→ cohort), optional admission year and class/stream; friends: relationship to the school (parent, former parent, teacher, former teacher, local business, neighbour, SDA faithful, other).
 3. **Where you live** — county (or Outside Kenya); region filled from the county, changeable. ⓘ "Regions organise meet-ups and networking".
 4. **Membership level** (alumni only; friends skip) — "What do you do now?" (occupation status) plus year left suggest a level: studying or left within 5 years → Foundation; early career → Launch; established professional or business owner → Growth. Impact is never suggested; the member chooses it. Each level has an ⓘ (tap or hover) with description, what it offers and fee.
-5. **Consents and finish** — a short summary with Change links; "I agree to the association processing my personal data" (required, links to the privacy policy); email updates, WhatsApp updates, directory listing and public profile, all unticked until the member ticks them (consent must be given, not assumed). Shows the fee if one applies. Submit.
+5. **Consents and finish** — a short summary with Change links; "I agree to the association processing my personal data" (required, links to the privacy policy, and says fellow members will see name, class, region, photo and work summary in the directory while phone and email stay private unless shared); email updates, WhatsApp updates and public profile, unticked until the member ticks them (consent must be given, not assumed). Directory listing is part of membership, not a choice (decided 16 Oct 2026). Shows the fee if one applies. Submit.
 
 **Afterwards (optional, any time from `/app/profile`):** passport-style photo (the Google or LinkedIn photo is used until the member uploads one), LinkedIn link and other links, one-line professional summary, profession, employer or business, products or services, skills (picked from a shared, admin-editable `skills` list with type-ahead; a skill not listed can still be added), willing to volunteer, mentoring ("I can mentor" only if the level has `can_mentor`; "I would like a mentor" only if `can_request_mentor`). LinkedIn sign-in provides only name, email and photo; work details can't be imported from LinkedIn. Names typed all in capitals or lower case are tidied ("Grace Kerubo").
 
@@ -518,7 +519,7 @@ Behaviour:
   - everyone: profile completeness, upcoming events (their cohort, their cluster, association-wide), causes, their giving history, directory link;
   - cohort/cluster reps: their dashboard (sign-ups, verified, pledges, payments for their group), pending verifications, event proposals;
   - office-holders: approvals waiting for them, finance/reports shortcuts.
-- Directory: photo tiles, search and filter by cohort, region, category, profession, skills and "open to mentoring"; respects each member's `directory_visibility`.
+- Directory: **every current member** is listed to signed-in members (decided 16 Oct 2026): photo tiles with name, class (or a Friend label), region and summary; search and filter by class, region, alumni/friends, profession, skills and mentoring. Phone and email appear on the member card only per the member's `contact_visibility` (only the association / my class / all members; mentors and mentees later).
 - Public profile (only with the `public_profile` consent, off by default, withdrawable): name, class, one-line summary, optional photo, LinkedIn and other links. Never phone, email, county or welfare data. Built with the directory in M6.
 
 **AC**
@@ -803,6 +804,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
 | 16 Oct 2026 | Member confirmation (verification) is a setting: on or off, and which roles confirm, changeable by administrators. |
 | 16 Oct 2026 | Names are tidied; the sign-in photo is the default photo; skills come from a shared list with type-ahead; emergency contact only within the opt-in welfare programme. |
+| 16 Oct 2026 | Every member appears in the member directory (part of membership). Members choose who sees their phone and email: only the association (default), their class, or all members; mentors/mentees later. Public profiles stay opt-in. |
 | 16 Oct 2026 | Build order: M6 next, then M5, then M4 (deferred until the Paybill and web address are ready), then M7–M11. |
 | 16 Oct 2026 | "Terminate membership" (red, confirmed, with disclaimer: no refunds, fees forfeited); rejoin within an admin-set window (default 30 days); data deletion only together with termination, carried out when the window closes, with an emailed certificate; automatic anonymisation 24 months after termination, financial records after 7 years. Scheduled M6 and M9. |
 | 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |

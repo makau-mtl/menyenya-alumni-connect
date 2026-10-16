@@ -38,11 +38,11 @@ beforeAll(async () => {
 }, 60_000);
 
 describe("directory", () => {
-  it("shows members who agreed to be listed, alumni and friends, to signed-in members only", async () => {
+  it("shows every current member, alumni and friends, to signed-in members only", async () => {
     await as(db, { user: listed.user }, async () => {
       const r = await db.query<{ full_name: string; category: string; year_left: number | null }>(
         "select full_name, category, year_left from public.directory_search()");
-      expect(r.rows.map((x) => x.full_name).sort()).toEqual(["Faith Friend", "Nehemiah Makau"]);
+      expect(r.rows.map((x) => x.full_name).sort()).toEqual(["Faith Friend", "Hidden Person", "Nehemiah Makau"]);
       expect(r.rows.find((x) => x.category === "alumnus")?.year_left).toBe(2009);
     });
     await as(db, "anon", async () => {
@@ -58,19 +58,28 @@ describe("directory", () => {
     await as(db, { user: friend.user }, async () => {
       const q = (sql: string, args: unknown[] = []) => db.query<{ full_name: string }>(sql, args).then((r) => r.rows.map((x) => x.full_name));
       expect(await q("select full_name from public.directory_search(p_category => 'friend')")).toEqual(["Faith Friend"]);
-      expect(await q("select full_name from public.directory_search(p_year => 2009)")).toEqual(["Nehemiah Makau"]);
+      expect(await q("select full_name from public.directory_search(p_year => 2009)")).toEqual(["Hidden Person", "Nehemiah Makau"]);
       expect(await q("select full_name from public.directory_search(p_query => 'project')")).toEqual(["Nehemiah Makau"]);
       expect(await q("select full_name from public.directory_search(p_region => 'Coast')")).toEqual([]);
     });
   });
 
-  it("never exposes contact details on the member card", async () => {
-    await as(db, { user: friend.user }, async () => {
-      const r = await db.query<Record<string, unknown>>("select * from public.directory_member($1)", [listed.person]);
-      expect(r.rows[0].headline).toBe("Product manager");
-      expect(Object.keys(r.rows[0]).some((k) => /phone|email/.test(k))).toBe(false);
-      expect((await db.query("select * from public.directory_member($1)", [hidden.person])).rows).toEqual([]);
-    });
+  it("shows phone and email only as the member chooses: nobody, their class, or all members", async () => {
+    const card = (user: string, person: string) =>
+      as(db, { user }, async () => (await db.query<{ phone: string | null; email: string | null }>(
+        "select phone, email from public.directory_member($1)", [person])).rows[0]);
+    // Default: only the association.
+    expect(await card(friend.user, listed.person)).toEqual({ phone: null, email: null });
+    // Class only: a classmate (Hidden Person, also 2009) sees it; a friend doesn't.
+    await db.query("update public.member_profiles set contact_visibility = 'cohort' where person_id = $1", [listed.person]);
+    expect(await card(hidden.user, listed.person)).toEqual({ phone: "+254711000001", email: "listed@example.com" });
+    expect(await card(friend.user, listed.person)).toEqual({ phone: null, email: null });
+    // All members.
+    await db.query("update public.member_profiles set contact_visibility = 'members' where person_id = $1", [listed.person]);
+    expect((await card(friend.user, listed.person)).phone).toBe("+254711000001");
+    // A member can change their own choice.
+    await as(db, { user: listed.user }, () => db.query("update public.member_profiles set contact_visibility = 'hidden'"));
+    expect(await card(friend.user, listed.person)).toEqual({ phone: null, email: null });
   });
 });
 

@@ -47,7 +47,7 @@ export default async function DirectoryPage({ searchParams }: Props) {
     <div>
       <h1 className="text-4xl font-bold">Member directory</h1>
       <p className="mt-2 max-w-2xl text-ink-soft">
-        Members who chose to be listed. Phone numbers and emails are never shown here.
+        Every member of the association. Phone numbers and emails appear on a member&rsquo;s card only if they choose to share them.
       </p>
 
       <form method="get" className="mt-8 grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
@@ -109,7 +109,7 @@ export default async function DirectoryPage({ searchParams }: Props) {
         </nav>
       )}
       <p className="mt-10 text-sm text-ink-soft">
-        Not seeing yourself? Switch on &ldquo;List me in the member directory&rdquo; in{" "}
+        Choose who can see your phone and email in{" "}
         <Link href="/app/profile#choices" className="underline">My profile</Link>.
       </p>
     </div>

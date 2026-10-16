@@ -149,16 +149,35 @@ export function WelfareForm({ kin }: { kin: { name: string; relationship: string
   );
 }
 
-export function ChoicesForm({ current }: { current: Record<string, boolean> }) {
+export function ChoicesForm({ current, contactVisibility }: { current: Record<string, boolean>; contactVisibility: string }) {
   const { state, saving, onSubmit } = useForm(saveChoices);
   const items = [
-    { k: "directory_listing", t: "List me in the member directory", d: "Signed-in members see your name, class, region, photo and work summary. Never your phone or email." },
     { k: "public_profile", t: "Show a short public profile", d: "Anyone can see your name, class, one-line summary, photo and links." },
     { k: "email_updates", t: "Email me news and updates", d: "About once a month." },
     { k: "whatsapp_updates", t: "Send me updates on WhatsApp", d: "Only important notices." },
   ];
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 font-semibold">Who can see my phone number and email</legend>
+        <p className="mb-1 text-sm text-ink-soft">
+          Every member appears in the member directory with their name, class, region, photo and work summary. Your
+          phone and email are shown only as you choose here.
+        </p>
+        {[
+          { v: "hidden", t: "Only the association", d: "Officials who manage membership. Other members can't see them." },
+          { v: "cohort", t: "My class", d: "Members of my class can see them on my member card." },
+          { v: "members", t: "All members", d: "Any signed-in member can see them on my member card." },
+        ].map((o) => (
+          <label key={o.v} className="flex items-start gap-3">
+            <input type="radio" name="contact_visibility" value={o.v} defaultChecked={contactVisibility === o.v} className="mt-1.5 size-4 accent-tea" />
+            <span>
+              <span className="font-semibold">{o.t}</span>
+              <span className="block text-sm text-ink-soft">{o.d}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
       {items.map((c) => (
         <label key={c.k} className="flex items-start gap-3">
           <input type="checkbox" name={c.k} defaultChecked={current[c.k]} className="mt-1.5 size-4 accent-tea" />

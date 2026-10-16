@@ -18,6 +18,9 @@ export type CardMember = {
   linkedin_url: string | null;
   profile_link: string | null;
   social_links: { label: string; url: string }[] | null;
+  phone?: string | null;
+  phone_whatsapp?: boolean | null;
+  email?: string | null;
 };
 
 function safeUrl(u: string | null | undefined) {
@@ -79,6 +82,28 @@ export function ProfileCard({ m, photo, publicView = false }: { m: CardMember; p
           <p className="mt-6 font-semibold text-tea">
             {[m.mentoring_offer === "can_mentor" && "Open to mentoring", m.willing_to_volunteer && "Willing to volunteer"].filter(Boolean).join(" · ")}
           </p>
+        )}
+        {!publicView && (m.phone || m.email) && (
+          <div className="mt-6 rounded-xl bg-tea-tint p-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Contact</h2>
+            <ul className="mt-2 flex flex-wrap gap-3">
+              {m.phone && (
+                <li>
+                  <a href={`tel:${m.phone}`} className="inline-flex rounded-md bg-surface px-4 py-2 font-semibold hover:underline">Call {m.phone}</a>
+                </li>
+              )}
+              {m.phone && m.phone_whatsapp && (
+                <li>
+                  <a href={`https://wa.me/${m.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex rounded-md bg-surface px-4 py-2 font-semibold hover:underline">WhatsApp</a>
+                </li>
+              )}
+              {m.email && (
+                <li>
+                  <a href={`mailto:${m.email}`} className="inline-flex rounded-md bg-surface px-4 py-2 font-semibold hover:underline">Email {m.email}</a>
+                </li>
+              )}
+            </ul>
+          </div>
         )}
         {links.length > 0 && (
           <ul className="mt-6 flex flex-wrap gap-3">

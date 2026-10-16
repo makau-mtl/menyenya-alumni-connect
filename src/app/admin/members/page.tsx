@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "Members" };
 const dateFormat = new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
 const statusLabel: Record<string, string> = { registered: "Registered", verified: "Verified", active: "Active", lapsed: "Lapsed", terminated: "Terminated" };
 
-type Props = { searchParams: Promise<{ category?: string; status?: string; region?: string }> };
+type Props = { searchParams: Promise<{ category?: string; status?: string; region?: string; standing?: string }> };
 
 type Row = {
   id: string; year_left: number | null; membership_status: string; registered_at: string | null; photo_path: string | null;
@@ -36,20 +36,24 @@ export default async function AdminMembersPage({ searchParams }: Props) {
   if (q.status && statusLabel[q.status]) members = members.eq("membership_status", q.status);
   if (q.region) members = members.eq("clusters.name", q.region);
 
-  const [{ data: rows, error: rowsError }, { data: modules }, { data: invites }, { count: dupes }, { data: regions }, { data: cohorts }] = await Promise.all([
+  const [{ data: rows, error: rowsError }, { data: modules }, { data: invites }, { count: dupes }, { data: regions }, { data: cohorts }, { data: standings }] = await Promise.all([
     members,
     staff.supabase.from("module_settings").select("module_key, enabled"),
     staff.supabase.from("invite_links").select("id, token, label, active, created_at").order("created_at", { ascending: false }),
     staff.supabase.from("duplicate_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
     staff.supabase.from("clusters").select("name").eq("active", true).order("sort_order"),
     staff.supabase.from("cohorts").select("year_left").order("year_left", { ascending: false }),
+    staff.supabase.rpc("member_standings"),
   ]);
   if (rowsError) console.error("Members list failed", rowsError);
-  const list = (rows ?? []) as unknown as Row[];
+  const standingOf = new Map(((standings ?? []) as { person_id: string; standing: string | null }[]).map((s) => [s.person_id, s.standing]));
+  const list = ((rows ?? []) as unknown as Row[]).filter(
+    (m) => !(q.standing === "active" || q.standing === "inactive") || standingOf.get(m.persons?.id ?? "") === q.standing,
+  );
   const open = Boolean(modules?.find((m) => m.module_key === "registration")?.enabled);
   const feesOn = Boolean(modules?.find((m) => m.module_key === "membership_fees")?.enabled);
   const years = (cohorts ?? []).map((c) => c.year_left).filter((y) => y <= new Date().getFullYear());
-  const filterLink = (key: "category" | "status" | "region", value: string | undefined, label: string) => {
+  const filterLink = (key: "category" | "status" | "region" | "standing", value: string | undefined, label: string) => {
     const merged: Record<string, string | undefined> = { ...q, [key]: value };
     const params = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => Boolean(e[1])));
     const active = q[key] === value;
@@ -75,7 +79,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
               {open ? "Close registration" : "Open registration"}
             </button>
           </form>
-          <p className="mt-4 text-sm text-ink-soft">Membership fees are {feesOn ? "on" : "off"}. Members decide fees; they are switched on in the database for now.</p>
+          <p className="mt-4 text-sm text-ink-soft">Membership fees are {feesOn ? "on" : "off"}. {feesOn ? "Members are Active for each year they pay for (last year’s payers until 31 March)." : "While fees are off, every member is Active and can vote."} Members decide fees; they are switched on in the database for now.</p>
         </div>
         <div className="rounded-xl border border-line bg-surface p-6">
           <h2 className="text-xl font-bold">Possible duplicates</h2>
@@ -133,6 +137,9 @@ export default async function AdminMembersPage({ searchParams }: Props) {
           {filterLink("status", "registered", "Waiting for confirmation")}
           {filterLink("status", "verified", "Verified")}
           {filterLink("status", "terminated", "Terminated")}
+          <span className="mx-1 w-px bg-line" />
+          {filterLink("standing", "active", "Active (can vote)")}
+          {filterLink("standing", "inactive", "Inactive")}
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {filterLink("region", undefined, "All regions")}
@@ -150,6 +157,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
                   <th className="px-4 py-3 font-semibold">Class or connection</th>
                   <th className="px-4 py-3 font-semibold">Region</th>
                   <th className="px-4 py-3 font-semibold">Level</th>
+                  <th className="px-4 py-3 font-semibold">Standing</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Registered</th>
                 </tr>
@@ -161,6 +169,15 @@ export default async function AdminMembersPage({ searchParams }: Props) {
                     <td className="px-4 py-3">{m.member_categories?.key === "alumnus" ? `Class of ${m.year_left}` : `Friend: ${m.relationship_to_school ?? ""}`}</td>
                     <td className="px-4 py-3">{m.clusters?.name}</td>
                     <td className="px-4 py-3">{m.membership_levels?.name ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      {standingOf.get(m.persons?.id ?? "") === "active" ? (
+                        <span className="rounded-full bg-tea-tint px-2 py-0.5 text-sm font-semibold text-tea-dark">Active</span>
+                      ) : standingOf.get(m.persons?.id ?? "") === "inactive" ? (
+                        <span className="rounded-full bg-paper px-2 py-0.5 text-sm font-semibold text-ink-soft">Inactive</span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {statusLabel[m.membership_status] ?? m.membership_status}
                       {m.membership_status === "terminated" && m.rejoin_until && (

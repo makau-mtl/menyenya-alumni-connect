@@ -6,6 +6,7 @@ import { getStaff } from "@/lib/admin/staff";
 import { memberPhotoUrl } from "@/lib/members/photos";
 import { buttonClass } from "@/components/ui";
 import { rejoinMembership } from "@/app/app/actions";
+import { StandingCard } from "@/components/member/standing-card";
 
 const statusLabel: Record<string, string> = {
   registered: "Registered. Your details will be confirmed by the association.",
@@ -69,6 +70,8 @@ export default async function MemberHome() {
     );
   }
 
+  const { data: standingRows } = await member.supabase.rpc("my_standing");
+  const standing = (standingRows as Parameters<typeof StandingCard>[0]["s"][] | null)?.[0] ?? null;
   const { data: p } = await member.supabase
     .from("member_profiles")
     .select("year_left, membership_status, photo_path, headline, linkedin_url, profession, skills, clusters(name), membership_levels(name), member_categories(key, name)")
@@ -115,7 +118,11 @@ export default async function MemberHome() {
         </div>
       </div>
 
-      <p className="max-w-2xl rounded-md bg-tea-tint px-4 py-3">{statusLabel[p?.membership_status ?? "registered"]}</p>
+      {standing ? (
+        <StandingCard s={standing} verification={p?.membership_status === "registered" ? statusLabel.registered : null} />
+      ) : (
+        <p className="max-w-2xl rounded-md bg-tea-tint px-4 py-3">{statusLabel[p?.membership_status ?? "registered"]}</p>
+      )}
 
       <section className="max-w-2xl rounded-xl border border-line bg-surface p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-3">

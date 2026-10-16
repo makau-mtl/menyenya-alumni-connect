@@ -1,5 +1,14 @@
 # Progress
 
+## 17 October 2026: membership standing (Active / Inactive)
+
+- Members see a card on their home page: **Active** (eligible to vote and take part in decisions) or **Inactive**, with what to do next.
+- Rules: active for each calendar year paid for; last year's payers stay active until 31 March; no arrears, pay only for the year you want; everyone is active while membership fees are off (as now).
+- Administrators see a **Standing** column and an *Active (can vote)* / *Inactive* filter on the members list.
+- Paid years are recorded once and never changed; M4 will record them from fee payments.
+- Still to come: renewal reminder emails (needs email set up) and the voting tools that use this.
+- Tests: 4 new database tests; 99 pass.
+
 ## 17 October 2026: Alumni merchandise
 
 - New page **Alumni merchandise** (`/shop`), under Ways to support: items with photos, prices and sizes or colours; an order panel with the total; and the order form. Anyone can order.

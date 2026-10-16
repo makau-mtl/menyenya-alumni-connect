@@ -109,6 +109,13 @@ confirms friends. Class reps only see their own class; regional reps only their 
 mark them as different people. Merging moves gifts, pledges, payments and the login to the kept record; nothing is
 deleted, and an administrator can undo a merge from the same page.
 
+## Active and inactive members
+
+Every member is **Active** or **Inactive**. Only active members can vote and take part in decisions.
+- While membership fees are off (as now), everyone is active.
+- Once fees are on, a member is active for each calendar year they pay for, and last year's payers stay active until 31 March. Members pay only for the year they want to be active; there are no arrears.
+- On **Members**, the *Standing* column shows each member's standing; use *Active (can vote)* to get the voting list.
+
 ## Members who terminate
 
 Members can terminate their membership from their profile. They can rejoin within the window set in

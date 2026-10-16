@@ -175,6 +175,13 @@ export async function getReceipt(reference: string, token: string): Promise<Rece
 
 // Photos, settings and news ------------------------------------------------------------------
 // Visitors see only published items; the database rules decide that, not this code.
+// If these can't be read (for example while a database update is being applied), pages fall
+// back to placeholders instead of failing: content should never take the site down.
+
+function contentUnavailable<T>(what: string, error: unknown, fallback: T): T {
+  console.error(`Could not read ${what}; showing placeholders`, error);
+  return fallback;
+}
 
 type CausePhotoRow = { id: string; path: string; caption: string; status: CausePhoto["status"]; sort_order: number };
 
@@ -185,7 +192,7 @@ export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
     .eq("causes.slug", slug)
     .order("sort_order")
     .order("created_at");
-  if (error) throw error;
+  if (error) return contentUnavailable("cause photos", error, []);
   return (data as unknown as CausePhotoRow[]).map((r) => ({
     ...toPhoto(r.path, r.caption),
     id: r.id,
@@ -201,7 +208,7 @@ export async function getCoverPhotos(): Promise<Record<string, Photo>> {
     .select("path, caption, causes!inner(slug)")
     .order("sort_order")
     .order("created_at");
-  if (error) throw error;
+  if (error) return contentUnavailable("cover photos", error, {});
   const covers: Record<string, Photo> = {};
   for (const r of data as unknown as { path: string; caption: string; causes: { slug: string } }[]) {
     covers[r.causes.slug] ??= toPhoto(r.path, r.caption);
@@ -212,7 +219,7 @@ export async function getCoverPhotos(): Promise<Record<string, Photo>> {
 /** Photos for the named spaces on the website, by space name. */
 export async function getSitePhotos(): Promise<Record<string, Photo>> {
   const { data, error } = await createPublicClient().from("site_photos").select("slot, path, caption");
-  if (error) throw error;
+  if (error) return contentUnavailable("site photos", error, {});
   return Object.fromEntries(
     (data as { slot: string; path: string; caption: string }[]).map((r) => [r.slot, toPhoto(r.path, r.caption)]),
   );
@@ -249,7 +256,7 @@ export async function listNews(): Promise<NewsPost[]> {
     .select(newsColumns)
     .eq("status", "published")
     .order("happens_on", { ascending: false });
-  if (error) throw error;
+  if (error) return contentUnavailable("news", error, []);
   return (data as NewsRow[]).map(toNewsPost);
 }
 
@@ -260,6 +267,6 @@ export async function getNewsPost(slug: string): Promise<NewsPost | null> {
     .eq("slug", slug)
     .eq("status", "published")
     .maybeSingle();
-  if (error) throw error;
+  if (error) return contentUnavailable("a news post", error, null);
   return data ? toNewsPost(data as NewsRow) : null;
 }

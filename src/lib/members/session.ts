@@ -11,11 +11,14 @@ export const getMember = cache(async () => {
   const c = claims?.claims;
   if (!c) return null;
   const meta = (c.user_metadata ?? {}) as Record<string, unknown>;
-  const { data: person } = await supabase
+  // member_profiles points at persons three ways (member, verified_by, invited_by),
+  // so name the link: the member's own profile.
+  const { data: person, error } = await supabase
     .from("persons")
-    .select("id, full_name, member_profiles(id, membership_status)")
+    .select("id, full_name, member_profiles!member_profiles_person_id_fkey(id, membership_status)")
     .eq("user_id", c.sub)
     .maybeSingle();
+  if (error) console.error("Could not read the signed-in member", error);
   // One profile per person, so the database returns it as a single object (older shapes: a list).
   type Profile = { id: string; membership_status: string };
   const raw = person?.member_profiles as unknown as Profile | Profile[] | null | undefined;

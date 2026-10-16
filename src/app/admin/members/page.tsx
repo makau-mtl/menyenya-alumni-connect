@@ -28,14 +28,14 @@ export default async function AdminMembersPage({ searchParams }: Props) {
 
   let members = staff.supabase
     .from("member_profiles")
-    .select("id, year_left, membership_status, registered_at, photo_path, relationship_to_school, persons(id, full_name), member_categories!inner(key), clusters!inner(name), membership_levels(name)")
+    .select("id, year_left, membership_status, registered_at, photo_path, relationship_to_school, persons!member_profiles_person_id_fkey(id, full_name), member_categories!inner(key), clusters!inner(name), membership_levels(name)")
     .order("registered_at", { ascending: false, nullsFirst: false })
     .limit(300);
   if (q.category === "alumnus" || q.category === "friend") members = members.eq("member_categories.key", q.category);
   if (q.status && statusLabel[q.status]) members = members.eq("membership_status", q.status);
   if (q.region) members = members.eq("clusters.name", q.region);
 
-  const [{ data: rows }, { data: modules }, { data: invites }, { count: dupes }, { data: regions }, { data: cohorts }] = await Promise.all([
+  const [{ data: rows, error: rowsError }, { data: modules }, { data: invites }, { count: dupes }, { data: regions }, { data: cohorts }] = await Promise.all([
     members,
     staff.supabase.from("module_settings").select("module_key, enabled"),
     staff.supabase.from("invite_links").select("id, token, label, active, created_at").order("created_at", { ascending: false }),
@@ -43,6 +43,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
     staff.supabase.from("clusters").select("name").eq("active", true).order("sort_order"),
     staff.supabase.from("cohorts").select("year_left").order("year_left", { ascending: false }),
   ]);
+  if (rowsError) console.error("Members list failed", rowsError);
   const list = (rows ?? []) as unknown as Row[];
   const open = Boolean(modules?.find((m) => m.module_key === "registration")?.enabled);
   const feesOn = Boolean(modules?.find((m) => m.module_key === "membership_fees")?.enabled);

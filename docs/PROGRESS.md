@@ -1,5 +1,22 @@
 # Progress
 
+## 17 October 2026: M6, member area
+
+**Built**
+- Member directory for signed-in members: photo tiles with name, class ("Class of 2009") or a "Friend" label, region and one-line summary; search (name, profession, employer, skills) and filters (class, region, alumni/friends, mentoring); pages of 48. Only members who agreed to be listed; never phone or email.
+- Member card with summary, work, skills, mentoring and volunteering, LinkedIn and other links.
+- Public profile at /people/<id> for members who switched it on: name, class, summary, photo and links only.
+- Member area tabs: My account, Member directory, Confirm members (when there are people to confirm), Admin.
+- Confirmation setting (Admin → Settings): on or off; who confirms alumni and who confirms friends (class rep for their class, regional rep for their region, verifier, administrator). Confirmers get a list with Confirm and Flag (with a note). Nobody confirms themselves.
+- Roles screen (Admin → Roles): give a role for the whole association, a class, a region or a committee; end a role (kept on record). Administrators can't give themselves roles.
+- Duplicates (Admin → Duplicates, also verifiers): side-by-side comparison; keep one record and merge (gifts, pledges, payments and login move; contacts copied; nothing deleted) or mark as different people; administrators can undo a merge.
+- Terminate membership: red button, a page with the disclaimer (immediate end, no refunds, fees forfeited, pledges stay, rejoin window), optional reason, optional data deletion, a tick-box and typing TERMINATE. Rejoin within the window (Admin → Settings, default 30 days) restores status and choices and cancels a deletion request. Members list shows terminations and deletion requests.
+- Status "exited" renamed "terminated".
+- Tests: 11 new database tests (83 in total).
+
+**Not yet**: carrying out deletions, the deletion certificate and automatic anonymisation (M9); emails (wait for the web address).
+
+
 ## 16 October 2026: build order changed
 
 M4 (recording payments) is deferred until the Board of Management's Paybill and the association's web address are ready. Next: M6 (member area), then M5 (testing and soft launch), then M4, then M7–M11. The web address is parked until the official association name is confirmed.

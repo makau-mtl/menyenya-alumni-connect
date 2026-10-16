@@ -9,12 +9,13 @@ import { buttonClass } from "@/components/ui";
 export const metadata: Metadata = { title: "Members" };
 
 const dateFormat = new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
-const statusLabel: Record<string, string> = { registered: "Registered", verified: "Verified", active: "Active", lapsed: "Lapsed", exited: "Left" };
+const statusLabel: Record<string, string> = { registered: "Registered", verified: "Verified", active: "Active", lapsed: "Lapsed", terminated: "Terminated" };
 
 type Props = { searchParams: Promise<{ category?: string; status?: string; region?: string }> };
 
 type Row = {
   id: string; year_left: number | null; membership_status: string; registered_at: string | null; photo_path: string | null;
+  deletion_requested_at: string | null; rejoin_until: string | null;
   relationship_to_school: string | null; persons: { id: string; full_name: string } | null;
   member_categories: { key: string } | null; clusters: { name: string } | null; membership_levels: { name: string } | null;
 };
@@ -28,7 +29,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
 
   let members = staff.supabase
     .from("member_profiles")
-    .select("id, year_left, membership_status, registered_at, photo_path, relationship_to_school, persons!member_profiles_person_id_fkey(id, full_name), member_categories!inner(key), clusters!inner(name), membership_levels(name)")
+    .select("id, year_left, membership_status, registered_at, deletion_requested_at, rejoin_until, photo_path, relationship_to_school, persons!member_profiles_person_id_fkey(id, full_name), member_categories!inner(key), clusters!inner(name), membership_levels(name)")
     .order("registered_at", { ascending: false, nullsFirst: false })
     .limit(300);
   if (q.category === "alumnus" || q.category === "friend") members = members.eq("member_categories.key", q.category);
@@ -80,8 +81,8 @@ export default async function AdminMembersPage({ searchParams }: Props) {
           <h2 className="text-xl font-bold">Possible duplicates</h2>
           <p className="mt-2 font-display text-3xl font-bold">{dupes ?? 0}</p>
           <p className="mt-2 text-sm text-ink-soft">
-            Records sharing a phone, an email, or a name in the same class. Nothing is merged automatically. Checking and
-            resolving them comes with verification in January.
+            Records sharing a phone, an email, or a name in the same class. Nothing is merged automatically.{" "}
+            <Link href="/admin/duplicates" className="font-semibold text-tea underline underline-offset-4">Check them</Link>
           </p>
         </div>
       </section>
@@ -131,6 +132,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
           <span className="mx-1 w-px bg-line" />
           {filterLink("status", "registered", "Waiting for confirmation")}
           {filterLink("status", "verified", "Verified")}
+          {filterLink("status", "terminated", "Terminated")}
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           {filterLink("region", undefined, "All regions")}
@@ -159,7 +161,15 @@ export default async function AdminMembersPage({ searchParams }: Props) {
                     <td className="px-4 py-3">{m.member_categories?.key === "alumnus" ? `Class of ${m.year_left}` : `Friend: ${m.relationship_to_school ?? ""}`}</td>
                     <td className="px-4 py-3">{m.clusters?.name}</td>
                     <td className="px-4 py-3">{m.membership_levels?.name ?? "—"}</td>
-                    <td className="px-4 py-3">{statusLabel[m.membership_status] ?? m.membership_status}</td>
+                    <td className="px-4 py-3">
+                      {statusLabel[m.membership_status] ?? m.membership_status}
+                      {m.membership_status === "terminated" && m.rejoin_until && (
+                        <span className="block text-xs text-ink-soft">
+                          Can rejoin until {dateFormat.format(new Date(m.rejoin_until))}
+                          {m.deletion_requested_at ? "; deletion requested" : ""}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 whitespace-nowrap">{m.registered_at ? dateFormat.format(new Date(m.registered_at)) : "—"}</td>
                   </tr>
                 ))}

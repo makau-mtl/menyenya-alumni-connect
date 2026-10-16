@@ -338,3 +338,104 @@ export async function setInviteActive(formData: FormData): Promise<void> {
     .eq("id", String(formData.get("id") ?? ""));
   revalidatePath("/admin/members");
 }
+
+// Settings: confirmation (verification) and the rejoin window ---------------------------------------
+
+const confirmRoles = ["cohort_rep", "cluster_rep", "verifier", "admin"] as const;
+
+export async function saveMemberSettings(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const enabled = formData.get("verification") === "on";
+  const pick = (cat: string) => confirmRoles.filter((r) => formData.get(`${cat}_${r}`) === "on");
+  const config = { alumnus: pick("alumnus"), friend: pick("friend") };
+  if (enabled && (!config.alumnus.length || !config.friend.length)) {
+    return fail("Choose at least one role to confirm alumni and one to confirm friends, or switch confirmation off.");
+  }
+  const days = Number(formData.get("rejoinDays"));
+  if (!Number.isInteger(days) || days < 0 || days > 365) return fail("The rejoin window must be between 0 and 365 days.");
+
+  const [a, b] = await Promise.all([
+    staff.supabase.from("module_settings").update({ enabled, config }).eq("module_key", "verification").select("id"),
+    staff.supabase.from("module_settings").update({ config: { rejoin_days: days } }).eq("module_key", "membership_exit").select("id"),
+  ]);
+  if (a.error || b.error || !a.data?.length || !b.data?.length) return fail("The settings could not be saved.");
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Settings saved." };
+}
+
+// Roles -------------------------------------------------------------------------------------------------
+
+export async function assignRole(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const person = String(formData.get("person") ?? "");
+  const roleKey = String(formData.get("role") ?? "");
+  const { data: role } = await staff.supabase.from("roles").select("id, allowed_scope_types").eq("key", roleKey).maybeSingle();
+  if (!person || !role) return fail("Choose a person and a role.");
+  const scope = (role.allowed_scope_types as string[])[0] ?? "association";
+  let scopeId: string | null = null;
+  if (scope === "cohort") {
+    const { data } = await staff.supabase.from("cohorts").select("id").eq("year_left", Number(formData.get("year"))).maybeSingle();
+    scopeId = data?.id ?? null;
+    if (!scopeId) return fail("Choose the class for this role.");
+  } else if (scope === "cluster") {
+    const { data } = await staff.supabase.from("clusters").select("id").eq("name", String(formData.get("region") ?? "")).maybeSingle();
+    scopeId = data?.id ?? null;
+    if (!scopeId) return fail("Choose the regional cluster for this role.");
+  } else if (scope === "committee") {
+    scopeId = String(formData.get("committee") ?? "") || null;
+    if (!scopeId) return fail("Choose the committee for this role.");
+  } else if (scope !== "association") {
+    return fail("This role can't be given from here yet.");
+  }
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  const { error } = await staff.supabase.from("role_assignments").insert({
+    person_id: person,
+    role_id: role.id,
+    scope_type: scope,
+    scope_id: scopeId,
+    assigned_by: me ?? null,
+    starts_on: String(formData.get("startsOn") || new Date().toISOString().slice(0, 10)),
+  });
+  if (error) {
+    console.error(error);
+    return fail(/check|policy|row-level/i.test(error.message) ? "You can't give yourself a role. Ask another administrator." : "The role could not be given.");
+  }
+  revalidatePath("/admin/roles");
+  return { ok: true, message: "Role given. It takes effect the next time they open a page." };
+}
+
+export async function endRole(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  await staff.supabase
+    .from("role_assignments")
+    .update({ ends_on: new Date().toISOString().slice(0, 10) })
+    .eq("id", String(formData.get("id") ?? ""))
+    .is("ends_on", null);
+  revalidatePath("/admin/roles");
+}
+
+// Duplicates --------------------------------------------------------------------------------------------
+
+export async function resolveDuplicate(formData: FormData): Promise<void> {
+  const staff = await getStaff();
+  if (!staff || !(staff.isAdmin || staff.isVerifier)) return;
+  const action = String(formData.get("action") ?? "");
+  if (action === "dismiss") {
+    await staff.supabase.rpc("dismiss_duplicate", { p_flag: String(formData.get("flag") ?? "") });
+  } else if (action === "merge") {
+    const { error } = await staff.supabase.rpc("merge_persons", {
+      p_survivor: String(formData.get("survivor") ?? ""),
+      p_merged: String(formData.get("merged") ?? ""),
+      p_note: String(formData.get("note") ?? "") || null,
+    });
+    if (error) redirect(`/admin/duplicates?error=${encodeURIComponent(error.code === "22023" ? error.message : "The records could not be merged.")}`);
+  } else if (action === "undo") {
+    const { error } = await staff.supabase.rpc("undo_merge", { p_merge: String(formData.get("merge") ?? "") });
+    if (error) redirect(`/admin/duplicates?error=${encodeURIComponent("The merge could not be undone.")}`);
+  }
+  revalidatePath("/admin/duplicates");
+  redirect("/admin/duplicates?done=1");
+}

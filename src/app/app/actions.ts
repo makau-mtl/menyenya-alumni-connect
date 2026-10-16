@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMember } from "@/lib/members/session";
 import { MEMBER_PHOTO_BUCKET, memberPhotoFile } from "@/lib/members/photos";
@@ -16,6 +17,7 @@ async function memberOrError() {
   const m = await getMember();
   if (!m) return "Your sign-in has expired. Log in again.";
   if (!m.registered || !m.personId) return "Finish registering first.";
+  if (m.membershipStatus === "terminated") return "Your membership is terminated. Rejoin first to make changes.";
   return m;
 }
 
@@ -199,4 +201,53 @@ export async function saveChoices(_prev: ActionState, formData: FormData): Promi
     }
   }
   return done(changes.length ? "Your choices are saved." : "Nothing changed.");
+}
+
+// Confirming members (when switched on) --------------------------------------------------------------
+
+export async function decideConfirmation(formData: FormData): Promise<void> {
+  const m = await getMember();
+  if (!m) return;
+  const { error } = await m.supabase.rpc("confirm_member", {
+    p_person: String(formData.get("person") ?? ""),
+    p_decision: String(formData.get("decision") ?? ""),
+    p_note: String(formData.get("note") ?? "") || null,
+  });
+  if (error) console.error("Confirmation failed", error);
+  revalidatePath("/app", "layout");
+}
+
+// Terminating membership and rejoining (SPEC §6.3a) ---------------------------------------------------
+
+export async function terminateMembership(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  if (formData.get("acknowledged") !== "on") return fail("Please tick the box to confirm you have read what terminating means.");
+  if (String(formData.get("confirmText") ?? "").trim().toUpperCase() !== "TERMINATE") {
+    return fail('Type TERMINATE in the box to confirm.');
+  }
+  const reasonPick = String(formData.get("reason") ?? "");
+  const reasonText = String(formData.get("reasonText") ?? "").trim().slice(0, 400);
+  const reason = [reasonPick, reasonText].filter(Boolean).join(": ") || null;
+  const { error } = await m.supabase.rpc("terminate_membership", {
+    p_reason: reason,
+    p_delete_data: formData.get("deleteData") === "on",
+    p_acknowledged: true,
+  });
+  if (error) {
+    if (error.code === "22023") return fail(error.message);
+    console.error("Termination failed", error);
+    return fail("This could not be done just now. Please try again.");
+  }
+  revalidatePath("/", "layout");
+  redirect("/app");
+}
+
+export async function rejoinMembership(): Promise<void> {
+  const m = await getMember();
+  if (!m) return;
+  const { error } = await m.supabase.rpc("rejoin_membership");
+  if (error) console.error("Rejoin failed", error);
+  revalidatePath("/", "layout");
+  redirect("/app");
 }

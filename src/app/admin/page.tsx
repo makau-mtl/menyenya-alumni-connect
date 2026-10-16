@@ -24,7 +24,7 @@ type GiftRow = {
 export default async function AdminPage() {
   const staff = await getStaff();
   if (!staff) return null; // the layout handles signed-out and unconnected states
-  if (!staff.isFinance) redirect(staff.isAdmin ? "/admin/causes" : "/admin/news");
+  if (!staff.isFinance) redirect(staff.isAdmin ? "/admin/members" : staff.canEditNews ? "/admin/news" : "/admin/duplicates");
   const { supabase, isAdmin } = staff;
 
   const [progress, pledges, gifts, members, duplicates] = await Promise.all([

@@ -25,6 +25,7 @@ export default async function ProfilePage() {
   const member = await getMember();
   if (!member) redirect("/login?next=/app/profile");
   if (!member.registered) redirect("/join");
+  if (member.membershipStatus === "terminated") redirect("/app");
 
   const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase
@@ -52,6 +53,7 @@ export default async function ProfilePage() {
           <a href="#photo" className="underline underline-offset-4">Photo</a>
           <a href="#work" className="underline underline-offset-4">Work and links</a>
           <a href="#choices" className="underline underline-offset-4">Privacy choices</a>
+          <a href="#terminate" className="underline underline-offset-4">Terminate membership</a>
         </nav>
       </div>
 
@@ -111,8 +113,22 @@ export default async function ProfilePage() {
 
       <Section id="choices" title="Privacy choices" intro={<>Change these whenever you like. See the <Link href="/privacy" className="underline">privacy policy</Link>.</>}>
         <ChoicesForm current={consents} />
-        <p className="mt-6 text-sm text-ink-soft">To leave the association or ask for a copy of your data, contact the secretariat.</p>
+        {consents.public_profile && member.personId && (
+          <p className="mt-6">
+            <Link href={`/people/${member.personId}`} className="font-semibold text-tea underline underline-offset-4">View my public profile</Link>
+          </p>
+        )}
+        <p className="mt-6 text-sm text-ink-soft">To ask for a copy of your data, contact the secretariat.</p>
       </Section>
+      <section id="terminate" className="rounded-xl border-2 border-alert/40 p-6 sm:p-8">
+        <h2 className="text-2xl font-bold text-alert">Terminate membership</h2>
+        <p className="mt-2 text-ink-soft">
+          End your membership. You can rejoin within a set number of days. You can also ask for your personal data to be deleted.
+        </p>
+        <Link href="/app/terminate" className="mt-5 inline-flex rounded-md bg-alert px-5 py-2.5 font-semibold text-white hover:opacity-90">
+          Terminate membership
+        </Link>
+      </section>
     </div>
   );
 }

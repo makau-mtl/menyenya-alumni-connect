@@ -12,6 +12,9 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 |---|---|---|
 | Overview | Chairman, Treasurer, administrators | Pledges and gifts so far |
 | Members | Administrators | Registration switch, class invite links, who has registered |
+| Duplicates | Administrators and verifiers | Possible duplicate records: merge or mark as different |
+| Roles | Administrators | Give and end roles |
+| Settings | Administrators | Member confirmation, rejoin window |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -82,25 +85,29 @@ supported by the Keep a Child in School fund.
 Only the member and the **Welfare Coordinator**. Administrators and the Secretary do not see it. The
 coordinator's views are recorded with a reason. Members give it only when they join the welfare programme, once administrators switch the programme on.
 
-## Giving someone a role (until the roles screen arrives)
+## Giving someone a role
 
-A roles screen comes in a later milestone. Until then, an administrator does it in Supabase:
+**Admin → Roles**: choose the person, the role and, for class reps and regional reps, the class or region.
+They need a record first: members have one; an official who isn't a member should sign in once at /login.
+To remove a role, press **End role** (the record is kept). You can't give yourself a role; another
+administrator has to.
 
-1. Ask the person to sign in once at **/login** (with Google, LinkedIn or an email link). If they can't,
-   add them in Supabase → **Authentication → Users → Add user** with **Auto Confirm User** ticked.
-2. **SQL Editor** → run, with their email, the role and their name:
+If the website is unavailable, the SQL editor still works: `select public.give_role('their-email', 'secretary', 'Their Name');`
 
-```sql
-select public.give_role('their-email@example.com', 'secretary', 'Their Full Name');
-```
+## Confirming new members
 
-Roles: `secretary`, `treasurer`, `chair`, `vice_chair`, `welfare_coordinator`, `events_coordinator`, `verifier`, `admin`.
+**Admin → Settings**: switch "New members must be confirmed" on or off, and choose who confirms alumni and who
+confirms friends. Class reps only see their own class; regional reps only their own region. Confirmers see a
+**Confirm members** tab in their member area.
 
-To end a role, set its end date instead of deleting it:
+## Possible duplicates
 
-```sql
-update public.role_assignments set ends_on = current_date
-where person_id = (select p.id from public.persons p join auth.users u on u.id = p.user_id
-                   where lower(u.email) = lower('their-email@example.com'))
-  and role_id = (select id from public.roles where key = 'secretary') and ends_on is null;
-```
+**Admin → Duplicates** (administrators and verifiers): compare the two records, then either keep one and merge, or
+mark them as different people. Merging moves gifts, pledges, payments and the login to the kept record; nothing is
+deleted, and an administrator can undo a merge from the same page.
+
+## Members who terminate
+
+Members can terminate their membership from their profile. They can rejoin within the window set in
+**Admin → Settings** (default 30 days). The Members list shows who has terminated, until when they can rejoin, and
+whether they asked for their data to be deleted.

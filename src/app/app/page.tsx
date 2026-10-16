@@ -5,13 +5,14 @@ import { getMember } from "@/lib/members/session";
 import { getStaff } from "@/lib/admin/staff";
 import { memberPhotoUrl } from "@/lib/members/photos";
 import { buttonClass } from "@/components/ui";
+import { rejoinMembership } from "@/app/app/actions";
 
 const statusLabel: Record<string, string> = {
   registered: "Registered. Your details will be confirmed by the association.",
   verified: "Verified member",
   active: "Active member",
   lapsed: "Membership lapsed",
-  exited: "Left the association",
+  terminated: "Membership terminated",
 };
 
 export default async function MemberHome() {
@@ -32,6 +33,38 @@ export default async function MemberHome() {
           <Link href="/join" className={buttonClass("primary", "lg")}>Finish registering</Link>
           {staffLink}
         </div>
+      </div>
+    );
+  }
+
+  if (member.membershipStatus === "terminated") {
+    const { data: t } = await member.supabase
+      .from("member_profiles")
+      .select("terminated_at, rejoin_until, deletion_requested_at")
+      .eq("person_id", member.personId!)
+      .single();
+    const until = t?.rejoin_until ? new Date(t.rejoin_until) : null;
+    const open = until ? until > new Date() : false;
+    const fmt = new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Nairobi" });
+    return (
+      <div className="max-w-2xl">
+        <h1 className="text-4xl font-bold">{member.fullName}</h1>
+        <p className="mt-4 rounded-md border-2 border-alert/40 bg-alert/5 px-4 py-3 font-semibold">
+          Membership terminated{t?.terminated_at ? ` on ${fmt.format(new Date(t.terminated_at))}` : ""}.
+        </p>
+        {t?.deletion_requested_at && (
+          <p className="mt-4 text-ink-soft">
+            You asked for your personal data to be deleted. It will be carried out{until ? ` after ${fmt.format(until)}` : ""}, and you will be emailed a certificate.
+          </p>
+        )}
+        {open ? (
+          <form action={rejoinMembership} className="mt-8">
+            <p className="mb-4">You can rejoin until <strong>{until ? fmt.format(until) : ""}</strong>, with everything restored as it was{t?.deletion_requested_at ? ", and the deletion request cancelled" : ""}.</p>
+            <button type="submit" className={buttonClass("primary", "lg")}>Rejoin the association</button>
+          </form>
+        ) : (
+          <p className="mt-8 text-ink-soft">The rejoin window has closed. To become a member again, please contact the secretariat.</p>
+        )}
       </div>
     );
   }

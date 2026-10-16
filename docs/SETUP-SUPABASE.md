@@ -4,25 +4,27 @@ One-time setup, done by the product owner. Nothing here needs code. Never paste 
 
 ## 1. Let GitHub apply database changes
 
-Database changes live in `supabase/migrations`. A GitHub workflow applies them to Supabase whenever they reach the `main` branch. It needs three secrets.
+Database changes live in `supabase/migrations`. A GitHub workflow applies them to Supabase whenever they reach the `main` branch. It needs one secret: the database connection string.
 
-1. **Access token.** In Supabase, open your avatar (top right) → **Account preferences** → **Access tokens** → **Generate new token**. Name it `github-menyenya`. Copy it.
-2. **Project reference.** In the project, open **Project Settings → General**. Copy the **Project ID** (a short code of letters).
-3. **Database password.** The one you chose when creating the project. If you've lost it: **Project Settings → Database → Reset database password**.
+1. In Supabase, click **Connect** at the top of the project page.
+2. Under **Connection string**, choose **Session pooler** (not "Direct connection": GitHub's machines can't reach that one).
+3. Copy the string. It looks like
+   `postgresql://postgres.abcdefgh:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:5432/postgres`
+4. Replace `[YOUR-PASSWORD]` (including the square brackets) with your database password. If the password contains symbols such as `@ : / ? # %`, reset it to one made of letters and numbers only (**Project Settings → Database → Reset database password**), because those symbols break the string.
 
-In GitHub, open the repository → **Settings → Secrets and variables → Actions → New repository secret**, and add:
+In GitHub, open the repository → **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Name | Value |
 |---|---|
-| `SUPABASE_ACCESS_TOKEN` | the access token |
-| `SUPABASE_PROJECT_REF` | the project ID |
-| `SUPABASE_DB_PASSWORD` | the database password |
+| `SUPABASE_DB_URL` | the completed connection string |
+
+The `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD` secrets are no longer used and can be deleted.
 
 ## 2. Merge the database branch
 
 Open the pull request for the `m1-database` branch and merge it. The **Database** workflow runs (repository → **Actions**) and creates every table. A green tick means it worked.
 
-If it ran before the secrets were added, open **Actions → Database → Run workflow** to run it again.
+If it ran before the secret was added, open **Actions → Database → Run workflow** to run it again.
 
 ## 3. Connect the website (Vercel)
 

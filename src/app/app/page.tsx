@@ -7,7 +7,7 @@ import { memberPhotoUrl } from "@/lib/members/photos";
 import { buttonClass } from "@/components/ui";
 
 const statusLabel: Record<string, string> = {
-  registered: "Registered, waiting for your class rep to confirm",
+  registered: "Registered. Your details will be confirmed by the association.",
   verified: "Verified member",
   active: "Active member",
   lapsed: "Membership lapsed",
@@ -67,11 +67,20 @@ export default async function MemberHome() {
         )}
         <div>
           <h1 className="text-4xl font-bold">{member.fullName}</h1>
-          <p className="mt-1 text-ink-soft">
-            {cat?.key === "alumnus" ? `Class of ${p?.year_left}` : cat?.name}
-            {region && ` · ${region}`}
-            {level && ` · ${level}`}
-          </p>
+          <dl className="mt-3 flex flex-wrap gap-y-2 text-[0.95rem]">
+            {[
+              { k: cat?.key === "alumnus" ? "Class" : "Membership", v: cat?.key === "alumnus" ? `Class of ${p?.year_left}` : cat?.name },
+              { k: "Regional cluster", v: region },
+              { k: "Membership level", v: level },
+            ]
+              .filter((x) => x.v)
+              .map((x) => (
+                <div key={x.k} className="mr-6">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{x.k}</dt>
+                  <dd className="font-semibold">{x.v}</dd>
+                </div>
+              ))}
+          </dl>
         </div>
       </div>
 

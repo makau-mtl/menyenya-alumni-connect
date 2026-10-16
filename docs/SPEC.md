@@ -473,6 +473,8 @@ Behaviour:
 
 ### 6.3 Verification & member management
 
+**Configurable (product owner, 16 Oct 2026):** a `verification` switch in admin settings. Off: members are on the register as soon as they finish registering, with no confirmation step. On: administrators choose which roles confirm members (any of class rep, regional cluster rep, verifier, administrator), separately for alumni and for friends, and can change this later. Built with verification in M6.
+
 - **Cohort reps** see pending members of their cohort and can verify, edit basic details or flag.
 - **Verifier** role verifies friends of the alumni and resolves duplicate flags (merge or "not a duplicate").
 - **Cluster reps** see and manage members of their cluster (no verification of alumni outside their cohort).
@@ -765,6 +767,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Alumni get a suggested level (never Impact); friends have no level. Fees, if switched on, are applied at the end of registration. |
 | 16 Oct 2026 | Next of kin moves out of registration into welfare; seen by the member and Welfare Coordinator only (cohort rep only during an open case), every view logged. |
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
+| 16 Oct 2026 | Member confirmation (verification) is a setting: on or off, and which roles confirm, changeable by administrators. |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

@@ -77,10 +77,10 @@ supported by the Keep a Child in School fund.
 - **Possible duplicates.** A count of records sharing a phone, an email, or a name in the same class.
   Nothing is merged automatically; checking them comes with verification in January.
 
-## Who sees next of kin (welfare and emergency contact)
+## Who sees next of kin (welfare programme)
 
 Only the member and the **Welfare Coordinator**. Administrators and the Secretary do not see it. The
-coordinator's views are recorded with a reason. Members add it themselves in **My account → My profile**.
+coordinator's views are recorded with a reason. Members give it only when they join the welfare programme, once administrators switch the programme on.
 
 ## Giving someone a role (until the roles screen arrives)
 

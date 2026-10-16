@@ -38,7 +38,7 @@ npm run build
 | `src/app` | Pages (home, causes, give, pledge, thank-you, news) and form actions |
 | `src/app/admin` | Admin area: overview, members, cause editor, news editor, photos and video. Actions in `actions.ts` |
 | `src/app/join` | Registration: sign in, then short steps (`components/join/registration-steps.tsx`); `finishRegistration` calls `complete_registration()` |
-| `src/app/app` | My account and My profile (photo, work and links, welfare contact, privacy choices) |
+| `src/app/app` | My account and My profile (photo, work and links, skills, privacy choices) |
 | `src/components` | Shared pieces: header, footer, brick-wall progress, form fields; `admin/` holds the admin forms and photo upload |
 | `src/content` | Fixed website text (`site.ts`) and the list of photo spaces (`photo-spaces.ts`) |
 | `src/lib` | Money formatting, references, validation, and the data layer |

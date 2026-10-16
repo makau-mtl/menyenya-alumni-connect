@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getMember } from "@/lib/members/session";
 import { MEMBER_PHOTO_BUCKET, memberPhotoFile } from "@/lib/members/photos";
+import { importProviderPhoto } from "@/lib/members/provider-photo";
 import { toInternational } from "@/lib/phone";
 import { occupationOptions, type Occupation } from "@/lib/registration";
 import type { ActionState } from "@/lib/admin/staff";
@@ -49,6 +50,14 @@ export async function uploadMemberPhoto(_prev: ActionState, formData: FormData):
   return done("Photo saved. Classmates will see it in the directory.");
 }
 
+/** "Use my Google/LinkedIn photo" on the profile page. */
+export async function applySignInPhoto(): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string" || !m.providerPhoto) return;
+  await importProviderPhoto(m.supabase, m.personId!, m.providerPhoto);
+  revalidatePath("/app", "layout");
+}
+
 export async function removeMemberPhoto(): Promise<void> {
   const m = await memberOrError();
   if (typeof m === "string") return;
@@ -90,7 +99,7 @@ export async function saveWork(_prev: ActionState, formData: FormData): Promise<
     profession: formData.get("profession") ?? "",
     employer_or_business: formData.get("employer_or_business") ?? "",
     products_services: formData.get("products_services") ?? "",
-    skills: String(formData.get("skills") ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+    skills: [...new Set(formData.getAll("skills").map((s) => String(s).trim()).filter(Boolean))],
     linkedin_url: normaliseUrl(String(formData.get("linkedin_url") ?? "")),
     profile_link: normaliseUrl(String(formData.get("profile_link") ?? "")),
     social_links: socials,

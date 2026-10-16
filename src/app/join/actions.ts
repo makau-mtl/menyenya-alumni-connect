@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
 import { registrationSchema, type RegistrationInput } from "@/lib/registration";
+import { importProviderPhoto } from "@/lib/members/provider-photo";
 
 /** The last registration step. Only this creates the member record (in one database call). */
 export async function finishRegistration(input: RegistrationInput): Promise<{ error: string } | void> {
@@ -21,6 +22,8 @@ export async function finishRegistration(input: RegistrationInput): Promise<{ er
     console.error("Registration failed", error);
     return { error: "We couldn't save your registration just now. Please try again in a moment." };
   }
-  const r = (data ?? {}) as { dues_reference?: string | null };
+  const r = (data ?? {}) as { person_id?: string; dues_reference?: string | null };
+  // Use the Google or LinkedIn photo until the member uploads their own. Never blocks registration.
+  if (r.person_id && member.providerPhoto) await importProviderPhoto(member.supabase, r.person_id, member.providerPhoto);
   redirect(r.dues_reference ? `/join/welcome?dues=${encodeURIComponent(r.dues_reference)}` : "/join/welcome");
 }

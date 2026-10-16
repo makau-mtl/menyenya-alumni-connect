@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
 import { memberPhotoUrl } from "@/lib/members/photos";
-import { removeMemberPhoto, uploadMemberPhoto } from "@/app/app/actions";
+import { applySignInPhoto, removeMemberPhoto, uploadMemberPhoto } from "@/app/app/actions";
 import { PhotoUpload } from "@/components/admin/photo-upload";
-import { ChoicesForm, WelfareForm, WorkForm } from "@/components/member/profile-forms";
+import { ChoicesForm, WorkForm } from "@/components/member/profile-forms";
+import { buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "My profile" };
 
@@ -25,15 +26,17 @@ export default async function ProfilePage() {
   if (!member) redirect("/login?next=/app/profile");
   if (!member.registered) redirect("/join");
 
-  const [{ data: p }, { data: kin }, { data: consentRows }] = await Promise.all([
+  const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase
       .from("member_profiles")
       .select("headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
       .eq("person_id", member.personId!)
       .single(),
-    member.supabase.from("next_of_kin").select("name, relationship, phone").limit(1).maybeSingle(),
     member.supabase.from("consents").select("purpose, granted, created_at").order("created_at", { ascending: false }),
+    member.supabase.from("skills").select("name").eq("active", true).order("name"),
   ]);
+  const skillOptions = (skillRows ?? []).map((r) => r.name);
+  const providerName = member.provider === "google" ? "Google" : member.provider === "linkedin_oidc" ? "LinkedIn" : null;
   const flags = (p?.membership_levels as unknown as { can_mentor: boolean; can_request_mentor: boolean } | null) ?? null;
   const consents: Record<string, boolean> = {};
   for (const r of consentRows ?? []) if (!(r.purpose in consents)) consents[r.purpose] = r.granted;
@@ -48,12 +51,11 @@ export default async function ProfilePage() {
         <nav aria-label="Sections" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-semibold text-tea">
           <a href="#photo" className="underline underline-offset-4">Photo</a>
           <a href="#work" className="underline underline-offset-4">Work and links</a>
-          <a href="#welfare" className="underline underline-offset-4">Welfare contact</a>
           <a href="#choices" className="underline underline-offset-4">Privacy choices</a>
         </nav>
       </div>
 
-      <Section id="photo" title="Your photo" intro="A passport-style photo helps classmates put a face to the name. Only signed-in members see it, unless you switch on a public profile.">
+      <Section id="photo" title="Your photo" intro="A passport-style photo helps classmates put a face to the name. Your Google or LinkedIn photo is used until you upload one. Only signed-in members see it, and only if you agree to be in the directory.">
         <div className="flex flex-wrap items-start gap-6">
           {photo ? (
             <div className="flex flex-col items-start gap-2">
@@ -63,7 +65,14 @@ export default async function ProfilePage() {
               </form>
             </div>
           ) : (
-            <span aria-hidden className="flex size-36 items-center justify-center rounded-xl bg-paper text-sm text-ink-soft">No photo yet</span>
+            <div className="flex flex-col items-start gap-3">
+              <span aria-hidden className="flex size-36 items-center justify-center rounded-xl bg-paper text-sm text-ink-soft">No photo yet</span>
+              {providerName && member.providerPhoto && (
+                <form action={applySignInPhoto}>
+                  <button type="submit" className={buttonClass("secondary", "sm")}>Use my {providerName} photo</button>
+                </form>
+              )}
+            </div>
           )}
           <div className="min-w-0 flex-1">
             <PhotoUpload
@@ -81,6 +90,7 @@ export default async function ProfilePage() {
 
       <Section id="work" title="Work and links" intro="Shown to signed-in members in the directory, so fellow alumni can find and support each other.">
         <WorkForm
+          skillOptions={skillOptions}
           v={{
             headline: p?.headline ?? "",
             occupation_status: p?.occupation_status ?? "",
@@ -97,21 +107,6 @@ export default async function ProfilePage() {
             canRequestMentor: flags?.can_request_mentor ?? false,
           }}
         />
-      </Section>
-
-      <Section
-        id="welfare"
-        title="Welfare and emergency contact"
-        intro={
-          <>
-            <p>The person the association should contact if something happens to you, and for welfare support.</p>
-            <p className="mt-2 font-semibold text-ink">
-              Only you and the Welfare Coordinator can see this. Every time the coordinator looks, it&rsquo;s recorded. It is never in the directory.
-            </p>
-          </>
-        }
-      >
-        <WelfareForm kin={kin ?? null} />
       </Section>
 
       <Section id="choices" title="Privacy choices" intro={<>Change these whenever you like. See the <Link href="/privacy" className="underline">privacy policy</Link>.</>}>

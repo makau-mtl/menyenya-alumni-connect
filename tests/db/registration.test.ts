@@ -270,3 +270,22 @@ describe("links the website names", () => {
     expect(r.rows.length).toBe(1);
   });
 });
+
+describe("profile polish", () => {
+  it("tidies names typed in capitals or lower case, and leaves mixed case alone", async () => {
+    const r = await db.query<{ a: string; b: string; c: string; d: string }>(`select public.tidy_name('NEHEMIAH  MAKAU') a,
+      public.tidy_name('grace kerubo') b, public.tidy_name('Ruth McDonald') c, public.tidy_name('PETER O''BRIEN') d`);
+    expect(r.rows[0]).toEqual({ a: "Nehemiah Makau", b: "Grace Kerubo", c: "Ruth McDonald", d: "Peter O'Brien" });
+    const u = await createLogin(db, "caps@example.com");
+    await register(u, alumnus({ full_name: "JOHN OMONDI ONYANGO", phone: "0711 999 000" }));
+    const p = await db.query<{ full_name: string }>("select full_name from public.persons where user_id = $1", [u]);
+    expect(p.rows[0].full_name).toBe("John Omondi Onyango");
+  });
+
+  it("offers a shared skills list to everyone", async () => {
+    await as(db, "anon", async () => {
+      const r = await db.query<{ n: number }>("select count(*)::int n from public.skills where active");
+      expect(r.rows[0].n).toBeGreaterThan(150);
+    });
+  });
+});

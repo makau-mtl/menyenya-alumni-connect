@@ -21,9 +21,9 @@ const sections: { h: string; p: React.ReactNode[] }[] = [
     p: [
       <><strong>When you register:</strong> your name, email, phone number and its country, whether you are an alumnus or a friend of the alumni, your class and the years you were at Menyenya (or how you are connected to the school), your county and region, what you do now and your membership level, and your choices about updates and the directory.</>,
       <><strong>If you choose to add them:</strong> a photo, a one-line summary of your work, your profession, employer or business, skills, LinkedIn and other links, and whether you would like to mentor or be mentored.</>,
-      <><strong>Welfare and emergency contact:</strong> the name, relationship and phone number of someone we should contact. Ask their permission before you give us their details.</>,
+      <><strong>Only if you join the welfare programme:</strong> an emergency contact (ask their permission first), and the family, dependants and documents the programme needs. Joining is your choice.</>,
       <><strong>When you give or pledge:</strong> your name, email, phone, the amount and cause, and payment references.</>,
-      <><strong>When you sign in with Google or LinkedIn:</strong> we receive your name, email address and, if you have one, your profile picture. We never post anything on your behalf.</>,
+      <><strong>When you sign in with Google or LinkedIn:</strong> we receive your name, email address and, if you have one, your profile picture, which we use as your photo until you upload your own. We never post anything on your behalf.</>,
     ],
   },
   {
@@ -43,7 +43,7 @@ const sections: { h: string; p: React.ReactNode[] }[] = [
       "If you agree to be listed, signed-in members can see your name, class, region, photo and work summary.",
       "If you switch on a public profile, anyone can see your name, class, one-line summary, photo and links. It is off unless you switch it on.",
       "Your class rep and the officials who manage membership see the details they need to confirm and support members.",
-      "Your welfare and emergency contact is seen only by you and the Welfare Coordinator. Each time the coordinator looks, it is recorded.",
+      "Welfare programme details, including your emergency contact, are seen only by you and the Welfare Coordinator. Each time the coordinator looks, it is recorded.",
       "We do not sell your information or share it for advertising.",
     ],
   },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountLinks } from "./account-links";
+import { MenuCloser } from "./menu-closer";
 
 type NavItem = { label: string; href: string; children?: { label: string; href: string; text?: string }[] };
 
@@ -55,7 +56,7 @@ function Chevron() {
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+    <header id="site-header" className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6 lg:px-6">
         <Link href="/" aria-label="Menyenya Alumni home" className="mr-auto lg:mr-4">
           <Logo />
@@ -73,7 +74,7 @@ export function SiteHeader() {
                   {item.children && <Chevron />}
                 </Link>
                 {item.children && (
-                  <div className="invisible absolute left-0 top-full z-50 w-80 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                  <div className="nav-dropdown invisible absolute left-0 top-full z-50 w-80 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
                     <ul className="rounded-xl border border-line bg-surface p-2 shadow-[0_12px_32px_rgba(23,40,59,0.14)]">
                       {item.children.map((c) => (
                         <li key={c.href}>
@@ -135,6 +136,7 @@ export function SiteHeader() {
           </details>
         </div>
       </div>
+      <MenuCloser />
     </header>
   );
 }

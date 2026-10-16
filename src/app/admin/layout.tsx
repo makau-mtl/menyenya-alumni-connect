@@ -28,9 +28,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const tabs = [
     ...(staff.isFinance ? [{ href: "/admin", label: "Overview" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/members", label: "Members" }] : []),
+    ...(staff.isAdmin || staff.isVerifier ? [{ href: "/admin/duplicates", label: "Duplicates" }] : []),
+    ...(staff.isAdmin ? [{ href: "/admin/roles", label: "Roles" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/causes", label: "Causes" }] : []),
     ...(staff.canEditNews ? [{ href: "/admin/news", label: "News and events" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/site", label: "Photos and video" }] : []),
+    ...(staff.isAdmin ? [{ href: "/admin/settings", label: "Settings" }] : []),
   ];
 
   return (

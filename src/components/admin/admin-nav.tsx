@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function AdminNav({ tabs }: { tabs: { href: string; label: string }[] }) {
+export function AdminNav({ tabs, label = "Admin", root = "/admin" }: { tabs: { href: string; label: string }[]; label?: string; root?: string }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Admin" className="-mx-4 mt-6 overflow-x-auto px-4">
+    <nav aria-label={label} className="-mx-4 mt-6 overflow-x-auto px-4">
       <ul className="flex min-w-max gap-1 border-b border-line">
         {tabs.map((t) => {
-          const active = t.href === "/admin" ? pathname === "/admin" : pathname.startsWith(t.href);
+          const active = t.href === root ? pathname === root : pathname.startsWith(t.href);
           return (
             <li key={t.href}>
               <Link

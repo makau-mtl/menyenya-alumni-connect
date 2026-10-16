@@ -655,14 +655,19 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/privacy` | public | Privacy policy |
 | `/app` | member | Member home (role centre) |
 | `/app/profile` | member | Profile, consents, data export/delete request |
-| `/app/directory` | member | Directory |
+| `/app/directory`, `/app/directory/[id]` | member | Directory (photo tiles, filters) and member card |
+| `/app/confirm` | confirmers | Members waiting for confirmation (when switched on) |
+| `/app/terminate` | member | Terminate membership |
+| `/people/[id]` | public | Public profile (only with the member's consent) |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |
 | `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management; class invite links and the registration switch on `/admin/members` |
 | `/admin/causes` | admin | Causes and campaigns |
 | `/admin/payments`, `/admin/payments/new`, `/admin/suspense`, `/admin/import` | treasurer/admin | Payments |
 | `/admin/reports` | office-holders | Reports |
 | `/admin/events` | admin | Events (Phase 1 basic) |
-| `/admin/settings/*` | admin | Categories, levels, clusters, cohorts, pick lists, roles, templates, modules |
+| `/admin/settings/*` | admin | Confirmation on/off and confirming roles, rejoin window; later: categories, levels, clusters, cohorts, pick lists, templates, modules |
+| `/admin/roles` | admin | Give and end roles (class rep for a class, regional rep for a region, officials) |
+| `/admin/duplicates` | admin/verifier | Compare possible duplicates, merge (with undo) or mark as different people |
 | `/api/webhooks/mpesa/*` | system | Daraja callbacks |
 
 ---

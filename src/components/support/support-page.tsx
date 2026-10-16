@@ -20,6 +20,7 @@ const otherWays = [
   { title: "The tuition block", text: "Our KES 100 million project for the school.", href: "/causes/tuition-block" },
   { title: "Corporate sponsorships", text: "For businesses, SACCOs and foundations.", href: "/support/corporate-sponsorships" },
   { title: "Strategic partnerships", text: "For institutions with shared goals.", href: "/support/strategic-partnerships" },
+  { title: "Alumni merchandise", text: "T-shirts, caps, mugs and more.", href: "/shop" },
 ];
 
 /** The Corporate sponsorships and Strategic partnerships pages share this layout. */
@@ -144,7 +145,7 @@ export async function SupportPage({ copy }: { copy: SupportCopy }) {
       {/* Other ways */}
       <section className="section pb-20 pt-20 lg:pt-28">
         <h2 className="text-3xl font-bold sm:text-4xl">Other ways to support</h2>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {otherWays.filter((w) => w.href !== self).map((w) => (
             <li key={w.href}>
               <Link href={w.href} className="group flex h-full flex-col rounded-2xl bg-tea-tint p-6 transition hover:bg-tea hover:text-white">

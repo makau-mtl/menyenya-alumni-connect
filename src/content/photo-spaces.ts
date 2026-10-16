@@ -41,6 +41,7 @@ export const photoSpaces: PhotoSpace[] = [
   { key: "support.sponsors.impact", page: "Corporate sponsorships", label: "the tuition block site or students learning", ratio: "landscape" },
   { key: "support.partners.hero", page: "Strategic partnerships", label: "an alumnus mentoring students", ratio: "landscape" },
   { key: "support.partners.impact", page: "Strategic partnerships", label: "students at a career day", ratio: "landscape" },
+  { key: "shop.hero", page: "Alumni merchandise", label: "alumni wearing Menyenya merchandise", ratio: "landscape" },
 ];
 
 export const photoSpaceKeys = new Set(photoSpaces.map((s) => s.key));

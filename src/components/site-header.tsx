@@ -23,6 +23,7 @@ export const mainNav: NavItem[] = [
       { label: "The tuition block", href: "/causes/tuition-block", text: "Our KES 100M project" },
       { label: "Corporate sponsorships", href: "/support/corporate-sponsorships", text: "For businesses, SACCOs and foundations" },
       { label: "Strategic partnerships", href: "/support/strategic-partnerships", text: "For institutions with shared goals" },
+      { label: "Alumni merchandise", href: "/shop", text: "Order T-shirts, caps and more" },
     ],
   },
   { label: "News and events", href: "/news" },

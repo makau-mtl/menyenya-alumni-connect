@@ -27,20 +27,19 @@ export const mainNav: NavItem[] = [
   { label: "News and events", href: "/news" },
 ];
 
+/** The association's logo: "mhs.alumni" (chosen 16 Oct 2026). Files for print and social media: public/brand. */
 export function Logo({ light = false }: { light?: boolean }) {
   return (
-    <span className="flex items-center gap-2.5 sm:gap-3">
+    <span className="flex flex-col leading-none">
       <span
-        aria-hidden
-        className={`flex size-10 shrink-0 sm:size-11 items-center justify-center rounded-lg font-display text-lg font-bold ${
-          light ? "bg-white text-ink" : "bg-ink text-gold"
-        }`}
+        className={`whitespace-nowrap text-[1.7rem] tracking-[-0.03em] sm:text-[1.95rem] ${light ? "text-white" : "text-ink"}`}
       >
-        MA
+        <span className="font-black">mhs</span>
+        <span aria-hidden className="font-black text-gold">.</span>
+        <span className="font-normal">alumni</span>
       </span>
-      <span className="leading-tight">
-        <span className={`block whitespace-nowrap font-display text-base font-bold sm:text-lg ${light ? "text-white" : "text-ink"}`}>Menyenya Alumni</span>
-        <span className={`hidden whitespace-nowrap text-xs sm:block ${light ? "text-white/70" : "text-ink-soft"}`}>Menyenya SDA High School</span>
+      <span className={`mt-1 hidden whitespace-nowrap text-xs sm:block ${light ? "text-white/70" : "text-ink-soft"}`}>
+        Menyenya SDA High School
       </span>
     </span>
   );
@@ -58,7 +57,7 @@ export function SiteHeader() {
   return (
     <header id="site-header" className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-6 lg:px-6">
-        <Link href="/" aria-label="Menyenya Alumni home" className="mr-auto lg:mr-4">
+        <Link href="/" aria-label="mhs.alumni, Menyenya SDA High School Alumni Association: home" className="mr-auto lg:mr-4">
           <Logo />
         </Link>
 

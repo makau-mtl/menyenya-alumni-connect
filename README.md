@@ -7,6 +7,7 @@ The digital platform of the Menyenya SDA High School Alumni Association: members
 - What has been built so far: `docs/PROGRESS.md`
 - For officials, how to update the website: `docs/HOW-TO-UPDATE-THE-SITE.md`
 - Sign-in setup (Google, LinkedIn, email links): `docs/SETUP-SIGN-IN.md`
+- Logo, colours and fonts: `docs/BRAND.md` (files in `public/brand/`)
 
 ## Run it on your computer
 

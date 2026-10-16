@@ -32,6 +32,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     ...(staff.isAdmin ? [{ href: "/admin/roles", label: "Roles" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/people", label: "Our people" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/causes", label: "Causes" }] : []),
+    ...(staff.isAdmin ? [{ href: "/admin/support", label: "Sponsors and partners" }] : []),
     ...(staff.canEditNews ? [{ href: "/admin/news", label: "News and events" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/site", label: "Photos and video" }] : []),
     ...(staff.isAdmin ? [{ href: "/admin/settings", label: "Settings" }] : []),

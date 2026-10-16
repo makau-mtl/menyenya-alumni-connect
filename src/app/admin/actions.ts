@@ -574,3 +574,170 @@ export async function movePosition(formData: FormData): Promise<void> {
   await Promise.all(list.map((r, n) => staff.supabase.from("public_positions").update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
   refreshSite();
 }
+
+// Sponsors, partners, packages and enquiries ------------------------------------------------------------
+
+const supporterSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["sponsor", "partner"]),
+  name: z.string().trim().min(2, "Enter the organisation's name.").max(120, "Keep the name under 120 characters."),
+  websiteUrl: optionalText(300, "That link is too long.").refine((v) => v === null || /^https:\/\/\S+$/i.test(v), "Paste a link starting with https://"),
+  blurb: optionalText(300, "Keep this under 300 characters."),
+  packageId: z.string(),
+  sinceYear: z
+    .string()
+    .refine((v) => v === "" || /^(19[7-9]\d|20\d\d)$/.test(v), "Enter a year, e.g. 2026.")
+    .transform((v) => (v === "" ? null : Number(v))),
+  featured: z.boolean(),
+  status: z.enum(["published", "draft"]),
+});
+
+export async function saveSupporter(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = supporterSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    kind: formData.get("kind"),
+    name: String(formData.get("name") ?? ""),
+    websiteUrl: String(formData.get("websiteUrl") ?? ""),
+    blurb: String(formData.get("blurb") ?? ""),
+    packageId: String(formData.get("packageId") ?? ""),
+    sinceYear: String(formData.get("sinceYear") ?? ""),
+    featured: formData.get("featured") === "on",
+    status: formData.get("status") === "draft" ? "draft" : "published",
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const row: Record<string, unknown> = {
+    kind: v.kind,
+    name: v.name,
+    website_url: v.websiteUrl,
+    blurb: v.blurb,
+    package_id: v.packageId || null,
+    since_year: v.sinceYear,
+    featured: v.featured,
+    status: v.status,
+  };
+  try {
+    if (hasPhoto(formData)) row.logo_path = await savePhoto(staff, "supporters", formData);
+  } catch (e) {
+    return fail(uploadMessage(e));
+  }
+  const table = staff.supabase.from("supporters");
+  const { error } = v.id
+    ? await table.update(row).eq("id", v.id)
+    : await table.insert({ ...row, sort_order: await nextOrder(staff, "supporters", v.kind) });
+  if (error) {
+    console.error(error);
+    return fail("The details could not be saved.");
+  }
+  refreshSite();
+  redirect("/admin/support?saved=1#supporters");
+}
+
+const packageSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["sponsor", "partner"]),
+  name: z.string().trim().min(2, "Name the option, e.g. Business Alliance.").max(80, "Keep the name under 80 characters."),
+  audience: optionalText(160, "Keep this under 160 characters."),
+  description: z.string().trim().max(600, "Keep the description under 600 characters."),
+  benefits: z.array(z.string().trim().min(1).max(160, "Keep each benefit under 160 characters.")).max(12, "List up to 12 benefits."),
+  amount: z
+    .string()
+    .transform((v) => v.replace(/[,\s]/g, ""))
+    .refine((v) => v === "" || /^\d{1,12}$/.test(v), "Enter the amount in shillings, numbers only, or leave it blank.")
+    .transform((v) => (v === "" ? null : Number(v))),
+  amountPeriod: z.enum(["one_off", "annual"]),
+  status: z.enum(["published", "draft"]),
+});
+
+export async function savePackage(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = packageSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    kind: formData.get("kind"),
+    name: String(formData.get("name") ?? ""),
+    audience: String(formData.get("audience") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    benefits: String(formData.get("benefits") ?? "").split("\n").map((b) => b.trim()).filter(Boolean),
+    amount: String(formData.get("amount") ?? ""),
+    amountPeriod: formData.get("amountPeriod") === "one_off" ? "one_off" : "annual",
+    status: formData.get("status") === "draft" ? "draft" : "published",
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const row = {
+    kind: v.kind,
+    name: v.name,
+    audience: v.audience,
+    description: v.description,
+    benefits: v.benefits,
+    amount_kes: v.amount,
+    amount_period: v.amount ? v.amountPeriod : null,
+    status: v.status,
+  };
+  const table = staff.supabase.from("support_packages");
+  const { error } = v.id
+    ? await table.update(row).eq("id", v.id)
+    : await table.insert({ ...row, sort_order: await nextOrder(staff, "support_packages", v.kind) });
+  if (error) {
+    console.error(error);
+    return fail("The option could not be saved.");
+  }
+  refreshSite();
+  redirect("/admin/support?saved=1#packages");
+}
+
+type SupportTable = "supporters" | "support_packages";
+const supportTables = new Set<string>(["supporters", "support_packages"]);
+
+async function nextOrder(staff: Staff, table: SupportTable, kind: string) {
+  const { data } = await staff.supabase.from(table).select("sort_order").eq("kind", kind).order("sort_order", { ascending: false }).limit(1).maybeSingle();
+  return (data?.sort_order ?? 0) + 10;
+}
+
+/** Show, hide or remove (archive) a sponsor, partner or package. Nothing is deleted. */
+export async function setSupportStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const table = String(formData.get("table") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!supportTables.has(table) || !["published", "draft", "archived"].includes(status)) return;
+  await staff.supabase.from(table as SupportTable).update({ status }).eq("id", String(formData.get("id") ?? ""));
+  refreshSite();
+}
+
+/** Move a sponsor, partner or package one place up or down among its kind. */
+export async function moveSupport(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const table = String(formData.get("table") ?? "");
+  if (!supportTables.has(table)) return;
+  const t = table as SupportTable;
+  const id = String(formData.get("id") ?? "");
+  const { data: me } = await staff.supabase.from(t).select("kind").eq("id", id).maybeSingle();
+  if (!me) return;
+  const { data: rows } = await staff.supabase.from(t).select("id").eq("kind", me.kind).neq("status", "archived").order("sort_order").order("name");
+  const list = rows ?? [];
+  const i = list.findIndex((r) => r.id === id);
+  const j = formData.get("direction") === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  await Promise.all(list.map((r, n) => staff.supabase.from(t).update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
+  refreshSite();
+}
+
+/** Mark an enquiry in progress or closed, with a short note. */
+export async function updateEnquiry(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["new", "in_progress", "closed"].includes(status)) return;
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  await staff.supabase
+    .from("support_enquiries")
+    .update({ status, notes: String(formData.get("notes") ?? "").slice(0, 2000), handled_by: me ?? null })
+    .eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/admin/support");
+}

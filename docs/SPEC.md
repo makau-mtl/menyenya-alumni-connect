@@ -183,7 +183,7 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | skills | TEXT[] | |
 | willing_to_volunteer | BOOLEAN DEFAULT false | |
 | mentoring_offer | ENUM('none','can_mentor','wants_mentor') | allowed values depend on level flags |
-| membership_status | ENUM('registered','verified','active','lapsed','terminated') | `active` = paid-up when fees are on; `terminated` replaces `exited` (§6.3a) |
+| membership_status | ENUM('registered','verified','active','lapsed','terminated') | `active` = paid-up when fees are on; `terminated` replaces `exited` (§6.3a). Standing shown to members is **Active / Inactive** (decided 17 Oct 2026): Active = paid for the current calendar year, or last year's until 31 March; fees are paid per year with no arrears; everyone registered is Active while fees are off. Only Active members vote. |
 | terminated_at, termination_reason, rejoin_until | | set when the member terminates (§6.3a) |
 | deletion_requested_at | TIMESTAMPTZ NULL | deletion runs when `rejoin_until` passes |
 | registered_at | TIMESTAMPTZ | when the last registration step was submitted |
@@ -527,6 +527,11 @@ Behaviour:
   - **Positions are managed by administrators** at `/admin/people` (table `public_positions`): section, role title (e.g. "Chair", "School Principal (ex officio)"), holder (an active member, whose photo, class, summary and LinkedIn come from their profile; or a named non-member with their own photo, summary and LinkedIn), optional official-capacity note, term (none, or start and end dates), shown or hidden, order. Removing archives the position; nothing is deleted.
   - **Term dates are never public**: shown in the pop-up to signed-in members only (`people_terms()`). Administrators see a "Terms ending" alert on `/admin/people` from 30 days before a term ends (`position_alerts()`); an email alert follows once email is set up.
   - The school principal appears only if added as a leadership position, with his official capacity stated.
+- **Ways to support** (menu renamed from "Ways to give", 17 Oct 2026): Personal ways to give (`/ways-to-give`), The tuition block, **Corporate sponsorships** (`/support/corporate-sponsorships`), **Strategic partnerships** (`/support/strategic-partnerships`); Alumni merchandise follows.
+  - Both pages, modelled on trees.org/support/corporate-sponsors: photo hero, why support, options (sponsorship packages / partnership areas) with benefits and amount ("Amount on request" until leadership sets one), logo wall ("The company you'll keep" / "Our partners"), what the support builds, common questions, an enquiry form, and links to other ways to support. Wording is a draft for leadership approval.
+  - Tables: `support_packages` (kind sponsor|partner, name, audience, description, benefits[], amount_kes, amount_period, order, status), `supporters` (kind, name, website, logo in site-media, blurb, package, since year, featured, order, status), `support_enquiries` (organisation, contact name, email, phone, package, message, status new|in_progress|closed, admin notes). Public reads published rows only; enquiries arrive only through `submit_support_enquiry()` (validated, max 5 per email a day, spam trap) and only administrators read them. Nothing is deleted.
+  - Featured sponsors and partners show as a logo strip on the home page once any exist.
+  - Admin tab **Sponsors and partners** (`/admin/support`): enquiries inbox, sponsors and partners (logo, order, show/hide/remove, home page), options and areas.
 
 **AC**
 - Removing a role assignment (or its term ending) removes access immediately on next request.
@@ -631,7 +636,7 @@ Admin moves a campaign through `preparation → live → construction → closed
 
 ## 8. Feature Specs — Phase 3 (Oct 2027–Mar 2028)
 
-- **Membership levels and fees in use:** fee per level (one-off or annual), renewal reminders, `lapsed` status, level targeting of initiatives/events/messages, reports by level.
+- **Membership levels and fees in use:** fee per level (one-off or annual), renewal reminders (Jan–Mar), Active/Inactive standing (calendar year, grace to 31 March, no arrears), level targeting of initiatives/events/messages, reports by level.
 - **Governance:** offices and terms, handover, committees, meetings and minutes, document repository with visibility levels.
 - **Mentorship:** mentor/mentee profiles governed by level flags, matching by field and interests, requests, sessions log.
 - **Group chats:** automatic channel per cohort and per cluster; interest group and committee channels; text, photos, links, shared events/causes; @mentions, replies; moderation by reps (remove, mute), member reporting; push notifications; mute per chat.
@@ -667,6 +672,8 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/app/terminate` | member | Terminate membership |
 | `/people/[id]` | public | Public profile (only with the member's consent) |
 | `/our-people` | public | Leadership, secretariat and members (tabs, cards with pop-up); `/who-we-are/team` redirects here |
+| `/support/corporate-sponsorships`, `/support/strategic-partnerships` | public | Sponsorship options, partnership areas, logos, enquiry form |
+| `/admin/support` | admin | Sponsors, partners, options and enquiries |
 | `/admin/people` | admin | Positions on the Our people page: add, edit, order, hide, term-end alerts |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |
 | `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management; class invite links and the registration switch on `/admin/members` |
@@ -818,5 +825,9 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | One "Our people" page (Leadership · Secretariat · Members) with trees.org-style cards and pop-ups; no contact details but LinkedIn. Leadership is the board; positions (including ex officio roles like the school principal) are managed in the admin area; terms are visible to members only and administrators are alerted when they end. Holding office implies being shown publicly. |
+| 17 Oct 2026 | Membership standing: **Active** = paid up for the current calendar year (Jan–Dec); **Inactive** = not paid up. Only active members may vote and take part in decisions. Until membership fees are switched on, every registered member counts as active. |
+| 17 Oct 2026 | Grace period: last year's paid-up members stay Active until **31 March**, with regular reminders to renew; unpaid after that, they become Inactive. A member may choose to stay inactive for a year and pay later: they pay only for the year they want to be active, **never arrears**. |
+| 17 Oct 2026 | Under Ways to support: a **Corporate sponsorships** page (sponsorship packages editable by administrators, amounts left blank until leadership approves them) and a **Strategic partnerships** page, both showcasing institutional sponsors and partners (logos managed in the admin area), modelled on trees.org/support/corporate-sponsors. |
+| 17 Oct 2026 | **Alumni merchandise** now as a catalogue plus order requests (item, size, quantity, pickup); the secretariat confirms and the buyer pays through the official Paybill. The full shop with checkout stays in Phase 4. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

@@ -1,5 +1,15 @@
 # Progress
 
+## 17 October 2026: Ways to support (sponsors and partners)
+
+- The menu "Ways to give" is now **Ways to support**, with two new pages: **Corporate sponsorships** and **Strategic partnerships**, modelled on trees.org.
+- Each page: photo hero, why support us, option cards (what's included and the amount, or "Amount on request"), a wall of sponsor or partner logos, what the support builds, common questions, an enquiry form, and links to other ways to support. Wording is marked as a draft for the officials.
+- Sponsors and partners marked for the home page appear in a logo strip there.
+- New admin tab **Sponsors and partners**: read and mark enquiries, add logos, write the options and set amounts once approved.
+- Enquiries are private to administrators; one email address can send at most five a day, and a hidden field catches spam.
+- Also carried in: the Our people redesign, and the decisions on membership standing (calendar year, grace to 31 March, no arrears).
+- Tests: 4 new database tests; 91 pass.
+
 ## 17 October 2026: Our people page
 
 - New public page **Our people** (`/our-people`), replacing "Leadership and secretariat". Three tabs that stay at the top while scrolling: Leadership, Secretariat, Members.

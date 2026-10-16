@@ -758,6 +758,8 @@ Each milestone ends with: working preview deployment, tests passing, `docs/PROGR
 
 Phases 2–4 are broken into milestones at the end of M11, in the same format.
 
+**Order change (product owner, 16 Oct 2026):** M4 (giving record-only) is deferred until the BoM project account and Paybill and the association's web address (for email) are ready. Next is M6 (member area), then M5 (testing and registration soft launch), then M4, then M7–M11. M4 must come before M7, M8 and M9, which depend on recorded payments. The payment tables and safeguards already exist from M1, so nothing built meanwhile needs rework.
+
 ---
 
 ## 18. Seed Data
@@ -796,6 +798,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
 | 16 Oct 2026 | Member confirmation (verification) is a setting: on or off, and which roles confirm, changeable by administrators. |
 | 16 Oct 2026 | Names are tidied; the sign-in photo is the default photo; skills come from a shared list with type-ahead; emergency contact only within the opt-in welfare programme. |
+| 16 Oct 2026 | Build order: M6 next, then M5, then M4 (deferred until the Paybill and web address are ready), then M7–M11. |
 | 16 Oct 2026 | "Terminate membership" (red, confirmed, with disclaimer: no refunds, fees forfeited); rejoin within an admin-set window (default 30 days); data deletion only together with termination, carried out when the window closes, with an emailed certificate; automatic anonymisation 24 months after termination, financial records after 7 years. Scheduled M6 and M9. |
 | 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |

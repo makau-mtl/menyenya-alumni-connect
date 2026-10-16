@@ -16,12 +16,13 @@ export const mainNav: NavItem[] = [
   },
   { label: "Our work", href: "/causes" },
   {
-    label: "Ways to give",
+    label: "Ways to support",
     href: "/ways-to-give",
     children: [
       { label: "Personal ways to give", href: "/ways-to-give", text: "Give once, pledge, or give in kind" },
       { label: "The tuition block", href: "/causes/tuition-block", text: "Our KES 100M project" },
-      { label: "Organisations and partners", href: "/ways-to-give#organisations", text: "Sponsorships and partnerships" },
+      { label: "Corporate sponsorships", href: "/support/corporate-sponsorships", text: "For businesses, SACCOs and foundations" },
+      { label: "Strategic partnerships", href: "/support/strategic-partnerships", text: "For institutions with shared goals" },
     ],
   },
   { label: "News and events", href: "/news" },

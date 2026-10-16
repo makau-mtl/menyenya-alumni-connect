@@ -527,6 +527,11 @@ Behaviour:
   - **Positions are managed by administrators** at `/admin/people` (table `public_positions`): section, role title (e.g. "Chair", "School Principal (ex officio)"), holder (an active member, whose photo, class, summary and LinkedIn come from their profile; or a named non-member with their own photo, summary and LinkedIn), optional official-capacity note, term (none, or start and end dates), shown or hidden, order. Removing archives the position; nothing is deleted.
   - **Term dates are never public**: shown in the pop-up to signed-in members only (`people_terms()`). Administrators see a "Terms ending" alert on `/admin/people` from 30 days before a term ends (`position_alerts()`); an email alert follows once email is set up.
   - The school principal appears only if added as a leadership position, with his official capacity stated.
+- **Ways to support** (menu renamed from "Ways to give", 17 Oct 2026): Personal ways to give (`/ways-to-give`), The tuition block, **Corporate sponsorships** (`/support/corporate-sponsorships`), **Strategic partnerships** (`/support/strategic-partnerships`); Alumni merchandise follows.
+  - Both pages, modelled on trees.org/support/corporate-sponsors: photo hero, why support, options (sponsorship packages / partnership areas) with benefits and amount ("Amount on request" until leadership sets one), logo wall ("The company you'll keep" / "Our partners"), what the support builds, common questions, an enquiry form, and links to other ways to support. Wording is a draft for leadership approval.
+  - Tables: `support_packages` (kind sponsor|partner, name, audience, description, benefits[], amount_kes, amount_period, order, status), `supporters` (kind, name, website, logo in site-media, blurb, package, since year, featured, order, status), `support_enquiries` (organisation, contact name, email, phone, package, message, status new|in_progress|closed, admin notes). Public reads published rows only; enquiries arrive only through `submit_support_enquiry()` (validated, max 5 per email a day, spam trap) and only administrators read them. Nothing is deleted.
+  - Featured sponsors and partners show as a logo strip on the home page once any exist.
+  - Admin tab **Sponsors and partners** (`/admin/support`): enquiries inbox, sponsors and partners (logo, order, show/hide/remove, home page), options and areas.
 
 **AC**
 - Removing a role assignment (or its term ending) removes access immediately on next request.
@@ -667,6 +672,8 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/app/terminate` | member | Terminate membership |
 | `/people/[id]` | public | Public profile (only with the member's consent) |
 | `/our-people` | public | Leadership, secretariat and members (tabs, cards with pop-up); `/who-we-are/team` redirects here |
+| `/support/corporate-sponsorships`, `/support/strategic-partnerships` | public | Sponsorship options, partnership areas, logos, enquiry form |
+| `/admin/support` | admin | Sponsors, partners, options and enquiries |
 | `/admin/people` | admin | Positions on the Our people page: add, edit, order, hide, term-end alerts |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |
 | `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management; class invite links and the registration switch on `/admin/members` |

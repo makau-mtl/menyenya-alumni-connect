@@ -16,6 +16,7 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 | Roles | Administrators | Give and end roles |
 | Settings | Administrators | Member confirmation, rejoin window |
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
+| Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -59,7 +60,7 @@ choose **Hide**.
 
 ## Fill the photo spaces around the website
 
-**Photos and video** lists every photo space by page (Home, Who we are, Ways to give, Join,
+**Photos and video** lists every photo space by page (Home, Who we are, Our people, Ways to give, Corporate sponsorships, Strategic partnerships, Join,
 Careers), with a note of what belongs in each. Upload a photo into any space; spaces without one
 keep showing "Photo to come".
 
@@ -128,4 +129,14 @@ Open the **Our people** tab.
 Use the arrows to change the order, **Edit** to change the holder after an election, **Hide** to take it off the page for a while, and **Remove** when the position no longer exists. Thirty days before a term ends, a **Terms ending** box appears at the top of the tab.
 
 Holding a position means being shown publicly, so let people know before you add them. Members appear in the Members section only if they ticked "public profile", or hold a position.
+
+## Sponsors, partners and enquiries
+
+Open the **Sponsors and partners** tab.
+
+- **Enquiries**: organisations that filled in the form on the Corporate sponsorships or Strategic partnerships page. Reply by email or phone, add a short note, and set it to *In progress* or *Closed*. Closed ones are hidden; *Show closed too* brings them back.
+- **Add a sponsor or partner**: choose the type, type the name, add the website and a logo (a PNG with a transparent or white background looks best). Tick *Also show on the home page* for a logo strip there. Use the arrows to order them, **Hide** to take one off for a while, and **Remove** when they no longer support us. Nothing is deleted.
+- **Options and areas**: the cards on each page. Corporate sponsorship options (e.g. *Friends of Menyenya*) and strategic partnership areas (e.g. *Mentorship and careers*). Write who it is for, a description and what they receive, one per line. Leave the amount blank until the leadership approves it; the page shows "Amount on request".
+
+The wording on both pages is marked as a draft. Once the officials approve it, ask for the draft notice to be removed.
 

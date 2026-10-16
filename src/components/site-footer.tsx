@@ -13,12 +13,13 @@ const columns = [
     ],
   },
   {
-    title: "Ways to give",
+    title: "Ways to support",
     links: [
       { label: "Donate", href: "/donate" },
       { label: "Personal ways to give", href: "/ways-to-give" },
       { label: "The tuition block", href: "/causes/tuition-block" },
-      { label: "Organisations and partners", href: "/ways-to-give#organisations" },
+      { label: "Corporate sponsorships", href: "/support/corporate-sponsorships" },
+      { label: "Strategic partnerships", href: "/support/strategic-partnerships" },
     ],
   },
   {

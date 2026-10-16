@@ -8,6 +8,8 @@ import { VideoSlot } from "@/components/media";
 import { SitePhoto } from "@/components/site-photo";
 import { NewsCard } from "@/components/news-card";
 import { buttonClass } from "@/components/ui";
+import { getSupporters } from "@/lib/support";
+import { LogoWall } from "@/components/support/logo-wall";
 
 // Progress figures refresh at least once a minute; pledges also refresh them straight away.
 export const revalidate = 60;
@@ -15,10 +17,11 @@ export const revalidate = 60;
 export default async function HomePage() {
   const block = await getCause("tuition-block");
   if (!block || !block.targetAmount) notFound();
-  const [progress, chairVideoId, news] = await Promise.all([
+  const [progress, chairVideoId, news, supporters] = await Promise.all([
     getCauseProgress(block.slug),
     getChairVideoId(),
     listNews(),
+    getSupporters({ featuredOnly: true }),
   ]);
 
   return (
@@ -204,6 +207,21 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Sponsors and partners (only once there are some to show) */}
+      {supporters.length > 0 && (
+        <section className="section pt-20 lg:pt-28">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-3xl font-bold sm:text-4xl">Our sponsors and partners</h2>
+            <Link href="/support/corporate-sponsorships" className="font-semibold text-tea underline underline-offset-4">
+              Become a sponsor
+            </Link>
+          </div>
+          <div className="mt-10">
+            <LogoWall supporters={supporters} small />
+          </div>
+        </section>
+      )}
 
       {/* Closing call to action */}
       <section className="section pt-20 lg:pt-28">

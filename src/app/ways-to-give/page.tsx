@@ -152,13 +152,13 @@ export default function WaysToGivePage() {
             </p>
           </div>
           <div className="flex flex-col justify-center gap-3">
-            <p className="text-lg">Organisations can give through the same forms, or talk to us about a sponsorship.</p>
+            <p className="text-lg">Organisations can give through the same forms, or become a sponsor or partner.</p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/donate" className={buttonClass("primary")}>
-                Give as an organisation
+              <Link href="/support/corporate-sponsorships" className={buttonClass("primary")}>
+                Corporate sponsorships
               </Link>
-              <Link href="/contact" className={buttonClass("secondary")}>
-                Talk to us
+              <Link href="/support/strategic-partnerships" className={buttonClass("secondary")}>
+                Strategic partnerships
               </Link>
             </div>
           </div>

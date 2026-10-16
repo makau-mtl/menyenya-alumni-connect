@@ -112,7 +112,8 @@ deleted, and an administrator can undo a merge from the same page.
 ## Active and inactive members
 
 Every member is **Active** or **Inactive**. Only active members can vote and take part in decisions.
-- While membership fees are off (as now), everyone is active.
+- If member confirmation is switched on (Settings), a new member is inactive until confirmed. If it is off, members are active as soon as they register.
+- While membership fees are off (as now), no payment is needed.
 - Once fees are on, a member is active for each calendar year they pay for, and last year's payers stay active until 31 March. Members pay only for the year they want to be active; there are no arrears.
 - On **Members**, the *Standing* column shows each member's standing; use *Active (can vote)* to get the voting list.
 

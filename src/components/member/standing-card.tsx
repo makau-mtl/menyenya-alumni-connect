@@ -1,5 +1,6 @@
 type Standing = {
   standing: "active" | "inactive" | null;
+  awaiting_confirmation: boolean;
   fees_on: boolean;
   this_year: number;
   paid_this_year: boolean;
@@ -21,7 +22,9 @@ export function StandingCard({ s, verification }: { s: Standing | null; verifica
           {active ? "Active" : "Inactive"}
         </span>
         <p className="font-semibold">
-          {!s.fees_on
+          {s.awaiting_confirmation
+            ? "Waiting for confirmation"
+            : !s.fees_on
             ? "Active member"
             : s.in_grace
               ? `Active until ${dateFormat.format(new Date(s.grace_ends))}`
@@ -36,8 +39,10 @@ export function StandingCard({ s, verification }: { s: Standing | null; verifica
           : "Inactive members can use the member area but cannot vote or take part in decisions."}
       </p>
       <p className="mt-2 text-sm text-ink-soft">
-        {!s.fees_on
-          ? "Everyone registered is active until membership fees start. Once they do, you are active for each year you pay for."
+        {s.awaiting_confirmation
+          ? "Your membership becomes active once the association confirms your details."
+          : !s.fees_on
+          ? "Active as soon as you are registered. If membership fees start, you are active for each year you pay for."
           : s.in_grace
             ? `Pay for ${s.this_year} by ${dateFormat.format(new Date(s.grace_ends))} to stay active.`
             : active

@@ -3,7 +3,8 @@
 ## 17 October 2026: membership standing (Active / Inactive)
 
 - Members see a card on their home page: **Active** (eligible to vote and take part in decisions) or **Inactive**, with what to do next.
-- Rules: active for each calendar year paid for; last year's payers stay active until 31 March; no arrears, pay only for the year you want; everyone is active while membership fees are off (as now).
+- Rules: active for each calendar year paid for; last year's payers stay active until 31 March; no arrears, pay only for the year you want; no payment needed while membership fees are off (as now).
+- When member confirmation is switched on, a member is active only once confirmed; when it is off, they are active as soon as they register.
 - Administrators see a **Standing** column and an *Active (can vote)* / *Inactive* filter on the members list.
 - Paid years are recorded once and never changed; M4 will record them from fee payments.
 - Still to come: renewal reminder emails (needs email set up) and the voting tools that use this.

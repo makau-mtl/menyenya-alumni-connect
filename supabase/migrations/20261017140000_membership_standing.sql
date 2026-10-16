@@ -3,7 +3,9 @@
 --   Inactive = not paid up.
 --   Grace: last year's paid-up members stay active until 31 March, with reminders to renew.
 --   No arrears: a member pays only for the year they want to be active, and may skip years.
---   While membership fees are switched off, every current member is active.
+--   Confirmation: when member confirmation is switched on, a member is active only once confirmed;
+--   when it is off, members are active as soon as they finish registering (decided 17 Oct 2026).
+--   While membership fees are switched off, no payment is needed; once they are on, active begins on payment.
 -- Paid years are recorded once each (append-only). M4 records them automatically from payments;
 -- until then only the Treasurer or an administrator can record one.
 
@@ -33,6 +35,15 @@ create or replace function public.nairobi_today()
 returns date language sql stable set search_path = ''
 as $$ select (now() at time zone 'Africa/Nairobi')::date; $$;
 
+-- Is this member still waiting to be confirmed while confirmation is switched on?
+create or replace function public.awaiting_confirmation(p_person uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $$
+  select coalesce((select enabled from public.module_settings where module_key = 'verification'), false)
+     and exists (select 1 from public.member_profiles where person_id = p_person and membership_status = 'registered');
+$$;
+revoke execute on function public.awaiting_confirmation(uuid) from public, anon, authenticated;
+
 -- The rule itself. Internal: callers below decide who may see whose standing.
 -- Returns 'active', 'inactive', or null for someone who is not a current member.
 create or replace function public.standing_of(p_person uuid, p_on date default null)
@@ -45,6 +56,9 @@ begin
   if not exists (select 1 from public.member_profiles mp join public.persons p on p.id = mp.person_id
                  where mp.person_id = p_person and mp.membership_status <> 'terminated' and p.status = 'active') then
     return null;
+  end if;
+  if public.awaiting_confirmation(p_person) then
+    return 'inactive';
   end if;
   if not coalesce((select enabled from public.module_settings where module_key = 'membership_fees'), false) then
     return 'active';
@@ -69,12 +83,13 @@ revoke execute on function public.is_voting_member(uuid) from public, anon, auth
 
 -- The signed-in member's own standing, for their home page.
 create or replace function public.my_standing()
-returns table (standing text, fees_on boolean, this_year int, paid_this_year boolean, paid_last_year boolean, in_grace boolean, grace_ends date)
+returns table (standing text, awaiting_confirmation boolean, fees_on boolean, this_year int, paid_this_year boolean, paid_last_year boolean, in_grace boolean, grace_ends date)
 language sql stable security definer set search_path = ''
 as $$
   with me as (select public.current_person_id() as pid, public.nairobi_today() as today),
   y as (select pid, today, extract(year from today)::int as yr from me)
   select public.standing_of(y.pid, y.today),
+         public.awaiting_confirmation(y.pid),
          coalesce((select enabled from public.module_settings where module_key = 'membership_fees'), false),
          y.yr,
          exists (select 1 from public.membership_years where person_id = y.pid and year = y.yr),

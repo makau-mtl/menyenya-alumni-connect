@@ -119,7 +119,7 @@ export default async function MemberHome() {
       </div>
 
       {standing ? (
-        <StandingCard s={standing} verification={p?.membership_status === "registered" ? statusLabel.registered : null} />
+        <StandingCard s={standing} verification={null} />
       ) : (
         <p className="max-w-2xl rounded-md bg-tea-tint px-4 py-3">{statusLabel[p?.membership_status ?? "registered"]}</p>
       )}

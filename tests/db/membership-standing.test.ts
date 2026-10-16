@@ -37,6 +37,19 @@ describe("membership standing", () => {
     });
   });
 
+  it("needs confirmation only when confirmation is switched on", async () => {
+    await db.query("update public.module_settings set enabled = true where module_key = 'verification'");
+    expect(await standing(m.person, "2027-06-01")).toBe("inactive");
+    await as(db, { user: m.user }, async () => {
+      const r = await db.query<{ standing: string; awaiting_confirmation: boolean }>("select standing, awaiting_confirmation from public.my_standing()");
+      expect(r.rows[0]).toEqual({ standing: "inactive", awaiting_confirmation: true });
+    });
+    await db.query("update public.member_profiles set membership_status = 'verified' where person_id = $1", [m.person]);
+    expect(await standing(m.person, "2027-06-01")).toBe("active");
+    await db.query("update public.module_settings set enabled = false where module_key = 'verification'");
+    expect(await standing(other.person, "2027-06-01")).toBe("active"); // never confirmed, but confirmation is off
+  });
+
   it("follows the calendar year, grace to 31 March, and no arrears once fees are on", async () => {
     await db.query("update public.module_settings set enabled = true where module_key = 'membership_fees'");
     expect(await standing(m.person, "2027-06-01")).toBe("inactive");

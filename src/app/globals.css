@@ -73,3 +73,9 @@ h3 {
     padding-inline: 1.5rem;
   }
 }
+
+/* Right after a page change, keep header dropdowns shut until the pointer leaves the header. */
+#site-header[data-menus-closed] .nav-dropdown {
+  visibility: hidden;
+  opacity: 0;
+}

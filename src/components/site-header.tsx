@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountLinks } from "./account-links";
 
 type NavItem = { label: string; href: string; children?: { label: string; href: string; text?: string }[] };
 
@@ -91,15 +92,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <Link href="/login" className="rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper">
-            Log in
-          </Link>
-          <Link
-            href="/join"
-            className="rounded-md border-2 border-ink px-4 py-[0.4rem] font-semibold text-ink hover:bg-ink hover:text-white"
-          >
-            Join
-          </Link>
+          <AccountLinks variant="desktop" />
           <Link href="/donate" className="rounded-md bg-gold px-5 py-2 font-bold text-ink hover:bg-[#f0b95f]">
             Donate
           </Link>
@@ -137,14 +130,7 @@ export function SiteHeader() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <Link href="/login" className="rounded-md border-2 border-ink py-2.5 text-center font-semibold">
-                  Log in
-                </Link>
-                <Link href="/join" className="rounded-md bg-tea py-2.5 text-center font-semibold text-white">
-                  Join
-                </Link>
-              </div>
+              <AccountLinks variant="mobile" />
             </div>
           </details>
         </div>

@@ -140,3 +140,32 @@ export interface RecordedGift {
   reference: string;
   receiptToken: string;
 }
+
+/** A photo uploaded through the admin area. Stored at two widths so phones load the small one. */
+export interface Photo {
+  path: string;
+  caption: string;
+  src: string;
+  srcSmall: string;
+}
+
+export interface CausePhoto extends Photo {
+  id: string;
+  status: ContentStatus;
+  sortOrder: number;
+}
+
+export type ContentStatus = "draft" | "published" | "archived";
+
+export interface NewsPost {
+  id?: string;
+  slug: string;
+  kind: "news" | "event";
+  title: string;
+  summary: string;
+  body: string[];
+  /** The event date, or the date of the news (YYYY-MM-DD). */
+  date: string;
+  photo: Photo | null;
+  status?: ContentStatus;
+}

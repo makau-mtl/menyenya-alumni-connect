@@ -73,3 +73,33 @@ describe("phone numbers", () => {
     if (!r.success) expect(r.error.issues[0].message).toContain("mobile number");
   });
 });
+
+describe("content helpers", () => {
+  it("reads YouTube links in their common forms", async () => {
+    const { youtubeId } = await import("@/lib/photos");
+    expect(youtubeId("https://youtu.be/dQw4w9WgXcQ?si=abc")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://m.youtube.com/shorts/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://vimeo.com/123")).toBeNull();
+    expect(youtubeId("not a link")).toBeNull();
+  });
+
+  it("splits text into paragraphs at blank lines", async () => {
+    const { toParagraphs } = await import("@/lib/photos");
+    expect(toParagraphs("One\nline.\n\n  Two.  \n\n\n")).toEqual(["One line.", "Two."]);
+  });
+
+  it("makes web-address names from titles", async () => {
+    const { slugify } = await import("@/lib/photos");
+    expect(slugify("Homecoming 2026: Class of '96!")).toBe("homecoming-2026-class-of-96");
+    expect(slugify("Café & Chai")).toBe("cafe-chai");
+  });
+
+  it("lists every photo space once", async () => {
+    const { photoSpaces } = await import("@/content/photo-spaces");
+    const keys = photoSpaces.map((s) => s.key);
+    expect(new Set(keys).size).toBe(keys.length);
+    for (const k of keys) expect(k).toMatch(/^[a-z0-9.-]+$/);
+  });
+});

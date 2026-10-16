@@ -1,5 +1,7 @@
-// Website content. In a later milestone this moves into the database so the
-// secretariat can edit it without code. Items marked draft need leadership approval.
+// Website content written into the site. News, photos and the Chairman's video are edited
+// in the admin area instead. Items marked draft need leadership approval.
+
+import type { NewsPost } from "@/lib/types";
 
 export const org = {
   name: "Menyenya SDA High School Alumni Association",
@@ -9,9 +11,8 @@ export const org = {
   registration: "Registration with the Registrar of Societies in progress",
 };
 
-/** Video message from the Chairman. Set youtubeId once the video is recorded. */
+/** Video message from the Chairman. The video link is set in the admin area. */
 export const chairMessage = {
-  youtubeId: null as string | null,
   name: null as string | null,
   role: "Chairman",
   summary:
@@ -36,17 +37,17 @@ export const pillars = [
   {
     title: "Reconnect",
     text: "Find classmates, join your class and regional groups, and meet at events and homecomings.",
-    image: "Alumni reunited at a homecoming",
+    space: "pillar.reconnect",
   },
   {
     title: "Give back",
     text: "Support the school's projects, starting with a new tuition block, and help needy students stay in class.",
-    image: "Students in class at Menyenya",
+    space: "pillar.give-back",
   },
   {
     title: "Grow together",
     text: "Mentor younger alumni, share opportunities, and support members through life's milestones.",
-    image: "An alumnus mentoring a recent graduate",
+    space: "pillar.grow-together",
   },
 ];
 
@@ -75,35 +76,35 @@ export const secretariat = [
   },
 ];
 
-export type NewsItem = {
-  slug: string;
-  date: string;
-  kind: "News" | "Event";
-  title: string;
-  summary: string;
-};
-
-export const news: NewsItem[] = [
+// News and events now come from the database (admin area → News). These are the
+// starting items, used only when the database is not connected.
+export const sampleNews: NewsPost[] = [
   {
     slug: "technical-committee-29-october",
     date: "2026-10-29",
-    kind: "Event",
+    kind: "event",
     title: "Technical Committee meeting",
     summary: "The committee reviews proposals to strengthen the association ahead of the tuition block campaign. Online, 8:00 pm.",
+    body: [],
+    photo: null,
   },
   {
     slug: "officials-meeting-15-october",
     date: "2026-10-15",
-    kind: "News",
+    kind: "news",
     title: "Officials welcome plans to strengthen the association",
     summary: "Officials reviewed proposals on registration, a small secretariat, member consultation and this platform.",
+    body: [],
+    photo: null,
   },
   {
     slug: "plenary-20-september",
     date: "2026-09-20",
-    kind: "News",
+    kind: "news",
     title: "Plenary agrees a KES 100 million tuition block",
     summary: "Members agreed to raise KES 100 million over three years, and 18 members pledged KES 3.41 million on the day.",
+    body: [],
+    photo: null,
   },
 ];
 

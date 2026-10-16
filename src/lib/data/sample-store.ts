@@ -1,7 +1,10 @@
 import "server-only";
 import type {
   Cause,
+  CausePhoto,
   CauseProgress,
+  NewsPost,
+  Photo,
   GiftInput,
   PaymentChannel,
   PledgeInput,
@@ -10,6 +13,7 @@ import type {
 } from "@/lib/types";
 import { donationReference, pledgeReference } from "@/lib/references";
 import { causes, channels, funds, plenaryPledges } from "./sample";
+import { sampleNews } from "@/content/site";
 
 // Sample data held in memory: used when the database is not connected (local work, tests).
 // Anything recorded is lost when the server restarts.
@@ -106,6 +110,32 @@ export async function recordPledge(input: PledgeInput): Promise<RecordedGift> {
 export async function getReceipt(reference: string, token: string): Promise<Receipt | null> {
   const found = [...store.donations, ...store.pledges].find((r) => r.receipt.reference === reference && r.token === token);
   return found?.receipt ?? null;
+}
+
+// Photos and news: none uploaded without the database; news shows the starting items.
+export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
+  void slug;
+  return [];
+}
+
+export async function getCoverPhotos(): Promise<Record<string, Photo>> {
+  return {};
+}
+
+export async function getSitePhotos(): Promise<Record<string, Photo>> {
+  return {};
+}
+
+export async function getChairVideoId(): Promise<string | null> {
+  return null;
+}
+
+export async function listNews(): Promise<NewsPost[]> {
+  return sampleNews;
+}
+
+export async function getNewsPost(slug: string): Promise<NewsPost | null> {
+  return sampleNews.find((n) => n.slug === slug) ?? null;
 }
 
 /** A problem the giver can fix or should be told about, with a message safe to show them. */

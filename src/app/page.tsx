@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCause, getCauseProgress } from "@/lib/data";
-import { chairMessage, mission, news, pillars } from "@/content/site";
+import { getCause, getCauseProgress, getChairVideoId, listNews } from "@/lib/data";
+import { chairMessage, mission, pillars } from "@/content/site";
 import { BrickWall } from "@/components/brick-wall";
 import { ProgressFigures } from "@/components/progress-figures";
-import { ImageSlot, VideoSlot } from "@/components/media";
+import { VideoSlot } from "@/components/media";
+import { SitePhoto } from "@/components/site-photo";
 import { NewsCard } from "@/components/news-card";
 import { buttonClass } from "@/components/ui";
 
@@ -14,7 +15,11 @@ export const revalidate = 60;
 export default async function HomePage() {
   const block = await getCause("tuition-block");
   if (!block || !block.targetAmount) notFound();
-  const progress = await getCauseProgress(block.slug);
+  const [progress, chairVideoId, news] = await Promise.all([
+    getCauseProgress(block.slug),
+    getChairVideoId(),
+    listNews(),
+  ]);
 
   return (
     <>
@@ -56,10 +61,10 @@ export default async function HomePage() {
             </a>
           </div>
           <div className="hidden grid-cols-[1.4fr_1fr] gap-4 lg:grid">
-            <ImageSlot caption="students outside the school" ratio="tall" tone="light" className="shadow-2xl" />
+            <SitePhoto space="home.hero.main" tone="light" className="shadow-2xl" sizes="30vw" />
             <div className="flex flex-col gap-4 pt-16">
-              <ImageSlot caption="alumni at the plenary" ratio="square" tone="light" />
-              <ImageSlot caption="the school gate" ratio="square" tone="light" />
+              <SitePhoto space="home.hero.side-1" tone="light" sizes="20vw" />
+              <SitePhoto space="home.hero.side-2" tone="light" sizes="20vw" />
             </div>
           </div>
         </div>
@@ -69,7 +74,7 @@ export default async function HomePage() {
       <section id="chair-message" className="section scroll-mt-24 pt-20 lg:pt-28">
         <div className="grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
           <VideoSlot
-            youtubeId={chairMessage.youtubeId}
+            youtubeId={chairVideoId}
             title={`A message from our ${chairMessage.role}`}
             caption="a two-minute welcome from the Chairman"
           />
@@ -96,7 +101,7 @@ export default async function HomePage() {
         <div className="mt-12 grid gap-8 md:grid-cols-3">
           {pillars.map((p) => (
             <div key={p.title}>
-              <ImageSlot caption={p.image.toLowerCase()} ratio="landscape" />
+              <SitePhoto space={p.space} sizes="(min-width: 768px) 33vw, 100vw" />
               <h3 className="mt-5 text-2xl font-bold">{p.title}</h3>
               <p className="mt-2 text-ink-soft">{p.text}</p>
             </div>
@@ -148,25 +153,25 @@ export default async function HomePage() {
               text: "A one-off gift of any amount to the cause you choose. No account needed.",
               cta: "Donate",
               href: "/donate",
-              image: "a student in the school library",
+              space: "home.give-today",
             },
             {
               title: "Pledge over time",
               text: "Commit an amount and pay monthly or yearly. You get a reference and reminders by email.",
               cta: "Make a pledge",
               href: "/pledge/tuition-block",
-              image: "classmates planning their pledge",
+              space: "home.pledge",
             },
             {
               title: "Join the association",
               text: "Get on the register, connect with your class and region, and mentor or be mentored.",
               cta: "Join",
               href: "/join",
-              image: "alumni at a regional meet-up",
+              space: "home.join",
             },
           ].map((c) => (
             <div key={c.title} className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface">
-              <ImageSlot caption={c.image} ratio="landscape" className="rounded-none" />
+              <SitePhoto space={c.space} className="rounded-none" sizes="(min-width: 768px) 33vw, 100vw" />
               <div className="flex flex-1 flex-col p-6">
                 <h3 className="text-2xl font-bold">{c.title}</h3>
                 <p className="mt-2 flex-1 text-ink-soft">{c.text}</p>
@@ -217,7 +222,7 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <ImageSlot caption="today's students, tomorrow's alumni" ratio="landscape" tone="light" className="h-full rounded-none" />
+          <SitePhoto space="home.closing" tone="light" className="h-full rounded-none" />
         </div>
       </section>
     </>

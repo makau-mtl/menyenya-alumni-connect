@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCause, getCauseProgress, getChannelForCause, listCauses } from "@/lib/data";
+import { getCause, getCauseProgress, getChannelForCause, listCausePhotos, listCauses } from "@/lib/data";
 import { formatKes } from "@/lib/money";
 import { BrickWall } from "@/components/brick-wall";
+import { ImageSlot } from "@/components/media";
 import { ProgressFigures } from "@/components/progress-figures";
 import { ShareButton } from "@/components/share-button";
 import { buttonClass } from "@/components/ui";
@@ -25,8 +26,12 @@ export const revalidate = 60;
 export default async function CausePage({ params }: Params) {
   const cause = await getCause((await params).slug);
   if (!cause) notFound();
-  const progress = await getCauseProgress(cause.slug);
-  const channel = await getChannelForCause(cause);
+  const [progress, channel, allPhotos] = await Promise.all([
+    getCauseProgress(cause.slug),
+    getChannelForCause(cause),
+    listCausePhotos(cause.slug),
+  ]);
+  const photos = allPhotos.filter((p) => p.status === "published");
   const preparing = cause.lifecycle === "preparation";
 
   return (
@@ -76,18 +81,18 @@ export default async function CausePage({ params }: Params) {
           <section>
             <h2 className="text-3xl font-bold">Why this matters</h2>
             <div className="mt-5 flex max-w-prose flex-col gap-4 text-[1.0625rem]">
-              {cause.story.map((p) => (
-                <p key={p}>{p}</p>
+              {cause.story.map((p, i) => (
+                <p key={i}>{p}</p>
               ))}
             </div>
           </section>
 
           {cause.components.length > 0 && (
             <section>
-              <h2 className="text-3xl font-bold">What the block will hold</h2>
+              <h2 className="text-3xl font-bold">{cause.kind === "campaign" ? "What the block will hold" : "What it includes"}</h2>
               <dl className="mt-6 grid gap-x-8 gap-y-5 sm:grid-cols-2">
-                {cause.components.map((c) => (
-                  <div key={c.name} className="border-t-2 border-ink pt-3">
+                {cause.components.map((c, i) => (
+                  <div key={i} className="border-t-2 border-ink pt-3">
                     <dt className="font-display text-lg font-bold">{c.name}</dt>
                     <dd className="mt-1 text-ink-soft">{c.purpose}</dd>
                   </div>
@@ -96,7 +101,26 @@ export default async function CausePage({ params }: Params) {
             </section>
           )}
 
-          {cause.kind === "campaign" && (
+          {photos.length > 0 ? (
+            <section>
+              <h2 className="text-3xl font-bold">{cause.kind === "campaign" ? "Photos and drawings" : "Photos"}</h2>
+              <ul className="mt-6 grid gap-5 sm:grid-cols-2">
+                {photos.map((p, i) => (
+                  <li key={p.id} className={i === 0 && photos.length % 2 === 1 ? "sm:col-span-2" : ""}>
+                    <figure>
+                      <ImageSlot
+                        caption={p.caption || cause.title}
+                        photo={p}
+                        ratio="landscape"
+                        sizes={i === 0 && photos.length % 2 === 1 ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 640px) 30vw, 100vw"}
+                      />
+                      {p.caption && <figcaption className="mt-2 text-sm text-ink-soft">{p.caption}</figcaption>}
+                    </figure>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : cause.kind === "campaign" && (
             <section>
               <h2 className="text-3xl font-bold">Photos and drawings</h2>
               <div className="mt-5 rounded-lg border-2 border-dashed border-line p-8 text-ink-soft">
@@ -117,7 +141,7 @@ export default async function CausePage({ params }: Params) {
               </p>
               <ol className="mt-6 flex flex-col gap-3">
                 {cause.readiness.map((item, i) => (
-                  <li key={item.label} className="flex items-start gap-3">
+                  <li key={i} className="flex items-start gap-3">
                     <span
                       aria-hidden
                       className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${

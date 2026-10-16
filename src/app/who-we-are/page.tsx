@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { mission, pillars } from "@/content/site";
-import { ImageSlot } from "@/components/media";
+import { SitePhoto } from "@/components/site-photo";
 import { DraftNote } from "@/components/page-hero";
 import { buttonClass } from "@/components/ui";
 
@@ -43,10 +43,10 @@ export default function WhoWeArePage() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <ImageSlot caption="the school in its early years" ratio="tall" />
+          <SitePhoto space="who.history.main" sizes="(min-width: 1024px) 30vw, 60vw" />
           <div className="flex flex-col gap-4 pt-12">
-            <ImageSlot caption="a class photo from the archives" ratio="square" tone="light" />
-            <ImageSlot caption="the plenary, September 2026" ratio="square" />
+            <SitePhoto space="who.history.side-1" tone="light" sizes="(min-width: 1024px) 20vw, 40vw" />
+            <SitePhoto space="who.history.side-2" sizes="(min-width: 1024px) 20vw, 40vw" />
           </div>
         </div>
       </section>
@@ -57,7 +57,7 @@ export default function WhoWeArePage() {
         <div className="mt-10 flex flex-col gap-14">
           {pillars.map((p, i) => (
             <div key={p.title} className={`grid items-center gap-8 md:grid-cols-2 ${i % 2 ? "md:[&>*:first-child]:order-2" : ""}`}>
-              <ImageSlot caption={p.image.toLowerCase()} ratio="landscape" />
+              <SitePhoto space={p.space} sizes="(min-width: 768px) 50vw, 100vw" />
               <div className="max-w-lg">
                 <h3 className="text-3xl font-bold">{p.title}</h3>
                 <p className="mt-3 text-lg text-ink-soft">{p.text}</p>

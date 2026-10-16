@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createSessionClient } from "@/lib/supabase/server";
+import { getStaff } from "@/lib/admin/staff";
 import { formatKes, formatKesShort } from "@/lib/money";
 
-export const metadata: Metadata = { title: "Admin", robots: { index: false } };
+export const metadata: Metadata = { title: "Overview" };
 
 const dateFormat = new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Nairobi" });
 const typeLabel: Record<string, string> = {
@@ -22,48 +21,11 @@ type GiftRow = {
   causes: { title: string } | null; persons: { full_name: string } | null;
 };
 
-function Notice({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="section max-w-2xl pt-16">
-      <h1 className="text-4xl font-bold">{title}</h1>
-      <div className="mt-4 text-lg text-ink-soft">{children}</div>
-    </div>
-  );
-}
-
 export default async function AdminPage() {
-  if (!isSupabaseConfigured) {
-    return (
-      <Notice title="Admin">
-        <p>The database is not connected yet, so there is nothing to manage. Once it is, signed-in administrators see pledges, gifts and members here.</p>
-      </Notice>
-    );
-  }
-
-  const supabase = await createSessionClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  if (!claims?.claims) redirect("/login?next=/admin");
-  const email = (claims.claims.email as string | undefined) ?? "";
-
-  const [{ data: isFinance }, { data: isAdmin }] = await Promise.all([
-    supabase.rpc("is_finance"),
-    supabase.rpc("is_admin"),
-  ]);
-
-  const signOut = (
-    <form action="/auth/signout" method="post">
-      <button type="submit" className="font-semibold text-tea underline underline-offset-4">Log out</button>
-    </form>
-  );
-
-  if (!isFinance) {
-    return (
-      <Notice title="No admin access">
-        <p>You are signed in as {email}, but this account has no admin role. An administrator can give you one.</p>
-        <div className="mt-6">{signOut}</div>
-      </Notice>
-    );
-  }
+  const staff = await getStaff();
+  if (!staff) return null; // the layout handles signed-out and unconnected states
+  if (!staff.isFinance) redirect(staff.isAdmin ? "/admin/causes" : "/admin/news");
+  const { supabase, isAdmin } = staff;
 
   const [progress, pledges, gifts, members, duplicates] = await Promise.all([
     supabase.rpc("cause_progress", { p_slug: "tuition-block" }).single(),
@@ -96,16 +58,8 @@ export default async function AdminPage() {
   ];
 
   return (
-    <div className="section pt-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold">Admin</h1>
-          <p className="mt-2 text-ink-soft">Signed in as {email}</p>
-        </div>
-        {signOut}
-      </div>
-
-      <dl className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div>
+      <dl className="grid grid-cols-2 gap-4 md:grid-cols-5">
         {stats.map((s) => (
           <div key={s.label} className="rounded-xl border border-line bg-surface p-5">
             <dt className="text-sm text-ink-soft">{s.label}</dt>
@@ -187,7 +141,7 @@ export default async function AdminPage() {
       </section>
 
       <p className="mt-10 text-sm text-ink-soft">
-        Payment entry, members and settings come in the next milestones. <Link href="/" className="underline">Back to the website</Link>
+        Payment entry and members come in later milestones. <Link href="/" className="underline">Back to the website</Link>
       </p>
     </div>
   );

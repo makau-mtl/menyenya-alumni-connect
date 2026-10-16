@@ -439,3 +439,138 @@ export async function resolveDuplicate(formData: FormData): Promise<void> {
   revalidatePath("/admin/duplicates");
   redirect("/admin/duplicates?done=1");
 }
+
+// Our people: leadership and secretariat positions -----------------------------------------------------
+
+const linkedinPattern = /^https:\/\/([a-z]+\.)?linkedin\.com\//i;
+const optionalText = (max: number, message: string) =>
+  z.string().trim().max(max, message).transform((v) => (v === "" ? null : v));
+const optionalDate = z
+  .string()
+  .refine((v) => v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v), "Enter a date.")
+  .transform((v) => (v === "" ? null : v));
+
+const positionSchema = z
+  .object({
+    id: z.string(),
+    section: z.enum(["leadership", "secretariat"]),
+    title: z.string().trim().min(2, "Name the role, for example Chair.").max(120, "Keep the role under 120 characters."),
+    holder: z.enum(["member", "other"]),
+    personId: z.string(),
+    displayName: z.string().trim().max(120, "Keep the name under 120 characters."),
+    capacityNote: optionalText(200, "Keep this under 200 characters."),
+    summary: optionalText(400, "Keep the summary under 400 characters."),
+    linkedinUrl: optionalText(300, "That link is too long.").refine((v) => v === null || linkedinPattern.test(v), "Paste a LinkedIn link starting with https://www.linkedin.com/"),
+    hasTenure: z.boolean(),
+    termStarts: optionalDate,
+    termEnds: optionalDate,
+    status: z.enum(["published", "draft"]),
+  })
+  .superRefine((v, ctx) => {
+    if (v.holder === "member" && !v.personId) ctx.addIssue({ code: "custom", path: ["personId"], message: "Choose the member who holds this role." });
+    if (v.holder === "other" && v.displayName.length < 2) ctx.addIssue({ code: "custom", path: ["displayName"], message: "Type the person's name." });
+    if (v.hasTenure && v.termStarts && v.termEnds && v.termEnds < v.termStarts)
+      ctx.addIssue({ code: "custom", path: ["termEnds"], message: "The term must end after it starts." });
+  });
+
+export async function savePosition(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = positionSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    section: formData.get("section"),
+    title: String(formData.get("title") ?? ""),
+    holder: formData.get("holder"),
+    personId: String(formData.get("personId") ?? ""),
+    displayName: String(formData.get("displayName") ?? ""),
+    capacityNote: String(formData.get("capacityNote") ?? ""),
+    summary: String(formData.get("summary") ?? ""),
+    linkedinUrl: String(formData.get("linkedinUrl") ?? ""),
+    hasTenure: formData.get("hasTenure") === "yes",
+    termStarts: String(formData.get("termStarts") ?? ""),
+    termEnds: String(formData.get("termEnds") ?? ""),
+    status: formData.get("status") === "draft" ? "draft" : "published",
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const member = v.holder === "member";
+
+  const row: Record<string, unknown> = {
+    section: v.section,
+    title: v.title,
+    person_id: member ? v.personId : null,
+    display_name: member ? null : v.displayName,
+    capacity_note: v.capacityNote,
+    // A member's summary, LinkedIn and photo come from their own profile.
+    summary: member ? null : v.summary,
+    linkedin_url: member ? null : v.linkedinUrl,
+    has_tenure: v.hasTenure,
+    term_starts: v.hasTenure ? v.termStarts : null,
+    term_ends: v.hasTenure ? v.termEnds : null,
+    status: v.status,
+  };
+  try {
+    if (member) row.photo_path = null;
+    else if (hasPhoto(formData)) row.photo_path = await savePhoto(staff, "people", formData);
+  } catch (e) {
+    return fail(uploadMessage(e));
+  }
+
+  if (v.id) {
+    const { data, error } = await staff.supabase.from("public_positions").update(row).eq("id", v.id).select("id");
+    if (error || !data?.length) {
+      console.error(error);
+      return fail("The position could not be saved.");
+    }
+  } else {
+    const { data: last } = await staff.supabase
+      .from("public_positions")
+      .select("sort_order")
+      .eq("section", v.section)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const { error } = await staff.supabase.from("public_positions").insert({ ...row, sort_order: (last?.sort_order ?? 0) + 10 });
+    if (error) {
+      console.error(error);
+      return fail("The position could not be added.");
+    }
+  }
+  refreshSite();
+  redirect("/admin/people?saved=1");
+}
+
+/** Hide, show or remove (archive) a position. Nothing is ever deleted. */
+export async function setPositionStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "draft", "archived"].includes(status)) return;
+  await staff.supabase.from("public_positions").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  refreshSite();
+}
+
+/** Move a position one place up or down within its section. */
+export async function movePosition(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const up = formData.get("direction") === "up";
+  const { data: me } = await staff.supabase.from("public_positions").select("id, section").eq("id", id).maybeSingle();
+  if (!me) return;
+  const { data: rows } = await staff.supabase
+    .from("public_positions")
+    .select("id, sort_order")
+    .eq("section", me.section)
+    .neq("status", "archived")
+    .order("sort_order")
+    .order("title");
+  const list = rows ?? [];
+  const i = list.findIndex((r) => r.id === id);
+  const j = up ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  // Renumber the whole section so equal numbers can't get stuck.
+  await Promise.all(list.map((r, n) => staff.supabase.from("public_positions").update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
+  refreshSite();
+}

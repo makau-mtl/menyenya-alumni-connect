@@ -51,30 +51,7 @@ export const pillars = [
   },
 ];
 
-export type Person = {
-  role: string;
-  /** Leave null until the person has agreed to be listed. */
-  name: string | null;
-};
-
-// Names are added only after each person confirms their role and consents to be listed.
-export const leadership: Person[] = [
-  { role: "Chairman", name: null },
-  { role: "Vice Chairman", name: null },
-  { role: "Secretary", name: null },
-  { role: "Treasurer", name: null },
-  { role: "Events Coordinator", name: null },
-  { role: "Welfare Coordinator", name: null },
-];
-
-export const school: Person[] = [{ role: "Principal, Menyenya SDA High School", name: null }];
-
-export const secretariat = [
-  {
-    role: "Administrative and Communications Assistant",
-    status: "Role proposed; recruitment follows approval by the Technical Committee",
-  },
-];
+// Leadership and secretariat are managed in the admin area (Admin → Our people).
 
 // News and events now come from the database (admin area → News). These are the
 // starting items, used only when the database is not connected.

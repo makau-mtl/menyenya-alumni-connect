@@ -1,5 +1,15 @@
 # Progress
 
+## 17 October 2026: Our people page
+
+- New public page **Our people** (`/our-people`), replacing "Leadership and secretariat". Three tabs that stay at the top while scrolling: Leadership, Secretariat, Members.
+- Each person has a card with photo, name and role or class. The round green arrow opens a short pop-up: role, class, official capacity, summary and LinkedIn. No phone or email.
+- Signed-in members also see term dates in the pop-up; the public never does.
+- New admin tab **Our people**: add a position (e.g. Chair, or School Principal (ex officio)), pick the holder from active members or type a non-member's name, set a term or "no fixed term", order, hide or remove. A "Terms ending" alert appears 30 days before a term ends.
+- The Members section lists members with a public profile, plus anyone holding a position. Search and class filter.
+- Menu, footer and About links now say "Our people"; the old address redirects.
+- Tests: 4 new database tests (who sees term dates, who appears publicly); 87 tests pass.
+
 ## 17 October 2026: everyone in the directory
 
 - Every current member appears in the member directory for signed-in members (no opt-out; terminated members drop out). Their photo is visible to fellow members.

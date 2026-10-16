@@ -15,6 +15,7 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 | Duplicates | Administrators and verifiers | Possible duplicate records: merge or mark as different |
 | Roles | Administrators | Give and end roles |
 | Settings | Administrators | Member confirmation, rejoin window |
+| Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -111,3 +112,20 @@ deleted, and an administrator can undo a merge from the same page.
 Members can terminate their membership from their profile. They can rejoin within the window set in
 **Admin → Settings** (default 30 days). The Members list shows who has terminated, until when they can rejoin, and
 whether they asked for their data to be deleted.
+
+## The Our people page (leadership and secretariat)
+
+Open the **Our people** tab.
+
+1. Under **Add a position**, choose **Leadership (the board)** or **Secretariat**, and type the role as it should appear, for example *Chair* or *School Principal (ex officio)*.
+2. Choose who holds it:
+   - **An active member**: pick them from the list. Their photo, class, summary and LinkedIn come from their own profile, so ask them to complete it.
+   - **Someone who isn't a member** (for example the principal): type the name, and optionally add a photo, a one-line summary and a LinkedIn link.
+3. Optionally add the **official capacity**, e.g. "Serves in his official capacity as Principal of Menyenya SDA High School."
+4. **Term of office**: choose *No fixed term*, or *Has a term* and set the start and end dates. Only signed-in members see term dates.
+5. Choose whether to show it now, then **Add position**.
+
+Use the arrows to change the order, **Edit** to change the holder after an election, **Hide** to take it off the page for a while, and **Remove** when the position no longer exists. Thirty days before a term ends, a **Terms ending** box appears at the top of the tab.
+
+Holding a position means being shown publicly, so let people know before you add them. Members appear in the Members section only if they ticked "public profile", or hold a position.
+

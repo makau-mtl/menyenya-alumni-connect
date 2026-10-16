@@ -521,6 +521,12 @@ Behaviour:
   - office-holders: approvals waiting for them, finance/reports shortcuts.
 - Directory: **every current member** is listed to signed-in members (decided 16 Oct 2026): photo tiles with name, class (or a Friend label), region and summary; search and filter by class, region, alumni/friends, profession, skills and mentoring. Phone and email appear on the member card only per the member's `contact_visibility` (only the association / my class / all members; mentors and mentees later).
 - Public profile (only with the `public_profile` consent, off by default, withdrawable): name, class, one-line summary, optional photo, LinkedIn and other links. Never phone, email, county or welfare data. Built with the directory in M6.
+- **"Our people" page** (`/our-people`, decided 16 Oct 2026; replaces `/who-we-are/team`, which now redirects). One public page with sticky tabs: **Leadership · Secretariat · Members**. Cards in the style of trees.org/our-team: photo, name, and role (leaders and secretariat) or class (members); a round arrow button opens a short pop-up with the photo, role, class, official capacity, summary and LinkedIn. No contact details other than LinkedIn.
+  - **Leadership** is the board. **Secretariat** staff appear in their section and, if they are members, in Members too; the Secretariat section links to Careers ("Work with us"), with more content later.
+  - **Members**: members with a public profile, plus any member holding a published position (holding office implies being shown publicly, decided 16 Oct 2026). Search by name or profession, filter by class, 24 per page.
+  - **Positions are managed by administrators** at `/admin/people` (table `public_positions`): section, role title (e.g. "Chair", "School Principal (ex officio)"), holder (an active member, whose photo, class, summary and LinkedIn come from their profile; or a named non-member with their own photo, summary and LinkedIn), optional official-capacity note, term (none, or start and end dates), shown or hidden, order. Removing archives the position; nothing is deleted.
+  - **Term dates are never public**: shown in the pop-up to signed-in members only (`people_terms()`). Administrators see a "Terms ending" alert on `/admin/people` from 30 days before a term ends (`position_alerts()`); an email alert follows once email is set up.
+  - The school principal appears only if added as a leadership position, with his official capacity stated.
 
 **AC**
 - Removing a role assignment (or its term ending) removes access immediately on next request.
@@ -660,6 +666,8 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/app/confirm` | confirmers | Members waiting for confirmation (when switched on) |
 | `/app/terminate` | member | Terminate membership |
 | `/people/[id]` | public | Public profile (only with the member's consent) |
+| `/our-people` | public | Leadership, secretariat and members (tabs, cards with pop-up); `/who-we-are/team` redirects here |
+| `/admin/people` | admin | Positions on the Our people page: add, edit, order, hide, term-end alerts |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |
 | `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management; class invite links and the registration switch on `/admin/members` |
 | `/admin/causes` | admin | Causes and campaigns |
@@ -809,5 +817,6 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | "Terminate membership" (red, confirmed, with disclaimer: no refunds, fees forfeited); rejoin within an admin-set window (default 30 days); data deletion only together with termination, carried out when the window closes, with an emailed certificate; automatic anonymisation 24 months after termination, financial records after 7 years. Scheduled M6 and M9. |
 | 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
+| 16 Oct 2026 | One "Our people" page (Leadership · Secretariat · Members) with trees.org-style cards and pop-ups; no contact details but LinkedIn. Leadership is the board; positions (including ex officio roles like the school principal) are managed in the admin area; terms are visible to members only and administrators are alerted when they end. Holding office implies being shown publicly. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

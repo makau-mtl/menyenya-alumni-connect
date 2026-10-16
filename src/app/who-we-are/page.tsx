@@ -102,7 +102,7 @@ export default function WhoWeArePage() {
         </div>
         <ul className="flex flex-col divide-y divide-line self-start border-y border-line">
           {[
-            { label: "Leadership and secretariat", href: "/who-we-are/team" },
+            { label: "Our people", href: "/our-people" },
             { label: "Constitution (once adopted)", href: "/who-we-are#governance" },
             { label: "Annual financial reports", href: "/who-we-are#governance" },
             { label: "Careers", href: "/careers" },

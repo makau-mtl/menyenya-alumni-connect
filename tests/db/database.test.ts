@@ -194,12 +194,13 @@ describe("members and roles", () => {
     });
   });
 
-  it("shows next of kin to the member and the administrator", async () => {
+  it("shows next of kin to the member only; not even administrators read it directly", async () => {
     await as(db, { user: member }, async () => {
       expect((await db.query("select * from public.next_of_kin")).rows.length).toBe(1);
     });
     await as(db, { user: admin }, async () => {
-      expect((await db.query("select * from public.next_of_kin")).rows.length).toBe(3);
+      expect((await db.query("select * from public.next_of_kin")).rows.length).toBe(0);
+      await expect(db.query("select * from public.view_next_of_kin($1, 'checking records')", [memberPerson])).rejects.toThrow(/Welfare Coordinator/);
     });
   });
 

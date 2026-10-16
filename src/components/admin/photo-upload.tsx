@@ -15,16 +15,22 @@ export function PhotoUpload({
   buttonLabel = "Upload photo",
   captionHint = "Say who or what is in the photo. Screen readers read this aloud.",
   compact = false,
+  withCaption = true,
+  widths,
+  chooseLabel,
 }: {
   action: Action;
   fields: Record<string, string>;
   buttonLabel?: string;
   captionHint?: string;
   compact?: boolean;
+  withCaption?: boolean;
+  widths?: [number, number];
+  chooseLabel?: string;
 }) {
   const [state, dispatch, saving] = useActionState(action, null);
-  const { photo, busy, error, choose, addTo, clear } = usePhoto();
-  const id = Object.values(fields).join("-").replace(/[^\w-]/g, "-");
+  const { photo, busy, error, choose, addTo, clear } = usePhoto(widths);
+  const id = (Object.values(fields).join("-") || "photo").replace(/[^\w-]/g, "-");
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,7 +49,7 @@ export function PhotoUpload({
         <input key={k} type="hidden" name={k} value={v} />
       ))}
       <label className={compact ? "text-sm font-semibold" : "font-semibold"} htmlFor={`photo-${id}`}>
-        {compact ? "Replace with a new photo" : "Add a photo"}
+        {chooseLabel ?? (compact ? "Replace with a new photo" : "Add a photo")}
       </label>
       <input
         id={`photo-${id}`}
@@ -58,13 +64,15 @@ export function PhotoUpload({
       {photo && (
         <>
           <img src={photo.preview} alt="" className="max-h-48 w-auto self-start rounded-md" />
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`caption-${id}`} className="text-sm font-semibold">
-              Caption
-            </label>
-            <p className="text-sm text-ink-soft">{captionHint}</p>
-            <input id={`caption-${id}`} name="caption" maxLength={200} className={inputClass} />
-          </div>
+          {withCaption && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor={`caption-${id}`} className="text-sm font-semibold">
+                Caption
+              </label>
+              <p className="text-sm text-ink-soft">{captionHint}</p>
+              <input id={`caption-${id}`} name="caption" maxLength={200} className={inputClass} />
+            </div>
+          )}
           <button type="submit" disabled={saving} className={`${buttonClass("primary", "sm")} self-start`}>
             {buttonLabel}
           </button>

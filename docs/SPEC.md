@@ -106,7 +106,7 @@ All three are the same Next.js app with route groups and role checks. The admin 
 | `vice_chair` | association | Deputise for chair; holds chair approvals when delegated |
 | `secretary` | association | Governance records, meetings and minutes, official communications |
 | `treasurer` | association | Payment entry and reconciliation, approve disbursements, financial reports |
-| `welfare_coordinator` | association | (Welfare module only) Coordinate cases, open appeals, see next of kin when a case needs it |
+| `welfare_coordinator` | association | Coordinate welfare cases, open appeals; sees next of kin (every view logged) |
 | `events_coordinator` | association | Approve cohort and cluster events; escalate association-wide events to chair |
 | `committee_member` | committee | Manage cases/matches/events for that committee; approve within workflow steps |
 | `admin` | association | Users and role assignments, configuration, data quality, comms, shop operations |
@@ -120,6 +120,7 @@ Visitors (no account) and organisation donors have no role; they use public flow
 - A person can never approve their own request (events, disbursements, welfare).
 - Only `admin` can create or end role assignments; every change is audited.
 - Sensitive data access (next of kin, welfare cases, student beneficiaries) is limited to the listed roles and is itself logged.
+- **Next of kin** (decided 16 Oct 2026): visible to the member and the `welfare_coordinator` only. A `cohort_rep` sees it only while a member of their cohort has an open welfare case, and only for that member (when the welfare module is built). Administrators and the Secretary have no routine access. Every view by anyone other than the member goes through a logging function, never a direct table read.
 
 ---
 
@@ -138,7 +139,7 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | display_name | TEXT | optional preferred name |
 | status | ENUM('active','merged','deleted_on_request') | `merged` points to `merged_into_id` |
 | merged_into_id | UUID → persons NULL | |
-| user_id | UUID → auth.users NULL UNIQUE | set when the person has a login |
+| user_id | UUID → auth.users NULL UNIQUE | set when the person has a login. Signing in alone never creates a person (decided 16 Oct 2026) |
 
 **`person_contacts`** — a person can have several phones and emails.
 | Column | Type | Notes |
@@ -148,6 +149,7 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | value | TEXT | phones stored E.164 (`+2547…`); emails lower-cased |
 | is_primary | BOOLEAN | one primary per kind |
 | is_whatsapp | BOOLEAN | phones only |
+| country | TEXT NULL | phones: ISO country of the number, default `KE` (picker on forms) |
 | verified_at | TIMESTAMPTZ NULL | |
 
 **`organizations`** — company, church, SACCO, foundation, school, other.
@@ -162,29 +164,34 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 |---|---|---|
 | person_id | UUID → persons UNIQUE | |
 | category_id | UUID → member_categories | Alumnus / Friend of the alumni / … |
-| level_id | UUID → membership_levels | member-chosen, changeable |
+| level_id | UUID → membership_levels NULL | alumni only: suggested from year left and what they do, member confirms; never suggests Impact. Friends have no level (decided 16 Oct 2026) |
 | cohort_id | UUID → cohorts NULL | required for alumni |
 | admission_year | INT NULL | optional |
 | year_left | INT NULL | required for alumni |
 | relationship_to_school | TEXT NULL | required for friends (pick list + other) |
 | home_county | TEXT | Kenya counties pick list + "Outside Kenya" |
-| cluster_id | UUID → clusters | member-chosen |
+| cluster_id | UUID → clusters | region; filled from home county (former provinces), member can change |
 | occupation_status | ENUM('employed','business','self_employed','studying','seeking','other') NULL | |
 | profession | TEXT NULL | |
 | employer_or_business | TEXT NULL | |
-| profile_link | TEXT NULL | LinkedIn / portfolio / business site |
+| profile_link | TEXT NULL | portfolio / business site |
+| linkedin_url | TEXT NULL | member pastes it (LinkedIn sign-in does not provide it) |
+| social_links | JSONB | other links: `[{label, url}]` |
+| headline | TEXT NULL | one-line professional summary for the directory and public profile |
+| photo_path | TEXT NULL | passport-style photo in the private `member-photos` bucket; encouraged, not required; seen by other signed-in members only while the member agrees to the directory listing |
 | products_services | TEXT NULL | |
 | skills | TEXT[] | |
 | willing_to_volunteer | BOOLEAN DEFAULT false | |
 | mentoring_offer | ENUM('none','can_mentor','wants_mentor') | allowed values depend on level flags |
 | membership_status | ENUM('registered','verified','active','lapsed','exited') | `active` = paid-up when fees are on |
+| registered_at | TIMESTAMPTZ | when the last registration step was submitted |
 | verified_by | UUID → persons NULL | |
 | verified_at | TIMESTAMPTZ NULL | |
 | invited_by_person_id | UUID → persons NULL | from invite link |
 | registration_source | TEXT | e.g. `web`, `post_donation`, `invite`, `import` |
 | directory_visibility | JSONB | per-field: `members` / `cohort` / `hidden` |
 
-**`next_of_kin`** — required at registration; highly restricted.
+**`next_of_kin`** — part of welfare, not registration (decided 16 Oct 2026): asked for in the profile's "Welfare and emergency contact" section and when a member joins a welfare scheme. Highly restricted.
 | Column | Type | Notes |
 |---|---|---|
 | person_id | UUID → persons | |
@@ -192,13 +199,13 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | relationship | TEXT NOT NULL | |
 | phone | TEXT NOT NULL | |
 
-Visible only to the member themself, `admin`, and `welfare_coordinator` (and reps on an active welfare case). Every read by someone other than the member is logged in `sensitive_access_log`.
+Visible only to the member themself and `welfare_coordinator` (and the cohort rep while that member has an open welfare case). Others read it only through `view_next_of_kin(person, reason)`, which checks the role and writes to `sensitive_access_log`.
 
 **`consents`**
 | Column | Type | Notes |
 |---|---|---|
 | person_id | UUID → persons | |
-| purpose | ENUM('membership_data','email_updates','whatsapp_updates','directory_listing','impact_updates','media_use') | |
+| purpose | ENUM('membership_data','email_updates','whatsapp_updates','directory_listing','impact_updates','media_use','public_profile') | `public_profile` is off by default |
 | granted | BOOLEAN | |
 | granted_at / withdrawn_at | TIMESTAMPTZ | history kept (new row per change) |
 | wording_version | TEXT | which consent text they saw |
@@ -214,7 +221,12 @@ Visible only to the member themself, `admin`, and `welfare_coordinator` (and rep
 
 - **`member_categories`** (name, description, required_fields JSONB, active)
 - **`membership_levels`** (name, description, offers TEXT, fee_amount, fee_type ENUM('none','one_off','annual'), can_mentor BOOLEAN, can_request_mentor BOOLEAN, sort_order, active)
-- **`clusters`** (name, description, active) — seed: Nairobi, Kisii, Nyamira, Nakuru, Eldoret, Kisumu, Mombasa, Diaspora
+- **`clusters`** (name, description, active) — regions = Kenya's former provinces: Nairobi, Central, Coast, Eastern, North Eastern, Nyanza, Rift Valley, Western, plus Diaspora (decided 16 Oct 2026). Admins can split a region later.
+- **`counties`** (name, cluster_id) — each county belongs to its former province; "Outside Kenya" → Diaspora. Used to fill the region automatically.
+- **`member_categories`** also carry `fee_amount`, `fee_type` for categories without levels (friends).
+- **`module_settings`** see §5.9; `membership_fees` decides whether any fee is charged.
+- **`membership_dues`** (person_id, amount, fee_type, reference, status ENUM('pending','paid','waived','cancelled'), due_for) — created at the end of registration only if a fee applies and `membership_fees` is on.
+- **`invite_links`** (token, cohort_id NULL, inviter_person_id NULL, label, active) — class links such as "Class of 1998"; pre-fill the class and record the inviter.
 - **`cohorts`** (year_left INT UNIQUE, label e.g. "Class of 2010")
 - **`interest_groups`** (name, description)
 - **`group_memberships`** (person_id, group_type, group_id)
@@ -431,27 +443,33 @@ Each feature lists user stories and **acceptance criteria (AC)**. A feature is d
 
 ### 6.2 Registration (self-service)
 
-Single link for everyone: `/join`. Two steps.
+Revised 16 Oct 2026 with the product owner. Single link for everyone: `/join`. Short steps with a progress bar, not one long form.
 
-**Step 1 — required (target: under 2 minutes):** full name; phone (WhatsApp); email; category; membership level (each option shows an ⓘ tooltip — hover on desktop, tap on mobile — with description, what it offers, fee); home county; regional cluster (ⓘ: "Choose where you live — clusters organise meetups and networking"); next of kin (name, relationship, phone); for **alumni**: cohort/class and year left; for **friends**: relationship to the school (pick list: parent, former parent, teacher, former teacher, local business, neighbour, SDA faithful, other); consent checkboxes (membership data required; email/WhatsApp updates and directory listing optional); create password **or** continue with Google.
+**Sign in first, single sign-on preferred:** Continue with Google, Continue with LinkedIn, or an emailed one-time sign-in link (no passwords). More providers (Microsoft, Apple…) can be added on demand. Name, verified email and, where offered, a photo come from the provider. **Signing in does not register anyone**: no person, profile or consent is created until the last step is submitted.
 
-**Step 2 — optional, can be completed later from the profile:** what they do (employed, running a business, self-employed, studying, seeking opportunities, other); profession or field; employer or business name; LinkedIn / portfolio / business website; products or services offered; skills; willing to volunteer; mentoring ("I can mentor" only if the chosen level has `can_mentor`; "I would like a mentor" only if `can_request_mentor`); communication preferences.
+**Steps (progress bar "Step n of 5"; answers kept in the browser tab until submitted, cleared when the tab closes):**
+1. **You** — full name (pre-filled), phone with country picker (Kenya default, stored E.164 with the ISO country; "on WhatsApp" ticked by default), category: alumnus or friend of the alumni.
+2. **Your Menyenya link** — alumni: year left (→ cohort), optional admission year and class/stream; friends: relationship to the school (parent, former parent, teacher, former teacher, local business, neighbour, SDA faithful, other).
+3. **Where you live** — county (or Outside Kenya); region filled from the county, changeable. ⓘ "Regions organise meet-ups and networking".
+4. **Membership level** (alumni only; friends skip) — "What do you do now?" (occupation status) plus year left suggest a level: studying or left within 5 years → Foundation; early career → Launch; established professional or business owner → Growth. Impact is never suggested; the member chooses it. Each level has an ⓘ (tap or hover) with description, what it offers and fee.
+5. **Consents and finish** — a short summary with Change links; membership data (required, links to the privacy policy); email updates, WhatsApp updates, directory listing and public profile, all unticked until the member ticks them (consent must be given, not assumed). Shows the fee if one applies. Submit.
+
+**Afterwards (optional, any time from `/app/profile`):** passport-style photo, LinkedIn link and other links, one-line professional summary, profession, employer or business, products or services, skills, willing to volunteer, mentoring ("I can mentor" only if the level has `can_mentor`; "I would like a mentor" only if `can_request_mentor`), and the **Welfare and emergency contact** (next of kin).
 
 Behaviour:
-- Creates `persons` + `person_contacts` + `member_profiles` + `next_of_kin` + `consents`, and an auth user.
-- Places the member in their cohort group and cluster group automatically.
-- Runs duplicate detection (same phone, same email, or same name + cohort) → creates `duplicate_flags`, never merges.
-- If the person already exists (e.g. a donor), links to that person instead of creating a new one (after email verification).
-- `?invite=<token>` pre-fills the cohort and links the inviter.
-- `?from=donation&ref=<reference>` pre-fills name, email, phone.
-- Membership status starts `registered`. If the level has a fee and `membership_fees` is enabled, show the payment step; otherwise skip.
-- Welcome email with what happens next.
+- The final submit calls one database function that, in one go: links to the existing person with the same verified email (for example a donor) or creates one; adds the phone; creates `member_profiles` (status `registered`, `registered_at`) and `consents`; runs duplicate detection (same phone, same email, or same name + cohort) → `duplicate_flags`, never merges; if a fee applies (level fee, or category fee for friends) and `membership_fees` is on, creates a `membership_dues` row and the finish page shows how to pay; queues the welcome email.
+- Cohort and cluster membership come from the profile (no separate group rows needed yet).
+- `?invite=<token>` pre-fills the class and records the inviter (`registration_source = invite`).
+- Registration has an admin open/closed switch; while closed only administrators can complete it (for testing).
+- Officials' roles are given with `give_role(email, role, name)` from the SQL editor until the roles screen (M9).
+- Welcome email with what happens next (sent once the association's email domain is set up).
 
 **AC**
-- Required fields are enforced server-side, not only in the browser.
-- Next of kin is required and is never shown in the directory.
-- A person registering with a phone already on file is linked or flagged, not duplicated.
-- Works without JavaScript-heavy widgets on slow connections; form state survives a page refresh.
+- Required fields are enforced in the database function, not only in the browser.
+- Signing in without finishing leaves no person or profile.
+- Next of kin is never asked during registration and never shown in the directory.
+- A person registering with a phone already on file is flagged, not duplicated; with an email on file, linked.
+- Works on slow connections; answers survive a page refresh.
 
 ### 6.3 Verification & member management
 
@@ -466,12 +484,13 @@ Behaviour:
 
 ### 6.4 Member sign-in and member home (role centre)
 
-- Sign in with email + password or Google. Password reset by email. (Username login: optional alias that maps to email.)
+- Sign in with Google or LinkedIn (preferred), or an emailed one-time link. No member passwords (decided 16 Oct 2026). Office-holders' accounts created before then may keep a password until the association's email is set up.
 - Member home shows only what the member's roles allow:
   - everyone: profile completeness, upcoming events (their cohort, their cluster, association-wide), causes, their giving history, directory link;
   - cohort/cluster reps: their dashboard (sign-ups, verified, pledges, payments for their group), pending verifications, event proposals;
   - office-holders: approvals waiting for them, finance/reports shortcuts.
-- Directory: search and filter by cohort, cluster, category, profession, skills; respects each member's `directory_visibility`.
+- Directory: photo tiles, search and filter by cohort, region, category, profession, skills and "open to mentoring"; respects each member's `directory_visibility`.
+- Public profile (only with the `public_profile` consent, off by default, withdrawable): name, class, one-line summary, optional photo, LinkedIn and other links. Never phone, email, county or welfare data. Built with the directory in M6.
 
 **AC**
 - Removing a role assignment (or its term ending) removes access immediately on next request.
@@ -602,13 +621,14 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/track` | public | Pledge tracking with OTP |
 | `/transparency` | public | Money in and out |
 | `/events`, `/events/[id]` | public/members | Events |
-| `/join` | public | Registration |
-| `/login`, `/reset-password` | public | Auth |
+| `/join`, `/join/steps` | public | Registration (sign in, then steps) |
+| `/login` | public | Sign in (Google, LinkedIn, email link) |
+| `/privacy` | public | Privacy policy |
 | `/app` | member | Member home (role centre) |
 | `/app/profile` | member | Profile, consents, data export/delete request |
 | `/app/directory` | member | Directory |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |
-| `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management |
+| `/admin/members`, `/admin/verification`, `/admin/duplicates` | admin/rep/verifier | Member management; class invite links and the registration switch on `/admin/members` |
 | `/admin/causes` | admin | Causes and campaigns |
 | `/admin/payments`, `/admin/payments/new`, `/admin/suspense`, `/admin/import` | treasurer/admin | Payments |
 | `/admin/reports` | office-holders | Reports |
@@ -644,7 +664,8 @@ Every job is idempotent (safe to re-run) and logs its run.
 - **Input validation** with Zod on the server for every form and endpoint.
 - **Sensitive data:** next of kin, welfare, beneficiaries in separate tables with stricter RLS; access logged.
 - **Data subject rights:** member can download their data (JSON/PDF) and request deletion; deletion anonymises the person but keeps financial records (legal obligation), noted in the privacy policy.
-- **Privacy policy and consent wording** stored with versions; shown at registration and on giving forms.
+- **Privacy policy and consent wording** stored with versions; shown at registration and on giving forms. A draft privacy policy is published at `/privacy` for the officials and a legal adviser to confirm.
+- **Kenya Data Protection Act 2019:** the officials are confirming whether the association must register with the Office of the Data Protection Commissioner (product owner, 16 Oct 2026).
 - **Backups:** Supabase daily backups; enable point-in-time recovery once the association upgrades its plan; quarterly restore test.
 - **Admin accounts** must use strong passwords; enable two-factor where supported.
 
@@ -713,8 +734,8 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 ## 18. Seed Data
 
 - Categories: Alumnus; Friend of the alumni.
-- Levels: Foundation (token fee e.g. KES 20, one-off; can_request_mentor), Launch (low; can_request_mentor), Growth (medium; can_mentor), Impact (highest; can_mentor). Fees initially 0 / switched off until leadership decides.
-- Clusters: Nairobi, Kisii, Nyamira, Nakuru, Eldoret, Kisumu, Mombasa, Diaspora.
+- Levels (alumni only): Foundation (token fee e.g. KES 20, one-off; can_request_mentor), Launch (low; can_request_mentor), Growth (medium; can_mentor), Impact (highest; can_mentor). Friends of the alumni have no level; any friend fee sits on the category. Fees initially 0 / switched off until leadership decides.
+- Clusters (regions): Nairobi, Central, Coast, Eastern, North Eastern, Nyanza, Rift Valley, Western, Diaspora; each county mapped to its former province. (The first seed's town clusters are kept inactive.)
 - Cohorts: one per year from 1975 to current year.
 - Funds/causes: General Fund (shown as "Menyenya Alumni Fund"); Tuition Block Fund + "Tuition Block" campaign (target KES 100,000,000, lifecycle `preparation`).
 - Roles: §4.2. Workflows: §5.7 defaults.
@@ -733,3 +754,16 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 7. **Pledge list visibility default** for the tuition block (Newlife-style public list vs totals only).
 8. **Data retention period** for financial records and audit logs (statutory period to confirm with the treasurer/legal).
 9. **Founding pledges recognition:** how they are shown publicly.
+
+### Decisions log
+
+| Date | Decision |
+|---|---|
+| 16 Oct 2026 | Registration in short steps with a progress bar; sign in first with Google or LinkedIn, email one-time link as backup, no member passwords. Registration counts only when the last step is submitted. |
+| 16 Oct 2026 | Phone numbers carry a country, Kenya by default. |
+| 16 Oct 2026 | Regions are Kenya's former provinces plus Diaspora, filled from the county. |
+| 16 Oct 2026 | Alumni get a suggested level (never Impact); friends have no level. Fees, if switched on, are applied at the end of registration. |
+| 16 Oct 2026 | Next of kin moves out of registration into welfare; seen by the member and Welfare Coordinator only (cohort rep only during an open case), every view logged. |
+| 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
+| 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
+

@@ -28,6 +28,7 @@ const columns = [
       { label: "Log in", href: "/login" },
       { label: "Track my pledge", href: "/track" },
       { label: "Contact us", href: "/contact" },
+      { label: "Privacy policy", href: "/privacy" },
     ],
   },
 ];

@@ -38,13 +38,20 @@ export async function as<T>(db: Db, who: "anon" | { user: string } | "owner", fn
   }
 }
 
-/** Create a confirmed login (fires the same trigger Supabase would) and return its user id. */
-export async function createUser(db: Db, email: string, name = "Test User") {
+/** Create a confirmed login only (fires the same trigger Supabase would). No person is created. */
+export async function createLogin(db: Db, email: string, name = "Test User") {
   const r = await db.query<{ id: string }>(
     "insert into auth.users (email, email_confirmed_at, raw_user_meta_data) values ($1, now(), $2) returning id",
     [email, JSON.stringify({ full_name: name })],
   );
   return r.rows[0].id;
+}
+
+/** Create a confirmed login with a person record (as for officials set up by an administrator). */
+export async function createUser(db: Db, email: string, name = "Test User") {
+  const id = await createLogin(db, email, name);
+  await db.query("select public.link_user_to_person($1, $2, $3)", [id, email, name]);
+  return id;
 }
 
 export async function personFor(db: Db, userId: string) {

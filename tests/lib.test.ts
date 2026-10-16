@@ -103,3 +103,26 @@ describe("content helpers", () => {
     for (const k of keys) expect(k).toMatch(/^[a-z0-9.-]+$/);
   });
 });
+
+describe("registration helpers", () => {
+  it("writes phone numbers in international form, Kenya by default", async () => {
+    const { toInternational } = await import("@/lib/phone");
+    expect(toInternational("KE", "0712 345 678")).toBe("+254712345678");
+    expect(toInternational("KE", "+254 110 123456")).toBe("+254110123456");
+    expect(toInternational("KE", "0612345678")).toBeNull();
+    expect(toInternational("GB", "07700 900123")).toBe("+447700900123");
+    expect(toInternational("US", "(415) 555-0100")).toBe("+14155550100");
+    expect(toInternational("ZZ", "+33 6 12 34 56 78")).toBe("+33612345678");
+    expect(toInternational("ZZ", "612345678")).toBeNull();
+  });
+
+  it("suggests a level but never Impact", async () => {
+    const { suggestLevel } = await import("@/lib/registration");
+    expect(suggestLevel(2024, "employed", 2026)).toBe("Foundation");
+    expect(suggestLevel(2010, "studying", 2026)).toBe("Foundation");
+    expect(suggestLevel(2015, "employed", 2026)).toBe("Launch");
+    expect(suggestLevel(1998, "business", 2026)).toBe("Growth");
+    expect(suggestLevel(1990, "seeking", 2026)).toBe("Launch");
+    expect(suggestLevel(null, "employed", 2026)).toBeNull();
+  });
+});

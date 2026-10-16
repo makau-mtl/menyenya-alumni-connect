@@ -21,7 +21,7 @@ export function AccountLinks({ variant }: { variant: "desktop" | "mobile" }) {
   if (variant === "desktop") {
     return signedIn ? (
       <>
-        <Link href="/admin" className="rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper">
+        <Link href="/app" className="rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper">
           My account
         </Link>
         <form action="/auth/signout" method="post">
@@ -47,7 +47,7 @@ export function AccountLinks({ variant }: { variant: "desktop" | "mobile" }) {
 
   return signedIn ? (
     <div className="mt-4 grid grid-cols-2 gap-3">
-      <Link href="/admin" className="rounded-md bg-tea py-2.5 text-center font-semibold text-white">
+      <Link href="/app" className="rounded-md bg-tea py-2.5 text-center font-semibold text-white">
         My account
       </Link>
       <form action="/auth/signout" method="post">

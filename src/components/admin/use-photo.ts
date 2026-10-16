@@ -26,7 +26,8 @@ async function shrink(bitmap: ImageBitmap, width: number): Promise<Blob> {
 
 export type PreparedPhoto = { large: Blob; small: Blob; preview: string; name: string };
 
-export function usePhoto() {
+/** widths: the large and small copies to make. Website photos use 1600/800; member photos 800/400. */
+export function usePhoto(widths: [number, number] = [1600, 800]) {
   const [photo, setPhoto] = useState<PreparedPhoto | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,12 +47,12 @@ export function usePhoto() {
     setBusy(true);
     try {
       const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-      if (bitmap.width < 600) {
+      if (bitmap.width < Math.min(600, widths[1])) {
         bitmap.close();
-        setError("This photo is very small and will look blurry. Use one at least 600 pixels wide.");
+        setError("This photo is very small and will look blurry. Try a larger one.");
         return;
       }
-      const [large, small] = [await shrink(bitmap, 1600), await shrink(bitmap, 800)];
+      const [large, small] = [await shrink(bitmap, widths[0]), await shrink(bitmap, widths[1])];
       bitmap.close();
       setPhoto({ large, small, preview: URL.createObjectURL(small), name: file.name });
     } catch {

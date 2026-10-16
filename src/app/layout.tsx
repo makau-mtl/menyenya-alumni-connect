@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <p className="bg-gold-tint px-4 py-1.5 text-center text-xs text-ink sm:text-sm">
-          Preview for the Technical Committee: sample content and photo spaces; nothing you enter is kept.
+          Preview for the Technical Committee: sample content and photo spaces. Test entries will be cleared before launch.
         </p>
         <SiteHeader />
         <main id="main" className="flex-1">

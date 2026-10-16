@@ -17,6 +17,7 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 | Settings | Administrators | Member confirmation, rejoin window |
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
+| Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -139,4 +140,15 @@ Open the **Sponsors and partners** tab.
 - **Options and areas**: the cards on each page. Corporate sponsorship options (e.g. *Friends of Menyenya*) and strategic partnership areas (e.g. *Mentorship and careers*). Write who it is for, a description and what they receive, one per line. Leave the amount blank until the leadership approves it; the page shows "Amount on request".
 
 The wording on both pages is marked as a draft. Once the officials approve it, ask for the draft notice to be removed.
+
+## Alumni merchandise
+
+Open the **Merchandise** tab (administrators, the Secretary and the Treasurer).
+
+- **Add an item**: name, price in shillings, a short description, and the choices separated by commas (e.g. *S, M, L, XL*, called *Size*; or *Navy, White*, called *Colour*). Leave the choices blank if there is only one kind. Add a square photo. Use the arrows to order items, **Hide** to take one off for a while, **Remove** when it is no longer sold. A new price affects new orders only.
+- **Orders** arrive with a reference such as *MER-7K2QXP*. For each one:
+  1. Call the buyer to confirm, then set **Confirmed**.
+  2. When the payment shows on the Paybill statement with that reference as the account, set **Paid**.
+  3. When the items are packed, set **Ready to collect**, and **Collected** when they are picked up. Use **Cancelled** if the order falls through.
+  Add a note each time (e.g. "Paid 3,200, M-Pesa QJK…"). Collected and cancelled orders are hidden; *Show collected and cancelled too* brings them back.
 

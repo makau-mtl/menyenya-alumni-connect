@@ -1,5 +1,13 @@
 # Progress
 
+## 17 October 2026: Alumni merchandise
+
+- New page **Alumni merchandise** (`/shop`), under Ways to support: items with photos, prices and sizes or colours; an order panel with the total; and the order form. Anyone can order.
+- After sending, the buyer gets a reference (e.g. MER-7K2QXP) and the next steps: we call to confirm, they pay through the official Paybill using the reference, then collect.
+- New admin tab **Merchandise** for administrators, the Secretary and the Treasurer: orders (New → Confirmed → Paid → Ready to collect → Collected, or Cancelled, with notes) and items (add, price, sizes, photo, order, hide).
+- Orders keep the price at the time; changing a price only affects new orders. Nothing is deleted. One phone can send at most five orders a day.
+- Tests: 4 new database tests; 95 pass.
+
 ## 17 October 2026: Ways to support (sponsors and partners)
 
 - The menu "Ways to give" is now **Ways to support**, with two new pages: **Corporate sponsorships** and **Strategic partnerships**, modelled on trees.org.

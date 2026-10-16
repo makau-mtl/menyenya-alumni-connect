@@ -10,13 +10,14 @@ import { photoSpaceKeys } from "@/content/photo-spaces";
 
 // Every action checks who is signed in; the database rules check again on every write.
 
-type Need = "admin" | "news";
+type Need = "admin" | "news" | "shop";
 
 async function staffFor(need: Need): Promise<Staff | string> {
   const staff = await getStaff();
   if (!staff) return "Your sign-in has expired. Log in again and retry.";
   if (need === "admin" && !staff.isAdmin) return "Only administrators can change this.";
   if (need === "news" && !staff.canEditNews) return "Only administrators and the Secretary can change news.";
+  if (need === "shop" && !staff.canManageShop) return "Only administrators, the Secretary and the Treasurer can manage merchandise.";
   return staff;
 }
 
@@ -740,4 +741,103 @@ export async function updateEnquiry(formData: FormData): Promise<void> {
     .update({ status, notes: String(formData.get("notes") ?? "").slice(0, 2000), handled_by: me ?? null })
     .eq("id", String(formData.get("id") ?? ""));
   revalidatePath("/admin/support");
+}
+
+// Merchandise ------------------------------------------------------------------------------------------
+
+const merchItemSchema = z.object({
+  id: z.string(),
+  name: z.string().trim().min(2, "Name the item, e.g. Alumni T-shirt.").max(80, "Keep the name under 80 characters."),
+  description: z.string().trim().max(600, "Keep the description under 600 characters."),
+  price: z
+    .string()
+    .transform((v) => v.replace(/[,\s]/g, ""))
+    .refine((v) => /^\d{1,9}$/.test(v) && Number(v) > 0, "Enter the price in shillings, numbers only.")
+    .transform(Number),
+  options: z.array(z.string().trim().min(1).max(40)).max(20, "Up to 20 choices."),
+  optionLabel: z.string().trim().min(1).max(20, "Keep this short, e.g. Size or Colour."),
+  status: z.enum(["published", "draft"]),
+});
+
+export async function saveMerchItem(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("shop");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = merchItemSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    name: String(formData.get("name") ?? ""),
+    description: String(formData.get("description") ?? ""),
+    price: String(formData.get("price") ?? ""),
+    options: [...new Set(String(formData.get("options") ?? "").split(",").map((o) => o.trim()).filter(Boolean))],
+    optionLabel: String(formData.get("optionLabel") || "Size"),
+    status: formData.get("status") === "draft" ? "draft" : "published",
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const row: Record<string, unknown> = {
+    name: v.name,
+    description: v.description,
+    price_kes: v.price,
+    options: v.options,
+    option_label: v.optionLabel,
+    status: v.status,
+  };
+  try {
+    if (hasPhoto(formData)) row.photo_path = await savePhoto(staff, "merchandise", formData);
+  } catch (e) {
+    return fail(uploadMessage(e));
+  }
+  const table = staff.supabase.from("merch_items");
+  let error;
+  if (v.id) {
+    ({ error } = await table.update(row).eq("id", v.id));
+  } else {
+    const { data: last } = await staff.supabase.from("merch_items").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+    ({ error } = await table.insert({ ...row, sort_order: (last?.sort_order ?? 0) + 10 }));
+  }
+  if (error) {
+    console.error(error);
+    return fail("The item could not be saved.");
+  }
+  refreshSite();
+  redirect("/admin/shop?saved=1#items");
+}
+
+/** Show, hide or remove (archive) an item. Past orders keep their own copy of the name and price. */
+export async function setMerchItemStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("shop");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "draft", "archived"].includes(status)) return;
+  await staff.supabase.from("merch_items").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  refreshSite();
+}
+
+export async function moveMerchItem(formData: FormData): Promise<void> {
+  const staff = await staffFor("shop");
+  if (typeof staff === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const { data: rows } = await staff.supabase.from("merch_items").select("id").neq("status", "archived").order("sort_order").order("name");
+  const list = rows ?? [];
+  const i = list.findIndex((r) => r.id === id);
+  const j = formData.get("direction") === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  await Promise.all(list.map((r, n) => staff.supabase.from("merch_items").update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
+  refreshSite();
+}
+
+const orderStatuses = ["new", "confirmed", "paid", "ready", "collected", "cancelled"];
+
+/** Move an order along (New → Confirmed → Paid → Ready → Collected, or Cancelled) with a note. */
+export async function updateMerchOrder(formData: FormData): Promise<void> {
+  const staff = await staffFor("shop");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!orderStatuses.includes(status)) return;
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  await staff.supabase
+    .from("merch_orders")
+    .update({ status, staff_notes: String(formData.get("notes") ?? "").slice(0, 2000), handled_by: me ?? null })
+    .eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/admin/shop");
 }

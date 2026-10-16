@@ -532,6 +532,10 @@ Behaviour:
   - Tables: `support_packages` (kind sponsor|partner, name, audience, description, benefits[], amount_kes, amount_period, order, status), `supporters` (kind, name, website, logo in site-media, blurb, package, since year, featured, order, status), `support_enquiries` (organisation, contact name, email, phone, package, message, status new|in_progress|closed, admin notes). Public reads published rows only; enquiries arrive only through `submit_support_enquiry()` (validated, max 5 per email a day, spam trap) and only administrators read them. Nothing is deleted.
   - Featured sponsors and partners show as a logo strip on the home page once any exist.
   - Admin tab **Sponsors and partners** (`/admin/support`): enquiries inbox, sponsors and partners (logo, order, show/hide/remove, home page), options and areas.
+- **Alumni merchandise** (`/shop`, decided 17 Oct 2026; under Ways to support): catalogue plus order requests; anyone may order (signed-in members are linked to their record).
+  - Page: photo hero, "how ordering works" (choose and send → we call to confirm → pay through the official Paybill with the order reference, then collect), item cards (photo, price, size/colour choice, quantity), an order panel with total and the form (name, phone, optional email, where to collect, note). On sending, the buyer sees a reference such as `MER-7K2QXP` and the payment instructions. Nothing is paid on the website.
+  - Tables: `merch_items` (name, description, price, choices and what they are called, photo, order, status), `merch_orders` (reference, buyer details, collection point, total at the prices when ordered, status new → confirmed → paid → ready → collected, or cancelled, staff notes), `merch_order_items` (item name, choice, quantity and price copied at the time). Orders arrive only through `submit_merch_order()` (validated, max 5 per phone a day, spam trap). Only status and staff notes can change afterwards; nothing is deleted.
+  - Admin tab **Merchandise** (`/admin/shop`) for administrators, the Secretary and the Treasurer (`can_manage_shop()`): orders with call/email links and status, items with photos and prices. Payment confirmation is by the Paybill statement until M4 records payments automatically. Merchandise income is reported separately from campaign funds. The full shop (cart, online checkout, stock) stays Phase 4.
 
 **AC**
 - Removing a role assignment (or its term ending) removes access immediately on next request.
@@ -673,6 +677,8 @@ Online elections (eligibility from membership status, nominations, candidate pro
 | `/people/[id]` | public | Public profile (only with the member's consent) |
 | `/our-people` | public | Leadership, secretariat and members (tabs, cards with pop-up); `/who-we-are/team` redirects here |
 | `/support/corporate-sponsorships`, `/support/strategic-partnerships` | public | Sponsorship options, partnership areas, logos, enquiry form |
+| `/shop` | public | Alumni merchandise: catalogue and order requests |
+| `/admin/shop` | admin, secretary, treasurer | Merchandise items and orders |
 | `/admin/support` | admin | Sponsors, partners, options and enquiries |
 | `/admin/people` | admin | Positions on the Our people page: add, edit, order, hide, term-end alerts |
 | `/app/dashboard/cohort/[id]`, `/app/dashboard/cluster/[id]` | rep | Dashboards |

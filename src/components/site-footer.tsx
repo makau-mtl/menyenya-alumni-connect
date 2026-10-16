@@ -20,6 +20,7 @@ const columns = [
       { label: "The tuition block", href: "/causes/tuition-block" },
       { label: "Corporate sponsorships", href: "/support/corporate-sponsorships" },
       { label: "Strategic partnerships", href: "/support/strategic-partnerships" },
+      { label: "Alumni merchandise", href: "/shop" },
     ],
   },
   {

@@ -45,7 +45,7 @@ The publishable key is designed to be public; the database's access rules protec
 ## 4. Sign-in settings (Supabase → Authentication)
 
 1. **URL Configuration** → **Site URL**: `https://menyenya-alumni-connect.vercel.app`. Under **Redirect URLs**, add `https://menyenya-alumni-connect.vercel.app/auth/callback` and `https://*-mtl11.vercel.app/auth/callback` (for preview links).
-2. **Sign In / Providers** → turn **off** "Allow new users to sign up" for now. Accounts are created by an administrator until registration opens in January.
+2. Sign-up and sign-in providers (Google, LinkedIn, email links): see `docs/SETUP-SIGN-IN.md`.
 
 ## 5. Make yourself the first administrator
 
@@ -56,8 +56,8 @@ The publishable key is designed to be public; the database's access rules protec
 select public.bootstrap_admin('your-email@example.com');
 ```
 
-3. Go to `/login` on the website, sign in, and you'll land on `/admin`.
+3. Go to `/login` on the website, open **Officials: log in with a password**, sign in, then open **My account → Open the admin area**.
 
-## Later: Google sign-in
+## Sign-in for members
 
-Needs a Google Cloud OAuth client. Until it's set up, the "Continue with Google" button shows a friendly message, and email sign-in works.
+See `docs/SETUP-SIGN-IN.md` for Google, LinkedIn and email links.

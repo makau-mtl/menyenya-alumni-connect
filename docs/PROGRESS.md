@@ -1,5 +1,31 @@
 # Progress
 
+## 16 October 2026 (evening): M3, registration
+
+Agreed with the product owner first, and written into the spec (§4.3, §5.1, §5.2, §6.2, §6.4, §12, decisions log).
+
+**Built**
+- Sign in first with Google or LinkedIn (buttons appear once switched on), or an emailed one-time link. No member passwords; officials keep a password option for now. Signing in never creates a member.
+- Registration in short steps with a progress bar: About you → Your Menyenya link → Where you live → Membership level (alumni only) → Consents and finish, with a summary and Change links. Answers survive a refresh and clear when the tab closes.
+- Phone with a country picker, Kenya by default, saved as +254… with the country.
+- Regions are the former provinces plus Diaspora; the region fills itself from the county.
+- A suggested membership level from the year left and what the member does now (never Impact). Friends have no level.
+- One database function saves everything at the end: links to an existing donor record by verified email, flags (never merges) shared phones, emails or same name in the same class, records consents, adds a fee only if one applies and fees are switched on, and queues the welcome email.
+- Class invite links that fill in the class and record who invited.
+- Welcome page, My account (profile completeness) and My profile: passport-style photo (private, members only), one-line summary, work, skills, LinkedIn and other links, mentoring by level, volunteering, welfare and emergency contact, and privacy choices (each change kept as history).
+- Next of kin: the member and the Welfare Coordinator only; the coordinator's views go through a logged function with a reason.
+- Member photos: seen by the member, administrators, and other members only while the member agrees to be in the directory.
+- Admin → Members: registration switch, class invite links, member list with filters, duplicate count.
+- Guard rails: members can't change their own status or verification, or create profiles directly.
+- `give_role()` for giving officials roles from the SQL editor.
+- Draft privacy policy at /privacy, for the officials and a legal adviser to confirm.
+- Tests: 46 database tests (16 new on registration, sign-in, next of kin, photos and fees), 23 unit tests.
+
+**For the product owner**: `docs/SETUP-SIGN-IN.md` (Google, LinkedIn, Supabase settings, Vercel variable).
+
+**Not yet**: welcome emails are queued but sent once the association's email domain and Resend are set up; member directory and public profiles (M6); verification by class reps (M6); fee amounts and the fees switch are set in the database until the settings screen.
+
+
 ## 16 October 2026 (afternoon): M2, the site updates itself
 
 **Built**

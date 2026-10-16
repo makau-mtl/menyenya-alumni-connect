@@ -285,3 +285,56 @@ export async function saveNews(_prev: ActionState, formData: FormData): Promise<
   refreshSite();
   redirect("/admin/news?saved=1");
 }
+
+// Members: registration switch and class invite links -------------------------------------------
+
+export async function setRegistrationOpen(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  await staff.supabase
+    .from("module_settings")
+    .update({ enabled: formData.get("open") === "true" })
+    .eq("module_key", "registration");
+  revalidatePath("/admin/members");
+  revalidatePath("/join");
+}
+
+export async function createInviteLink(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const year = Number(formData.get("year") ?? 0);
+  const label = String(formData.get("label") ?? "").trim().slice(0, 80);
+  let cohortId: string | null = null;
+  if (year) {
+    const { data } = await staff.supabase.from("cohorts").select("id").eq("year_left", year).maybeSingle();
+    cohortId = data?.id ?? null;
+  }
+  if (!label && !cohortId) return fail("Choose a class, or give the link a name.");
+  let inviter: string | null = null;
+  if (formData.get("fromMe") === "on") {
+    const { data } = await staff.supabase.rpc("current_person_id");
+    inviter = (data as string | null) ?? null;
+  }
+  const { error } = await staff.supabase.from("invite_links").insert({
+    label: label || `Class of ${year}`,
+    cohort_id: cohortId,
+    inviter_person_id: inviter,
+    created_by: inviter,
+  });
+  if (error) {
+    console.error(error);
+    return fail("The link could not be created.");
+  }
+  revalidatePath("/admin/members");
+  return { ok: true, message: "Link created. Copy it from the list below." };
+}
+
+export async function setInviteActive(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  await staff.supabase
+    .from("invite_links")
+    .update({ active: formData.get("active") === "true" })
+    .eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/admin/members");
+}

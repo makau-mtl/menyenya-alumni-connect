@@ -1,7 +1,7 @@
 # How to update the website
 
 For officials and the secretariat. No technical knowledge needed. Everything is done from the
-website's admin area: log in at **/login**, then use the tabs at the top of the admin page.
+website's admin area: log in at **/login**, open **My account → Open the admin area**, then use the tabs at the top.
 
 Every change shows on the website within seconds, and is recorded (who, what and when) in the
 audit log. Nothing is deleted: photos and posts are hidden instead, and can be shown again.
@@ -11,6 +11,7 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 | Tab | Who sees it | What it is for |
 |---|---|---|
 | Overview | Chairman, Treasurer, administrators | Pledges and gifts so far |
+| Members | Administrators | Registration switch, class invite links, who has registered |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -63,22 +64,37 @@ keep showing "Photo to come".
 Only use photos of students with the school's and parents' consent, and never name a student
 supported by the Keep a Child in School fund.
 
+## Members, registration and class links
+
+**Members** tab (administrators):
+
+- **Registration switch.** While it says *Closed*, the public sees "Registration opens soon"; administrators
+  can still go through registration to test. Press **Open registration** for the soft launch.
+- **Class invite links.** Choose a class (and optionally a name), press **Create link**, then **Copy link**
+  and share it in the class WhatsApp group. It fills in the class and records who invited them. Switch a
+  link off if it is shared too widely.
+- **Registered members.** Filter by alumni or friends, status and region. Next of kin is never shown here.
+- **Possible duplicates.** A count of records sharing a phone, an email, or a name in the same class.
+  Nothing is merged automatically; checking them comes with verification in January.
+
+## Who sees next of kin (welfare and emergency contact)
+
+Only the member and the **Welfare Coordinator**. Administrators and the Secretary do not see it. The
+coordinator's views are recorded with a reason. Members add it themselves in **My account → My profile**.
+
 ## Giving someone a role (until the roles screen arrives)
 
-A roles screen comes in a later milestone. Until then, an administrator does it once in Supabase:
+A roles screen comes in a later milestone. Until then, an administrator does it in Supabase:
 
-1. Supabase → **Authentication** → **Users** → **Add user** → enter their email and a temporary
-   password, tick **Auto Confirm User**. Send them the password privately and ask them to change it.
-2. **SQL Editor** → run, with their email and the role (`secretary`, `treasurer`, `chair` or `admin`):
+1. Ask the person to sign in once at **/login** (with Google, LinkedIn or an email link). If they can't,
+   add them in Supabase → **Authentication → Users → Add user** with **Auto Confirm User** ticked.
+2. **SQL Editor** → run, with their email, the role and their name:
 
 ```sql
-insert into public.role_assignments (person_id, role_id, notes)
-select p.id, r.id, 'given by SQL'
-from public.persons p
-join auth.users u on u.id = p.user_id
-join public.roles r on r.key = 'secretary'
-where lower(u.email) = lower('their-email@example.com');
+select public.give_role('their-email@example.com', 'secretary', 'Their Full Name');
 ```
+
+Roles: `secretary`, `treasurer`, `chair`, `vice_chair`, `welfare_coordinator`, `events_coordinator`, `verifier`, `admin`.
 
 To end a role, set its end date instead of deleting it:
 

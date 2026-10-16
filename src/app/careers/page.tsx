@@ -11,7 +11,7 @@ export default function CareersPage() {
       <PageHero
         title="Work with the association"
         intro="We open internships and roles to Menyenya alumni first, so that the association grows its own people as it grows."
-        image="the association's team at work"
+        image="careers.hero"
       />
 
       <section className="section pt-14">

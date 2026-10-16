@@ -3,7 +3,8 @@
 // Photo and video spaces. Until real photos are uploaded, each shows a designed
 // placeholder that says what belongs there, so the layout can be reviewed now.
 
-type Ratio = "wide" | "video" | "landscape" | "square" | "portrait" | "tall";
+import type { Photo } from "@/lib/types";
+import type { Ratio } from "@/content/photo-spaces";
 
 const ratios: Record<Ratio, string> = {
   wide: "aspect-[21/9]",
@@ -16,19 +17,32 @@ const ratios: Record<Ratio, string> = {
 
 export function ImageSlot({
   caption,
-  src,
+  photo,
   ratio = "landscape",
   className = "",
   tone = "dark",
+  sizes = "(min-width: 1024px) 50vw, 100vw",
 }: {
   caption: string;
-  src?: string;
+  photo?: Photo | null;
   ratio?: Ratio;
   className?: string;
   tone?: "dark" | "light";
+  /** How wide the photo shows on screen, so phones download the small copy. */
+  sizes?: string;
 }) {
-  if (src) {
-    return <img src={src} alt={caption} className={`${ratios[ratio]} w-full rounded-xl object-cover ${className}`} />;
+  if (photo) {
+    return (
+      <img
+        src={photo.src}
+        srcSet={`${photo.srcSmall} 800w, ${photo.src} 1600w`}
+        sizes={sizes}
+        alt={photo.caption || caption}
+        loading="lazy"
+        decoding="async"
+        className={`${ratios[ratio]} w-full rounded-xl bg-line object-cover ${className}`}
+      />
+    );
   }
   const bg =
     tone === "dark"

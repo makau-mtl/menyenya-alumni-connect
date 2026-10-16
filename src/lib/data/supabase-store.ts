@@ -1,7 +1,10 @@
 import "server-only";
 import type {
   Cause,
+  CausePhoto,
   CauseProgress,
+  NewsPost,
+  Photo,
   GiftInput,
   PaymentChannel,
   PledgeInput,
@@ -10,6 +13,7 @@ import type {
 } from "@/lib/types";
 import { createPublicClient } from "@/lib/supabase/server";
 import { GivingError } from "./sample-store";
+import { toPhoto } from "@/lib/photos";
 
 // The database-backed store. Visitors only read public data and give through the
 // give()/make_pledge() database functions; access rules in the database do the rest.
@@ -167,4 +171,102 @@ export async function getReceipt(reference: string, token: string): Promise<Rece
     inKindDescription: (r.in_kind_description as string) ?? null,
     isFounding: Boolean(r.is_founding),
   };
+}
+
+// Photos, settings and news ------------------------------------------------------------------
+// Visitors see only published items; the database rules decide that, not this code.
+// If these can't be read (for example while a database update is being applied), pages fall
+// back to placeholders instead of failing: content should never take the site down.
+
+function contentUnavailable<T>(what: string, error: unknown, fallback: T): T {
+  console.error(`Could not read ${what}; showing placeholders`, error);
+  return fallback;
+}
+
+type CausePhotoRow = { id: string; path: string; caption: string; status: CausePhoto["status"]; sort_order: number };
+
+export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
+  const { data, error } = await createPublicClient()
+    .from("cause_photos")
+    .select("id, path, caption, status, sort_order, causes!inner(slug)")
+    .eq("causes.slug", slug)
+    .order("sort_order")
+    .order("created_at");
+  if (error) return contentUnavailable("cause photos", error, []);
+  return (data as unknown as CausePhotoRow[]).map((r) => ({
+    ...toPhoto(r.path, r.caption),
+    id: r.id,
+    status: r.status,
+    sortOrder: r.sort_order,
+  }));
+}
+
+/** The first published photo of each cause, by cause slug. */
+export async function getCoverPhotos(): Promise<Record<string, Photo>> {
+  const { data, error } = await createPublicClient()
+    .from("cause_photos")
+    .select("path, caption, causes!inner(slug)")
+    .order("sort_order")
+    .order("created_at");
+  if (error) return contentUnavailable("cover photos", error, {});
+  const covers: Record<string, Photo> = {};
+  for (const r of data as unknown as { path: string; caption: string; causes: { slug: string } }[]) {
+    covers[r.causes.slug] ??= toPhoto(r.path, r.caption);
+  }
+  return covers;
+}
+
+/** Photos for the named spaces on the website, by space name. */
+export async function getSitePhotos(): Promise<Record<string, Photo>> {
+  const { data, error } = await createPublicClient().from("site_photos").select("slot, path, caption");
+  if (error) return contentUnavailable("site photos", error, {});
+  return Object.fromEntries(
+    (data as { slot: string; path: string; caption: string }[]).map((r) => [r.slot, toPhoto(r.path, r.caption)]),
+  );
+}
+
+export async function getChairVideoId(): Promise<string | null> {
+  const { data } = await createPublicClient().from("site_settings").select("value").eq("key", "chair_video").maybeSingle();
+  return ((data?.value as { youtubeId?: string | null } | undefined)?.youtubeId ?? null) || null;
+}
+
+export type NewsRow = {
+  id: string; slug: string; kind: NewsPost["kind"]; title: string; summary: string; body: string[];
+  happens_on: string; photo_path: string | null; photo_caption: string; status: NewsPost["status"];
+};
+export const newsColumns = "id, slug, kind, title, summary, body, happens_on, photo_path, photo_caption, status";
+
+export function toNewsPost(r: NewsRow): NewsPost {
+  return {
+    id: r.id,
+    slug: r.slug,
+    kind: r.kind,
+    title: r.title,
+    summary: r.summary,
+    body: r.body ?? [],
+    date: r.happens_on,
+    photo: r.photo_path ? toPhoto(r.photo_path, r.photo_caption || r.title) : null,
+    status: r.status,
+  };
+}
+
+export async function listNews(): Promise<NewsPost[]> {
+  const { data, error } = await createPublicClient()
+    .from("news_posts")
+    .select(newsColumns)
+    .eq("status", "published")
+    .order("happens_on", { ascending: false });
+  if (error) return contentUnavailable("news", error, []);
+  return (data as NewsRow[]).map(toNewsPost);
+}
+
+export async function getNewsPost(slug: string): Promise<NewsPost | null> {
+  const { data, error } = await createPublicClient()
+    .from("news_posts")
+    .select(newsColumns)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+  if (error) return contentUnavailable("a news post", error, null);
+  return data ? toNewsPost(data as NewsRow) : null;
 }

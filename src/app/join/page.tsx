@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { membershipLevels } from "@/content/site";
-import { ImageSlot } from "@/components/media";
+import { SitePhoto } from "@/components/site-photo";
 import { RegisterForm } from "./register-form";
 
 export const metadata: Metadata = {
@@ -24,7 +24,7 @@ export default function JoinPage() {
             </a>
             <p className="mt-3 text-sm text-ink-soft">Takes about two minutes. You can add more about yourself later.</p>
           </div>
-          <ImageSlot caption="classmates reunited at a homecoming" ratio="landscape" />
+          <SitePhoto space="join.hero" />
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { org } from "@/content/site";
-import { ImageSlot } from "@/components/media";
+import { SitePhoto } from "@/components/site-photo";
 import { buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -15,21 +15,21 @@ const choices = [
     text: "A one-off gift of any amount, to the tuition block, a student in need, or the Menyenya Alumni Fund.",
     cta: "Donate",
     href: "/donate",
-    image: "a student reading in the library",
+    space: "ways.give-today",
   },
   {
     title: "Pledge over time",
     text: "Commit an amount and pay monthly, quarterly or yearly. KES 1,000 a month for three years adds up to KES 36,000.",
     cta: "Make a pledge",
     href: "/pledge/tuition-block",
-    image: "a class celebrating their pledge",
+    space: "ways.pledge",
   },
   {
     title: "Give another way",
     text: "Give materials or professional time, give in honour or memory of someone, or rally your class behind a shared target.",
     cta: "See other ways",
     href: "#other-ways",
-    image: "alumni volunteers at the school",
+    space: "ways.other",
   },
 ];
 
@@ -75,8 +75,8 @@ export default function WaysToGivePage() {
             </Link>
           </div>
           <div className="grid grid-cols-[1.5fr_1fr] items-end gap-4">
-            <ImageSlot caption="students in a crowded classroom today" ratio="landscape" />
-            <ImageSlot caption="the site of the tuition block" ratio="portrait" tone="light" />
+            <SitePhoto space="ways.hero.main" sizes="(min-width: 1024px) 30vw, 60vw" />
+            <SitePhoto space="ways.hero.side" tone="light" sizes="(min-width: 1024px) 20vw, 40vw" />
           </div>
         </div>
       </section>
@@ -87,7 +87,7 @@ export default function WaysToGivePage() {
         <div className="mt-10 grid gap-8 md:grid-cols-3">
           {choices.map((c) => (
             <div key={c.title} className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface">
-              <ImageSlot caption={c.image} ratio="landscape" className="rounded-none" />
+              <SitePhoto space={c.space} className="rounded-none" sizes="(min-width: 768px) 33vw, 100vw" />
               <div className="flex flex-1 flex-col p-6">
                 <h3 className="text-2xl font-bold">{c.title}</h3>
                 <p className="mt-2 flex-1 text-ink-soft">{c.text}</p>
@@ -103,10 +103,10 @@ export default function WaysToGivePage() {
       <section className="mt-20 bg-ink py-20 text-white">
         <div className="section grid items-center gap-10 lg:grid-cols-2">
           <div className="grid grid-cols-2 gap-4">
-            <ImageSlot caption="a student who stayed in school" ratio="portrait" tone="light" />
+            <SitePhoto space="ways.story.main" tone="light" sizes="(min-width: 1024px) 25vw, 50vw" />
             <div className="flex flex-col gap-4 pt-10">
-              <ImageSlot caption="the computer laboratory today" ratio="square" />
-              <ImageSlot caption="students at assembly" ratio="square" tone="light" />
+              <SitePhoto space="ways.story.side-1" sizes="(min-width: 1024px) 25vw, 50vw" />
+              <SitePhoto space="ways.story.side-2" tone="light" sizes="(min-width: 1024px) 25vw, 50vw" />
             </div>
           </div>
           <div className="max-w-xl">

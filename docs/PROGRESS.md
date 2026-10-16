@@ -1,5 +1,24 @@
 # Progress
 
+## 16 October 2026 (afternoon): M2, the site updates itself
+
+**Built**
+- Admin area with tabs, shown by role: Overview (Chairman, Treasurer, admins), Causes and Photos and video (admins), News and events (admins and the Secretary).
+- Cause editor: title, summary, story, parts, launch checklist (tick, reorder, add), target, stage, who can see it, pledges on or off.
+- Photo galleries per cause, with captions, a cover photo and hide/show. Cover photos show on Our work and Donate.
+- 23 named photo spaces across Home, Who we are, Ways to give, Join and Careers, filled from the admin area.
+- The Chairman's video is set by pasting a YouTube link.
+- News and events editor with drafts, optional full story (adds a news page) and photo. The three starting items moved into the database.
+- Photos are shrunk in the browser to two WebP copies (1600px, 800px) before upload; phones load the small one.
+- Database: new tables for cause photos, site photos, site settings and news, all with access rules and audit logging; a public `site-media` storage bucket that only admins (any folder) and the Secretary (news folder only) can upload to. Who made each change is stamped by the database, not the browser.
+- Tests: 7 new database tests on who can edit what, 4 new unit tests. 51 tests in total.
+- After the database went live: header shows My account and Log out when signed in; menus close after moving to a new page.
+
+**For the product owner**: `docs/HOW-TO-UPDATE-THE-SITE.md` (including how to give the Secretary a role until the roles screen arrives).
+
+**Not yet**: roles screen (M9), editing the mission, leadership names and other fixed text (still in `src/content/site.ts`).
+
+
 ## 16 October 2026: M1, database, roles and admin sign-in (with giving brought forward)
 
 **Built**

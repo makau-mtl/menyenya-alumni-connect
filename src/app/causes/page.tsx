@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { listCauses } from "@/lib/data";
+import { getCoverPhotos, listCauses } from "@/lib/data";
 import { ImageSlot } from "@/components/media";
 import { PageHero } from "@/components/page-hero";
 import { buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Our work" };
+
+export const revalidate = 300;
 
 const images: Record<string, string> = {
   "tuition-block": "the planned tuition block",
@@ -20,7 +22,7 @@ const comingNext = [
 ];
 
 export default async function OurWorkPage() {
-  const causes = await listCauses();
+  const [causes, covers] = await Promise.all([listCauses(), getCoverPhotos()]);
   return (
     <>
       <PageHero
@@ -30,7 +32,7 @@ export default async function OurWorkPage() {
       <section className="section flex flex-col gap-14 pt-14">
         {causes.map((c, i) => (
           <article key={c.slug} className={`grid items-center gap-8 md:grid-cols-2 ${i % 2 ? "md:[&>*:first-child]:order-2" : ""}`}>
-            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} ratio="landscape" />
+            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} photo={covers[c.slug]} ratio="landscape" sizes="(min-width: 768px) 50vw, 100vw" />
             <div className="max-w-lg">
               <h2 className="text-3xl font-bold">{c.title}</h2>
               <p className="mt-3 text-lg text-ink-soft">{c.summary}</p>

@@ -1,4 +1,4 @@
-import { ImageSlot } from "./media";
+import { SitePhoto } from "./site-photo";
 
 export function PageHero({
   title,
@@ -8,6 +8,7 @@ export function PageHero({
 }: {
   title: string;
   intro?: string;
+  /** A photo space key from src/content/photo-spaces.ts */
   image?: string;
   children?: React.ReactNode;
 }) {
@@ -19,7 +20,7 @@ export function PageHero({
           {intro && <p className="mt-5 text-lg text-ink-soft sm:text-xl">{intro}</p>}
           {children && <div className="mt-8">{children}</div>}
         </div>
-        {image && <ImageSlot caption={image} ratio="landscape" />}
+        {image && <SitePhoto space={image} />}
       </div>
     </section>
   );

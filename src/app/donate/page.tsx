@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getCauseProgress, listCauses } from "@/lib/data";
+import { getCauseProgress, getCoverPhotos, listCauses } from "@/lib/data";
 import { formatKesShort } from "@/lib/money";
 import { ImageSlot } from "@/components/media";
 
@@ -16,7 +16,7 @@ const images: Record<string, string> = {
 export const revalidate = 60;
 
 export default async function DonatePage() {
-  const causes = await listCauses();
+  const [causes, covers] = await Promise.all([listCauses(), getCoverPhotos()]);
   const progress = await getCauseProgress("tuition-block");
 
   return (
@@ -31,7 +31,7 @@ export default async function DonatePage() {
       <ul className="mt-10 grid gap-6 md:grid-cols-3">
         {causes.map((c) => (
           <li key={c.slug} className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface">
-            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} ratio="landscape" className="rounded-none" />
+            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} photo={covers[c.slug]} ratio="landscape" className="rounded-none" sizes="(min-width: 768px) 33vw, 100vw" />
             <div className="flex flex-1 flex-col p-6">
               <h2 className="text-2xl font-bold">{c.title}</h2>
               <p className="mt-2 flex-1 text-ink-soft">{c.summary}</p>

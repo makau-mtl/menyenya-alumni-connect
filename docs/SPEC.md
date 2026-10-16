@@ -818,5 +818,8 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | One "Our people" page (Leadership · Secretariat · Members) with trees.org-style cards and pop-ups; no contact details but LinkedIn. Leadership is the board; positions (including ex officio roles like the school principal) are managed in the admin area; terms are visible to members only and administrators are alerted when they end. Holding office implies being shown publicly. |
+| 17 Oct 2026 | Membership standing: **Active** = paid up for the current calendar year (Jan–Dec); **Inactive** = not paid up. Only active members may vote and take part in decisions. Until membership fees are switched on, every registered member counts as active. |
+| 17 Oct 2026 | Under Ways to support: a **Corporate sponsorships** page (sponsorship packages editable by administrators, amounts left blank until leadership approves them) and a **Strategic partnerships** page, both showcasing institutional sponsors and partners (logos managed in the admin area), modelled on trees.org/support/corporate-sponsors. |
+| 17 Oct 2026 | **Alumni merchandise** now as a catalogue plus order requests (item, size, quantity, pickup); the secretariat confirms and the buyer pays through the official Paybill. The full shop with checkout stays in Phase 4. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

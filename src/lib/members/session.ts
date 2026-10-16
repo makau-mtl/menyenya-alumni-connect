@@ -16,7 +16,10 @@ export const getMember = cache(async () => {
     .select("id, full_name, member_profiles(id, membership_status)")
     .eq("user_id", c.sub)
     .maybeSingle();
-  const profile = (person?.member_profiles as unknown as { id: string; membership_status: string }[] | null)?.[0] ?? null;
+  // One profile per person, so the database returns it as a single object (older shapes: a list).
+  type Profile = { id: string; membership_status: string };
+  const raw = person?.member_profiles as unknown as Profile | Profile[] | null | undefined;
+  const profile = (Array.isArray(raw) ? raw[0] : raw) ?? null;
   return {
     supabase,
     userId: c.sub,

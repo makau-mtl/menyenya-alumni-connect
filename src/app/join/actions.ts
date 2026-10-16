@@ -15,6 +15,8 @@ export async function finishRegistration(input: RegistrationInput): Promise<{ er
 
   const { data, error } = await member.supabase.rpc("complete_registration", { p: parsed.data });
   if (error) {
+    // Already on the register (for example a second tap on Finish): go to the account page.
+    if (error.code === "22023" && /already registered/i.test(error.message)) redirect("/app");
     if (error.code === "22023") return { error: error.message };
     console.error("Registration failed", error);
     return { error: "We couldn't save your registration just now. Please try again in a moment." };

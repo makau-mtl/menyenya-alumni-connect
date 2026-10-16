@@ -54,7 +54,7 @@ export default async function WelcomePage() {
           LinkedIn, what you do, and whether you&rsquo;d like to mentor or be mentored.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/app/profile" className={buttonClass("primary", "lg")}>Complete my profile</Link>
+          <Link href="/app/profile" className={buttonClass("primary", "lg")}>Start building my profile</Link>
           <Link href="/app" className={buttonClass("secondary", "lg")}>Later</Link>
         </div>
       </div>

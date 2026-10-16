@@ -1,5 +1,11 @@
 # Progress
 
+## 16 October 2026 (late): decisions recorded
+
+- Spec §6.3a: terminating membership (red button, confirmation and disclaimer, no refunds), admin-set rejoin window (default 30 days), data deletion only with termination and carried out when the window closes, deletion certificate, automatic anonymisation (24 months; financial records 7 years). Scheduled in M6 (termination, rejoin, deletion request) and M9 (deletion job, certificates, automatic anonymisation).
+- My account: "Continue building my profile" until the profile is complete, then "Edit my profile".
+
+
 ## 16 October 2026 (night): profile polish
 
 - Names typed all in capitals or lower case are tidied automatically (existing records too).

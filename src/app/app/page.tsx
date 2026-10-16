@@ -102,7 +102,9 @@ export default async function MemberHome() {
             </li>
           ))}
         </ul>
-        <Link href="/app/profile" className={`${buttonClass("primary")} mt-6`}>Edit my profile</Link>
+        <Link href="/app/profile" className={`${buttonClass("primary")} mt-6`}>
+          {pct < 100 ? "Continue building my profile" : "Edit my profile"}
+        </Link>
       </section>
 
       <section className="max-w-2xl">

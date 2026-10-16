@@ -183,7 +183,9 @@ Below, `→` means foreign key. Only key columns are listed; the agent should ad
 | skills | TEXT[] | |
 | willing_to_volunteer | BOOLEAN DEFAULT false | |
 | mentoring_offer | ENUM('none','can_mentor','wants_mentor') | allowed values depend on level flags |
-| membership_status | ENUM('registered','verified','active','lapsed','exited') | `active` = paid-up when fees are on |
+| membership_status | ENUM('registered','verified','active','lapsed','terminated') | `active` = paid-up when fees are on; `terminated` replaces `exited` (§6.3a) |
+| terminated_at, termination_reason, rejoin_until | | set when the member terminates (§6.3a) |
+| deletion_requested_at | TIMESTAMPTZ NULL | deletion runs when `rejoin_until` passes |
 | registered_at | TIMESTAMPTZ | when the last registration step was submitted |
 | verified_by | UUID → persons NULL | |
 | verified_at | TIMESTAMPTZ NULL | |
@@ -484,6 +486,31 @@ Behaviour:
 - A cohort rep cannot see or change members outside their cohort (proved by an RLS test).
 - Merging is reversible from the audit log by an admin.
 
+### 6.3a Terminating membership and deleting data (decided 16 Oct 2026)
+
+**Terminating membership** (member home → My profile → "Terminate membership"):
+- A red button, then a confirmation step with a clear disclaimer the member must acknowledge:
+  - membership ends immediately; they are removed from the directory and any public profile, and all updates stop;
+  - **no refunds**: membership fees already paid are forfeited for the remainder of the period;
+  - open pledges stay on record until settled or cancelled with the Treasurer;
+  - they can **rejoin within N days** (the rejoin window) and have everything restored as it was.
+- Optional reason (pick list plus free text), kept for the association's learning.
+- Status becomes `terminated` (shown as "Membership terminated"); `terminated_at`, `termination_reason`, `rejoin_until` recorded. The enum value `exited` is renamed `terminated`.
+- **Rejoin window**: N days, set by administrators (`module_settings.membership_exit.config.rejoin_days`, default 30). Within it, "Rejoin" restores the membership (status back to what it was) and cancels any pending deletion.
+
+**Deleting data** (only together with termination):
+- On the termination screen, a separate tick-box: "Also delete my personal data". It cannot be requested on its own while the person is a member.
+- Deletion is carried out when the rejoin window closes, not immediately, so an accidental request can be undone by rejoining, and the Treasurer can close anything open.
+- Deletion means **anonymisation**: name, phone, email, photo, profile, links, skills, consents, welfare information and the login are erased. Gifts, pledges and payments stay in the accounts linked to "Former member #XXXX" with amount, date and reference only.
+- Before the email address is erased, a **certificate of data deletion** (PDF) is emailed: reference number, date, what was deleted, what was kept (anonymised financial records) and why. Afterwards only that reference, the date and a one-way hash of the email remain (`data_deletion_log`), so the deletion can be proved and the old record is never re-linked by mistake.
+- Admin view: list of terminations and pending deletions with dates; administrators cannot delete on a member's behalf without a recorded request.
+
+**Automatic deletion for people who don't ask** (agreed):
+- Personal details of terminated members are anonymised automatically **24 months** after termination.
+- Financial records are kept **7 years**, then anonymised the same way.
+- Periods are settings, to be confirmed by the officials and an adviser (open decision 8).
+- A nightly job (pg_cron) applies both.
+
 ### 6.4 Member sign-in and member home (role centre)
 
 - Sign in with Google or LinkedIn (preferred), or an emailed one-time link. No member passwords (decided 16 Oct 2026). Office-holders' accounts created before then may keep a password until the association's email is set up.
@@ -665,7 +692,7 @@ Every job is idempotent (safe to re-run) and logs its run.
 - **Rate limiting** on login, OTP requests, registration and payment initiation.
 - **Input validation** with Zod on the server for every form and endpoint.
 - **Sensitive data:** next of kin, welfare, beneficiaries in separate tables with stricter RLS; access logged.
-- **Data subject rights:** member can download their data (JSON/PDF) and request deletion; deletion anonymises the person but keeps financial records (legal obligation), noted in the privacy policy.
+- **Data subject rights:** member can download their data (JSON/PDF) and request deletion together with terminating membership (§6.3a); deletion anonymises the person after the rejoin window but keeps financial records (legal obligation); a deletion certificate is emailed; noted in the privacy policy.
 - **Privacy policy and consent wording** stored with versions; shown at registration and on giving forms. A draft privacy policy is published at `/privacy` for the officials and a legal adviser to confirm.
 - **Kenya Data Protection Act 2019:** the officials are confirming whether the association must register with the Office of the Data Protection Commissioner (product owner, 16 Oct 2026).
 - **Backups:** Supabase daily backups; enable point-in-time recovery once the association upgrades its plan; quarterly restore test.
@@ -720,12 +747,12 @@ Each milestone ends with: working preview deployment, tests passing, `docs/PROGR
 | M1 | 19–30 Oct | Core data & roles | Migrations for §5.1–5.3, `has_role()`, RLS baseline, audit triggers, seed data (categories, levels, clusters, roles), admin sign-in, design system + wireframes |
 | M2 | 2–13 Nov | Public site | Home, about, cause page with media gallery and progress (from views), admin cause editor (basic) |
 | M3 | 16–27 Nov | Registration | `/join` steps 1–2, tooltips, next of kin, consents, auto groups, duplicate flags, welcome email |
-| M4 | 30 Nov–11 Dec | Giving (record-only) | Pledge + donation forms, references, confirmation emails, membership prompt, admin payment entry, allocations, suspense queue, CSV import, receipts |
+| M4 | 30 Nov–11 Dec | Giving (record-only) | Pledge + donation forms, references, confirmation emails (and the queued welcome emails), membership prompt, admin payment entry, allocations, suspense queue, CSV import, receipts. Email sending needs the association's web address and Resend |
 | M5 | 14–23 Dec | Test & soft launch | Fixes from Technical Committee testing; registration soft launch; monitoring |
-| M6 | 4–15 Jan 2027 | Member area | Sign-in (email/Google), member home, directory with privacy, verification by reps and verifier, merge tool |
+| M6 | 4–15 Jan 2027 | Member area | Member home, directory with photo tiles and filters, opt-in public profiles, configurable verification (on/off, which roles), merge tool, **terminate membership with rejoin window and deletion request (§6.3a)** |
 | M7 | 18–29 Jan | Tracking & messaging | `/track` with OTP, statements PDF, WhatsApp confirmations (module flag) |
 | M8 | 1–12 Feb | M-Pesa | Daraja STK + C2B, idempotency, pending check, auto-allocation |
-| M9 | 15–26 Feb | Transparency & dashboards | Transparency page, reports, cohort/cluster dashboards, rep role assignment UI, nightly reconciliation |
+| M9 | 15–26 Feb | Transparency & dashboards | Transparency page, reports, cohort/cluster dashboards, rep role assignment UI, nightly reconciliation, **data deletion job and certificates; automatic anonymisation (24 months after termination, financial records after 7 years) (§6.3a)** |
 | M10 | 1–12 Mar | Events & reminders | Basic events + registration + check-in; recurring-gift and pledge reminders; monthly statements |
 | M11 | 15–26 Mar | Launch readiness | Acceptance testing, security review (RLS + payments), performance pass, campaign lifecycle to `live` when the BoM tuition block Paybill is connected |
 
@@ -754,7 +781,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 5. **WhatsApp:** which messages justify the per-message cost.
 6. **Directory defaults:** what each member field shows by default (members / cohort only / hidden).
 7. **Pledge list visibility default** for the tuition block (Newlife-style public list vs totals only).
-8. **Data retention period** for financial records and audit logs (statutory period to confirm with the treasurer/legal).
+8. **Data retention period** for financial records and audit logs. Proposed and agreed in principle (16 Oct 2026): personal details 24 months after termination, financial records 7 years, rejoin window 30 days; to confirm with the treasurer and a legal adviser.
 9. **Founding pledges recognition:** how they are shown publicly.
 
 ### Decisions log
@@ -769,6 +796,8 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 16 Oct 2026 | Members are encouraged to add a passport photo and LinkedIn link; directory tiles with filters and an opt-in public profile come in M6. |
 | 16 Oct 2026 | Member confirmation (verification) is a setting: on or off, and which roles confirm, changeable by administrators. |
 | 16 Oct 2026 | Names are tidied; the sign-in photo is the default photo; skills come from a shared list with type-ahead; emergency contact only within the opt-in welfare programme. |
+| 16 Oct 2026 | "Terminate membership" (red, confirmed, with disclaimer: no refunds, fees forfeited); rejoin within an admin-set window (default 30 days); data deletion only together with termination, carried out when the window closes, with an emailed certificate; automatic anonymisation 24 months after termination, financial records after 7 years. Scheduled M6 and M9. |
+| 16 Oct 2026 | The profile button reads "Continue building my profile" until the profile is complete, then "Edit my profile". |
 | 16 Oct 2026 | Logo: the short wordmark **mhs.alumni** (navy, gold full stop), for now. Brand notes in `docs/BRAND.md`. |
 | 16 Oct 2026 | The association creates a LinkedIn page (needed for LinkedIn sign-in), decides the web address for email, confirms ODPC registration, and has the privacy policy reviewed. |
 

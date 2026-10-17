@@ -18,7 +18,7 @@ export default async function StepsPage({ searchParams }: Props) {
   if (member.registered) redirect("/app");
 
   const [lists, staff, inviteInfo] = await Promise.all([getPickLists(), getStaff(), getInvite(invite)]);
-  if (!lists.registrationOpen && !staff?.isAdmin) redirect("/join");
+  if (!lists.registrationOpen && !staff?.isAdmin && !inviteInfo?.tester) redirect("/join");
 
   return (
     <div className="section pb-16 pt-10 lg:pt-14">
@@ -33,7 +33,7 @@ export default async function StepsPage({ searchParams }: Props) {
           email={member.email}
           storageKey={`mhs-join-${member.userId}`}
           invite={inviteInfo}
-          adminTesting={!lists.registrationOpen}
+          adminTesting={!lists.registrationOpen && !inviteInfo?.tester}
         />
       </div>
     </div>

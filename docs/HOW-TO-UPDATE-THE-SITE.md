@@ -21,6 +21,7 @@ Buttons that are hard to undo (Remove, End role, Merge, closing registration) as
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
 | Impact | Administrators, the Chairman, the Secretary and the Treasurer | Impact figures for each initiative |
+| Feedback | Administrators | Feedback from testers and officials |
 | Reports | The Treasurer (financial), the Chairman (moral report), administrators | Annual reports on the Reports and accountability page |
 | Alumni stories | Administrators, the Secretary and the Chairman | Review, publish and feature stories members share |
 | The school | Administrators and the school liaison | The school's figures, results and priorities members see |
@@ -245,3 +246,11 @@ Cohort reps are elected by their cohort. After the election, an administrator op
 
 - **Reported jobs or business posts** appear under "Waiting for you" on an administrator's dashboard. Open Opportunities → Jobs (or Business); reported posts say "Reported". Press **Hide** to take one down. Nothing is deleted.
 - **Volunteer opportunities** (administrators and the Secretary): Opportunities → Volunteer → **Post a way to help**. Add skills wanted (e.g. Medicine, Teaching) so members with those skills are told on their dashboard. Open "Who signed up" on the card to see names and phone numbers, and to close sign-ups or cancel.
+
+## The committee testing round
+
+1. **Admin → Members → Invite links**: give the link a name (e.g. "Technical Committee testers"), tick **Testers' link**, press Create link, then Copy.
+2. Share the link and the testing guide in the committee's WhatsApp group. Testers sign in with Google (quickest) or an emailed link, and finish registering.
+3. Testers press **Give feedback** whenever something is wrong, confusing or could be better.
+4. Review it under **Admin → Feedback**. Mark each item Agreed (we'll fix it), Fixed, or Won't do, with a short note.
+5. When testing ends, switch the testers' link off (Admin → Members). At launch, testers' accounts and test content are cleared, and they register again for real.

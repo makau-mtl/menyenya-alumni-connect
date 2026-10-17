@@ -63,6 +63,6 @@ export async function getPickLists(): Promise<PickLists> {
 export async function getInvite(token: string | undefined) {
   if (!token || !/^[\w-]{6,40}$/.test(token)) return null;
   const { data } = await createPublicClient().rpc("invite_info", { p_token: token });
-  const row = (data as { label: string; year_left: number | null }[] | null)?.[0];
-  return row ? { token, label: row.label, yearLeft: row.year_left } : null;
+  const row = (data as { label: string; year_left: number | null; tester?: boolean }[] | null)?.[0];
+  return row ? { token, label: row.label, yearLeft: row.year_left, tester: row.tester === true } : null;
 }

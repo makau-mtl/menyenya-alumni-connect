@@ -42,7 +42,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
   const [{ data: rows, error: rowsError }, { data: modules }, { data: invites }, { count: dupes }, { data: regions }, { data: cohorts }, { data: standings }] = await Promise.all([
     members,
     staff.supabase.from("module_settings").select("module_key, enabled"),
-    staff.supabase.from("invite_links").select("id, token, label, active, created_at").order("created_at", { ascending: false }),
+    staff.supabase.from("invite_links").select("id, token, label, active, created_at, tester").order("created_at", { ascending: false }),
     staff.supabase.from("duplicate_flags").select("id", { count: "exact", head: true }).eq("status", "open"),
     staff.supabase.from("clusters").select("name").eq("active", true).order("sort_order"),
     staff.supabase.from("cohorts").select("year_left").order("year_left", { ascending: false }),
@@ -119,7 +119,7 @@ export default async function AdminMembersPage({ searchParams }: Props) {
               return (
                 <li key={i.id} className={`flex flex-wrap items-center justify-between gap-3 py-3 ${i.active ? "" : "opacity-60"}`}>
                   <div className="min-w-0">
-                    <p className="font-semibold">{i.label} {!i.active && <Pill>Switched off</Pill>}</p>
+                    <p className="font-semibold">{i.label} {i.tester && <Pill tone="warn">Testers</Pill>} {!i.active && <Pill>Switched off</Pill>}</p>
                     <p className="truncate text-sm text-muted-foreground">{url}</p>
                   </div>
                   <div className="flex gap-2">

@@ -230,7 +230,7 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (!staff) return [];
   const count = async (table: string, column: string, value: string) =>
     (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
-  const [enquiries, orders, dupes, reported, cases, stories, oppReports] = await Promise.all([
+  const [enquiries, orders, dupes, reported, cases, stories, oppReports, feedback] = await Promise.all([
     staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
     staff.canManageShop ? count("merch_orders", "status", "new") : 0,
     staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
@@ -238,6 +238,7 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
     staff.canHandleCases ? count("support_cases", "status", "submitted") : 0,
     staff.canEditStories ? count("alumni_stories", "status", "submitted") : 0,
     staff.isAdmin ? count("opportunity_reports", "status", "open") : 0,
+    staff.isAdmin ? count("feedback", "status", "new") : 0,
   ]);
   const out: ActionItem[] = [];
   if (enquiries) out.push({ icon: "admin", href: "/admin/support", label: "New sponsor and partner enquiries", count: enquiries });
@@ -245,6 +246,7 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (cases) out.push({ icon: "admin", href: "/admin/cases", label: "New cases for support", count: cases, urgent: true });
   if (reported) out.push({ icon: "admin", href: "/app/memories?reported=1", label: "Reported memories to review", count: reported, urgent: true });
   if (stories) out.push({ icon: "admin", href: "/admin/stories", label: "Alumni stories to review", count: stories });
+  if (feedback) out.push({ icon: "admin", href: "/admin/feedback?show=new", label: "New feedback from testers", count: feedback });
   if (oppReports) out.push({ icon: "admin", href: "/app/opportunities/jobs?show=all", label: "Reported jobs or business posts", count: oppReports, urgent: true });
   if (dupes) out.push({ icon: "admin", href: "/admin/duplicates", label: "Possible duplicate records", count: dupes });
   return out;

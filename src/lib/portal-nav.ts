@@ -33,11 +33,12 @@ export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: Portal
   if (staff) {
     const counts = async (table: string, status: string) =>
       (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq("status", status)).count ?? 0;
-    const [enquiries, orders, newCases, newStories] = await Promise.all([
+    const [enquiries, orders, newCases, newStories, newFeedback] = await Promise.all([
       staff.isAdmin ? counts("support_enquiries", "new") : 0,
       staff.canManageShop ? counts("merch_orders", "new") : 0,
       staff.canHandleCases ? counts("support_cases", "submitted") : 0,
       staff.canEditStories ? counts("alumni_stories", "submitted") : 0,
+      staff.isAdmin ? counts("feedback", "new") : 0,
     ]);
     const items = [
       ...(staff.isFinance ? [{ href: "/admin", label: "Overview", icon: "overview" as const }] : []),
@@ -55,6 +56,7 @@ export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: Portal
       ...(staff.canManageReports ? [{ href: "/admin/reports", label: "Reports", icon: "reports" as const }] : []),
       ...(staff.canEditNews ? [{ href: "/admin/news", label: "News and events", icon: "news" as const }] : []),
       ...(staff.isAdmin ? [{ href: "/admin/site", label: "Photos and video", icon: "photos" as const }] : []),
+      ...(staff.isAdmin ? [{ href: "/admin/feedback", label: "Feedback", icon: "feedback" as const, badge: newFeedback }] : []),
       ...(staff.isAdmin ? [{ href: "/admin/settings", label: "Settings", icon: "settings" as const }] : []),
     ];
     if (items.length) groups.push({ label: "Administration", root: "/admin", items });

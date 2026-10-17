@@ -1,5 +1,13 @@
 # Progress
 
+## 18 October 2026: ready for the committee testing round
+
+- **Testers' link:** Admin → Members → invite links → tick **Testers' link**. It lets people register while registration stays closed to the public. They are marked as testers; at launch their accounts and test content are cleared (anonymised and archived, never hard-deleted), and they register again for real.
+- **Give feedback** button (gold, bottom right) for testers and officials on every page: how serious (It stops me / It's annoying / An idea), what happened, what they expected, an optional screenshot. The page and device are attached automatically.
+- New admin tab **Feedback** (administrators only): filter New / Agreed / Fixed / Won't do, add notes. New feedback also shows under "Waiting for you".
+- **Automatic journey checks** (Journeys workflow on GitHub) now run on every change: registering, My Menyenya and the directory, cohort page, posting a job and a business, sharing a story and publishing it, volunteering, and the public pages.
+- Tests: 2 new database tests; 136 pass.
+
 ## 18 October 2026: Opportunities (jobs, business, volunteer)
 
 - New member tab **Opportunities** ("Work" on phones) with three parts:

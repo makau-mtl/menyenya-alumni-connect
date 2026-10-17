@@ -5,6 +5,7 @@ import "@fontsource-variable/nunito-sans";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SiteChrome } from "@/components/site-chrome";
 
 export const metadata: Metadata = {
   title: {
@@ -13,10 +14,13 @@ export const metadata: Metadata = {
   },
   description:
     "The Menyenya SDA High School Alumni Association: reconnect with classmates, give to the tuition block, and support the school.",
+  applicationName: "mhs.alumni",
+  appleWebApp: { capable: true, title: "mhs.alumni", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
   themeColor: "#17283b",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,14 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to content
         </a>
-        <p className="bg-gold-tint px-4 py-1.5 text-center text-xs text-ink sm:text-sm">
-          Preview for the Technical Committee: sample content and photo spaces. Test entries will be cleared before launch.
-        </p>
-        <SiteHeader />
-        <main id="main" className="flex-1">
+        <SiteChrome header={<SiteHeader />} footer={<SiteFooter />}>
           {children}
-        </main>
-        <SiteFooter />
+        </SiteChrome>
       </body>
     </html>
   );

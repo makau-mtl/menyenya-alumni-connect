@@ -10,13 +10,14 @@ import { photoSpaceKeys } from "@/content/photo-spaces";
 
 // Every action checks who is signed in; the database rules check again on every write.
 
-type Need = "admin" | "news" | "shop";
+type Need = "admin" | "news" | "shop" | "school";
 
 async function staffFor(need: Need): Promise<Staff | string> {
   const staff = await getStaff();
   if (!staff) return "Your sign-in has expired. Log in again and retry.";
   if (need === "admin" && !staff.isAdmin) return "Only administrators can change this.";
   if (need === "news" && !staff.canEditNews) return "Only administrators and the Secretary can change news.";
+  if (need === "school" && !staff.canEditSchool) return "Only administrators and the school liaison can change the school's figures.";
   if (need === "shop" && !staff.canManageShop) return "Only administrators, the Secretary and the Treasurer can manage merchandise.";
   return staff;
 }
@@ -840,4 +841,144 @@ export async function updateMerchOrder(formData: FormData): Promise<void> {
     .update({ status, staff_notes: String(formData.get("notes") ?? "").slice(0, 2000), handled_by: me ?? null })
     .eq("id", String(formData.get("id") ?? ""));
   revalidatePath("/admin/shop");
+}
+
+// The school: figures, results and priorities -------------------------------------------------------------
+
+const count = (msg: string) =>
+  z.string().transform((v) => v.replace(/[,\s]/g, "")).refine((v) => v === "" || /^\d{1,6}$/.test(v), msg).transform((v) => (v === "" ? null : Number(v)));
+
+const schoolStatsSchema = z.object({
+  asOf: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the date of these figures."),
+  students: count("Enter the number of students.").refine((v) => v !== null, "Enter the number of students."),
+  needy: count("Numbers only."),
+  supported: count("Numbers only."),
+  teachers: count("Numbers only."),
+  note: z.string().trim().max(500, "Keep the note under 500 characters."),
+});
+
+/** Records the school's latest figures. Earlier figures are kept as history. */
+export async function saveSchoolStats(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("school");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = schoolStatsSchema.safeParse({
+    asOf: String(formData.get("asOf") ?? ""), students: String(formData.get("students") ?? ""), needy: String(formData.get("needy") ?? ""),
+    supported: String(formData.get("supported") ?? ""), teachers: String(formData.get("teachers") ?? ""), note: String(formData.get("note") ?? ""),
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  const { error } = await staff.supabase.from("school_stats").insert({
+    as_of: v.asOf, students: v.students, needy_students: v.needy, supported_by_alumni: v.supported, teachers: v.teachers, note: v.note, recorded_by: me ?? null,
+  });
+  if (error) {
+    console.error(error);
+    return fail("The figures could not be saved.");
+  }
+  revalidatePath("/app", "layout");
+  revalidatePath("/admin/school");
+  return { ok: true, message: "Figures saved. Members see them on their dashboard." };
+}
+
+const resultSchema = z.object({
+  year: z.coerce.number().int().min(1970, "Enter the year.").max(2100, "Enter the year."),
+  measure: z.string().trim().min(2, "Say what is measured, e.g. KCSE mean score.").max(60),
+  value: z.string().trim().refine((v) => /^\d{1,3}(\.\d{1,3})?$/.test(v), "Enter the score, e.g. 7.125.").transform(Number),
+  grade: z.string().trim().max(4, "Up to 4 characters, e.g. C+.").transform((v) => v || null),
+  candidates: count("Numbers only."),
+});
+
+/** Adds or corrects one year's results. */
+export async function saveResult(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("school");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = resultSchema.safeParse({
+    year: formData.get("year"), measure: String(formData.get("measure") || "KCSE mean score"), value: String(formData.get("value") ?? ""),
+    grade: String(formData.get("grade") ?? ""), candidates: String(formData.get("candidates") ?? ""),
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const { error } = await staff.supabase
+    .from("academic_results")
+    .upsert({ year: v.year, measure: v.measure, value: v.value, grade: v.grade, candidates: v.candidates }, { onConflict: "year" });
+  if (error) {
+    console.error(error);
+    return fail("The results could not be saved.");
+  }
+  revalidatePath("/app", "layout");
+  revalidatePath("/admin/school");
+  return { ok: true, message: `Results for ${v.year} saved.` };
+}
+
+const prioritySchema = z.object({
+  id: z.string(),
+  title: z.string().trim().min(2, "Name the priority.").max(120, "Keep the name under 120 characters."),
+  description: z.string().trim().max(600, "Keep the description under 600 characters."),
+});
+
+export async function savePriority(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("school");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = prioritySchema.safeParse({ id: String(formData.get("id") ?? ""), title: String(formData.get("title") ?? ""), description: String(formData.get("description") ?? "") });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  let error;
+  if (v.id) {
+    ({ error } = await staff.supabase.from("school_priorities").update({ title: v.title, description: v.description }).eq("id", v.id));
+  } else {
+    const { data: last } = await staff.supabase.from("school_priorities").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+    ({ error } = await staff.supabase.from("school_priorities").insert({ title: v.title, description: v.description, sort_order: (last?.sort_order ?? 0) + 10 }));
+  }
+  if (error) {
+    console.error(error);
+    return fail("The priority could not be saved.");
+  }
+  revalidatePath("/app", "layout");
+  redirect("/admin/school?saved=1#priorities");
+}
+
+export async function setPriorityStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("school");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "draft", "archived"].includes(status)) return;
+  await staff.supabase.from("school_priorities").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/app", "layout");
+  revalidatePath("/admin/school");
+}
+
+/** Moves a priority up or down; the order is the order shown to members. */
+export async function movePriority(formData: FormData): Promise<void> {
+  const staff = await staffFor("school");
+  if (typeof staff === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const { data: rows } = await staff.supabase.from("school_priorities").select("id").neq("status", "archived").order("sort_order").order("title");
+  const list = rows ?? [];
+  const i = list.findIndex((r) => r.id === id);
+  const j = formData.get("direction") === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  await Promise.all(list.map((r, n) => staff.supabase.from("school_priorities").update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
+  revalidatePath("/app", "layout");
+  revalidatePath("/admin/school");
+}
+
+// Cases for support (handlers) ----------------------------------------------------------------------------
+
+export async function handlerReply(formData: FormData): Promise<void> {
+  const staff = await getStaff();
+  if (!staff?.canHandleCases) return;
+  const id = String(formData.get("id") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
+  const internal = formData.get("internal") === "on";
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  if (body) {
+    await staff.supabase.from("case_updates").insert({ case_id: id, author_id: me, body, visible_to_raiser: !internal });
+  }
+  const status = String(formData.get("status") ?? "");
+  if (["submitted", "under_review", "responded", "closed"].includes(status)) {
+    await staff.supabase.from("support_cases").update({ status, handled_by: me ?? null }).eq("id", id);
+  }
+  revalidatePath(`/admin/cases/${id}`);
+  revalidatePath("/admin/cases");
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 /* Brand tokens. Navy ink and gold progress match the leadership deck; tea green marks actions. */
 @theme {
@@ -78,4 +79,75 @@ h3 {
 #site-header[data-menus-closed] .nav-dropdown {
   visibility: hidden;
   opacity: 0;
+}
+
+/* shadcn/ui tokens (portal and admin), mapped to the mhs.alumni brand: tea green for actions,
+   navy side menu with gold highlights. Added 17 Oct 2026. */
+:root {
+  --radius: 0.75rem;
+  --background: #f7f7f4;
+  --foreground: #17283b;
+  --card: #ffffff;
+  --card-foreground: #17283b;
+  --popover: #ffffff;
+  --popover-foreground: #17283b;
+  --primary: #2e6b4f;
+  --primary-foreground: #ffffff;
+  --secondary: #e6efe9;
+  --secondary-foreground: #17283b;
+  --muted: #eef0ed;
+  --muted-foreground: #4a5868;
+  --accent: #e6efe9;
+  --accent-foreground: #17283b;
+  --destructive: #9b2c1f;
+  --border: #dcdfe2;
+  --input: #c7ccd1;
+  --ring: #2e6b4f;
+  --sidebar: #17283b;
+  --sidebar-foreground: #e8ecef;
+  --sidebar-primary: #e9a94b;
+  --sidebar-primary-foreground: #17283b;
+  --sidebar-accent: #233a51;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2b4258;
+  --sidebar-ring: #e9a94b;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 }

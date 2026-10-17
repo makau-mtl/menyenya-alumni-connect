@@ -1,5 +1,14 @@
 # Progress
 
+## 17 October 2026: member area redesign and dashboard
+
+- **Layout:** members stay inside the website, with tabs under the header on laptops and an app-style bottom bar on phones. Officials get a separate admin workspace with a side menu. Built with shadcn/ui in our colours. The site can be added to a phone's home screen.
+- **Dashboard:** digital membership card; "Waiting for you" action centre; your class (faces, ranking, invite on WhatsApp with your own link, class WhatsApp group); Who's around?; memories; members in numbers; the school today; initiatives; news; shortcuts.
+- **New pages:** The school today (rate each priority 1–5 and comment), Meet-ups, Memories, Raise a case for support.
+- **New admin tabs:** The school (figures, results, priorities and members' views), Cases for support (conversation, internal notes, status; opening a case is logged).
+- **Profile:** optional gender (only overall figures). **Confirm members** shows only for configured confirmers.
+- Tests: 15 new database tests; 112 pass.
+
 ## 17 October 2026: membership standing (Active / Inactive)
 
 - Members see a card on their home page: **Active** (eligible to vote and take part in decisions) or **Inactive**, with what to do next.

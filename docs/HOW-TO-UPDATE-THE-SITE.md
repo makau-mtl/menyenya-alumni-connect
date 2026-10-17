@@ -18,6 +18,8 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
+| The school | Administrators and the school liaison | The school's figures, results and priorities members see |
+| Cases for support | Administrators, the Chairman, Welfare Coordinator, school liaison, Secretary | Cases members raise |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
 | News and events | Administrators and the Secretary | Posting news and upcoming events |
 | Photos and video | Administrators | The Chairman's video and the photos around the website |
@@ -159,4 +161,29 @@ Open the **Merchandise** tab (administrators, the Secretary and the Treasurer).
   2. When the payment shows on the Paybill statement with that reference as the account, set **Paid**.
   3. When the items are packed, set **Ready to collect**, and **Collected** when they are picked up. Use **Cancelled** if the order falls through.
   Add a note each time (e.g. "Paid 3,200, M-Pesa QJK…"). Collected and cancelled orders are hidden; *Show collected and cancelled too* brings them back.
+
+## The admin workspace
+
+The admin area now has its own menu on the left. Gold numbers show what is waiting. At the bottom, *Leave admin* takes you back to your account or the website. On a phone, open the menu with the button at the top left.
+
+## The school's figures and priorities
+
+Open **The school** (administrators and the school liaison).
+- **Figures:** enter the number of students, students in need, students supported by the alumni and teachers, with the date. Each save is kept as history; members see the latest.
+- **Academic performance:** one line per year (e.g. KCSE mean score 7.125, grade C+). Saving a year again corrects it.
+- **Priorities:** add them, then use the arrows to put them in order. Members rate each from 1 to 5 and may comment. You see the average and the comments (without names) under each priority.
+
+## Cases for support
+
+Members raise cases from **My account → Raise a case for support** (a member in need, a needy student, a project or idea, or anything else). Who sees which: the Welfare Coordinator handles members in need, the school liaison needy students, the Secretary projects and other cases; administrators and the Chairman see all.
+
+Open **Cases for support**, open a case (this is recorded), and reply. Tick *Internal note* for something only the team should see. Set the status: *Being reviewed*, *Replied* or *Closed*. The member sees replies on their dashboard. If the member ticked "may share", you may tell other members to rally support; otherwise keep it within the team.
+
+## Memories
+
+Members share photos straight away. Anyone can report one. Administrators see "Reported memories" in *Waiting for you*; open it, then **Hide** or **Show again**. Owners can remove their own. Nothing is deleted. Remind members not to share photos of today's students without the school's permission.
+
+## Class WhatsApp groups
+
+A class rep sees *Add your class WhatsApp group link* on their dashboard. Paste the group's invite link (it starts with https://chat.whatsapp.com/). Classmates then see a green *Class WhatsApp group* button. Administrators can set it for any class.
 

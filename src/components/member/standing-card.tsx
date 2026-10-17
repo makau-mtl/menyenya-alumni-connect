@@ -1,4 +1,4 @@
-type Standing = {
+export type Standing = {
   standing: "active" | "inactive" | null;
   awaiting_confirmation: boolean;
   fees_on: boolean;
@@ -52,4 +52,27 @@ export function StandingCard({ s, verification }: { s: Standing | null; verifica
       {verification && <p className="mt-3 border-t border-line pt-3 text-sm text-ink-soft">{verification}</p>}
     </section>
   );
+}
+
+/** Short wording for the dashboard: a title and one line of detail. */
+export function standingText(s: Standing): { active: boolean; title: string; detail: string } | null {
+  if (!s.standing) return null;
+  const active = s.standing === "active";
+  const title = s.awaiting_confirmation
+    ? "Waiting for confirmation"
+    : !s.fees_on
+      ? "Active member"
+      : s.in_grace
+        ? `Active until ${dateFormat.format(new Date(s.grace_ends))}`
+        : active
+          ? `Active member for ${s.this_year}`
+          : `Inactive for ${s.this_year}`;
+  const detail = s.awaiting_confirmation
+    ? "Your membership becomes active once the association confirms your details."
+    : active
+      ? s.in_grace
+        ? `You can vote and take part in decisions. Pay for ${s.this_year} by ${dateFormat.format(new Date(s.grace_ends))} to stay active.`
+        : "You are eligible to vote and take part in the association's decisions."
+      : `Pay the ${s.this_year} membership fee to become active and vote. You only pay for the year you want to be active; there are no arrears.`;
+  return { active, title, detail };
 }

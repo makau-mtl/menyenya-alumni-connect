@@ -22,7 +22,7 @@ export default async function DirectoryPage({ searchParams }: Props) {
   const page = Math.max(1, Number(q.page) || 1);
   const year = Number(q.year) || null;
 
-  const [{ data, error }, { data: regions }, { data: cohorts }] = await Promise.all([
+  const [{ data, error }, { data: regions }, { data: cohorts }, { data: dorms }, { data: streams }] = await Promise.all([
     member.supabase.rpc("directory_search", {
       p_query: q.q || null,
       p_year: year,
@@ -31,9 +31,13 @@ export default async function DirectoryPage({ searchParams }: Props) {
       p_mentoring: q.mentoring || null,
       p_limit: PAGE,
       p_offset: (page - 1) * PAGE,
+      p_stream: q.stream || null,
+      p_dorm: q.dorm || null,
     }),
     member.supabase.from("clusters").select("name").eq("active", true).order("sort_order"),
     member.supabase.from("cohorts").select("year_left").order("year_left", { ascending: false }),
+    member.supabase.from("school_dorms").select("id, name").eq("status", "published").order("sort_order").order("name"),
+    member.supabase.from("school_streams").select("id, name").eq("status", "published").order("sort_order").order("name"),
   ]);
   if (error) console.error("Directory search failed", error);
   const rows = (data ?? []) as (TileMember & { photo_path: string | null; total: number })[];
@@ -44,7 +48,7 @@ export default async function DirectoryPage({ searchParams }: Props) {
     const params = new URLSearchParams(Object.entries({ ...q, ...over }).filter((e): e is [string, string] => Boolean(e[1])));
     return `/app/directory${params.size ? `?${params}` : ""}`;
   };
-  const filtered = Boolean(q.q || q.year || q.region || q.category || q.mentoring);
+  const filtered = Boolean(q.q || q.year || q.region || q.category || q.mentoring || q.dorm || q.stream);
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,7 +59,7 @@ export default async function DirectoryPage({ searchParams }: Props) {
         actions={<Button asChild variant="outline"><Link href="/app/community">Members in numbers</Link></Button>}
       />
 
-      <form method="get" className="grid gap-3 rounded-xl bg-card p-4 shadow-sm ring-1 ring-border sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+      <form method="get" className="grid gap-3 rounded-xl bg-card p-4 shadow-sm ring-1 ring-border sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
         <label className="flex flex-col gap-1 text-sm font-semibold">
           Search
           <input name="q" defaultValue={q.q} placeholder="Name, profession, skill…" className={inputClass} />
@@ -92,6 +96,24 @@ export default async function DirectoryPage({ searchParams }: Props) {
             <option value="wants_mentor">Looking for a mentor</option>
           </select>
         </label>
+        {(dorms ?? []).length > 0 && (
+          <label className="flex flex-col gap-1 text-sm font-semibold">
+            Dormitory
+            <select name="dorm" defaultValue={q.dorm ?? ""} className={inputClass}>
+              <option value="">Any dormitory</option>
+              {(dorms ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </label>
+        )}
+        {(streams ?? []).length > 0 && (
+          <label className="flex flex-col gap-1 text-sm font-semibold">
+            Stream
+            <select name="stream" defaultValue={q.stream ?? ""} className={inputClass}>
+              <option value="">Any stream</option>
+              {(streams ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+          </label>
+        )}
         <div className="flex gap-2">
           <Button type="submit"><Search /> Show</Button>
           {filtered && <Button asChild variant="ghost"><Link href="/app/directory">Clear</Link></Button>}

@@ -1,5 +1,13 @@
 # Progress
 
+## 18 October 2026: My Menyenya (stream and dormitory)
+
+- **My profile → My Menyenya** (optional): the stream you were in and the dormitories you slept in (tick all that apply). Shown on your member card.
+- **Member directory:** new Dormitory and Stream filters.
+- **Members in numbers:** "By dormitory" and "By stream", each opening the matching list. Groups under 5 show as "fewer than 5".
+- **Admin → Settings → Streams and dormitories:** administrators keep the lists (add several at once with commas, rename, hide). Nothing is deleted.
+- Tests: 2 new database tests; 128 pass.
+
 ## 18 October 2026: a video and a design gallery for every initiative
 
 - **Video:**

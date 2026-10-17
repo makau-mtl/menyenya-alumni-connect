@@ -21,6 +21,8 @@ export type CardMember = {
   phone?: string | null;
   phone_whatsapp?: boolean | null;
   email?: string | null;
+  stream?: string | null;
+  dorms?: string[] | null;
 };
 
 function safeUrl(u: string | null | undefined) {
@@ -57,6 +59,8 @@ export function ProfileCard({ m, photo, publicView = false }: { m: CardMember; p
             ["Profession", m.profession],
             ["Works at", m.employer],
             ["Regional cluster", publicView ? null : m.region],
+            ["Stream", publicView ? null : m.stream],
+            [(m.dorms?.length ?? 0) > 1 ? "Dormitories" : "Dormitory", publicView ? null : m.dorms?.join(", ") || null],
             ["Membership level", publicView ? null : m.level],
           ]
             .filter(([, v]) => v)

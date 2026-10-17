@@ -101,10 +101,10 @@ export default async function HomePage() {
             Our mission, vision and story
           </Link>
         </div>
-        <div className="mt-12 grid gap-8 md:grid-cols-3">
+        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {pillars.map((p) => (
             <div key={p.title}>
-              <SitePhoto space={p.space} sizes="(min-width: 768px) 33vw, 100vw" />
+              <SitePhoto space={p.space} sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" />
               <h3 className="mt-5 text-2xl font-bold">{p.title}</h3>
               <p className="mt-2 text-ink-soft">{p.text}</p>
             </div>
@@ -174,7 +174,7 @@ export default async function HomePage() {
             },
           ].map((c) => (
             <div key={c.title} className="flex flex-col overflow-hidden rounded-xl border border-line bg-surface">
-              <SitePhoto space={c.space} className="rounded-none" sizes="(min-width: 768px) 33vw, 100vw" />
+              <SitePhoto space={c.space} className="rounded-none" sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" />
               <div className="flex flex-1 flex-col p-6">
                 <h3 className="text-2xl font-bold">{c.title}</h3>
                 <p className="mt-2 flex-1 text-ink-soft">{c.text}</p>

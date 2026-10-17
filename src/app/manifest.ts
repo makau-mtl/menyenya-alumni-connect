@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "mhs.alumni: Menyenya SDA High School Alumni",
     short_name: "mhs.alumni",
-    description: "Reconnect with classmates, support the school and stay in touch with the Menyenya alumni.",
+    description: "Stay connected to Menyenya, support current students and grow with a trusted alumni network.",
     start_url: "/app",
     scope: "/",
     display: "standalone",

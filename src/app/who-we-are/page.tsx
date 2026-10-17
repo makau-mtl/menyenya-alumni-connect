@@ -18,7 +18,7 @@ export default function WhoWeArePage() {
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(120deg,#17283b_0%,#1f3a52_60%,#2e6b4f_100%)]" />
         <div className="section py-16 lg:py-24">
           <p className="font-semibold text-gold">Our mission</p>
-          <h1 className="mt-3 max-w-4xl text-4xl font-bold leading-[1.12] sm:text-[3.25rem]">{mission.mission}</h1>
+          <h1 className="mt-3 max-w-4xl text-3xl font-bold leading-[1.15] text-balance sm:text-[2.75rem]">{mission.mission}</h1>
         </div>
       </section>
 

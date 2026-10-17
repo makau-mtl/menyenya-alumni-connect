@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useEffect, useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createMeetup, saveClassGroup } from "@/app/app/actions";
 import { Button } from "@/components/shadcn/button";
@@ -10,16 +10,16 @@ import type { ActionState } from "@/lib/admin/staff";
 type Action = (prev: ActionState, fd: FormData) => Promise<ActionState>;
 
 function useToastForm(action: Action, onDone?: () => void) {
-  const [state, run, pending] = useActionState(action, null);
   const form = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    if (!state?.message) return;
-    if (state.ok) {
-      toast.success(state.message);
+  const [state, run, pending] = useActionState(async (prev: ActionState, fd: FormData) => {
+    const result = await action(prev, fd);
+    if (result?.ok) {
+      toast.success(result.message);
       form.current?.reset();
       onDone?.();
-    } else toast.error(state.message);
-  }, [state, onDone]);
+    } else if (result?.message) toast.error(result.message);
+    return result;
+  }, null);
   return {
     form,
     pending,

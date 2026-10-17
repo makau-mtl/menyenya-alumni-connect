@@ -4,6 +4,7 @@ import { getMember } from "@/lib/members/session";
 import { memberPhotoUrl } from "@/lib/members/photos";
 import { signedPhotoUrls } from "@/lib/members/photo-urls";
 import type { Meetup } from "@/components/member/meetup-card";
+import { memoryUrls, type MemoryRow } from "@/lib/members/memories";
 import { getStaff } from "@/lib/admin/staff";
 import { buttonClass } from "@/components/ui";
 import { rejoinMembership } from "@/app/app/actions";
@@ -85,12 +86,15 @@ export default async function MemberHome() {
       db.rpc("is_confirmer"),
       db.rpc("confirmations_waiting"),
     ]);
-  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }] = await Promise.all([
+  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }, { data: memoryRows }] = await Promise.all([
     db.rpc("my_invite_link"),
     db.rpc("my_invites_joined"),
     db.rpc("my_class_group"),
     db.rpc("upcoming_meetups", { p_limit: 3 }),
+    db.rpc("memory_feed", { p_limit: 6 }),
   ]);
+  const mem = (memoryRows ?? []) as MemoryRow[];
+  const memUrls = await memoryUrls(db, mem.map((r) => r.photo_path), "small");
   const standing = (standingRows as Standing[] | null)?.[0] ?? null;
   const cat = p?.member_categories as unknown as { key: string; name: string } | null;
   const region = (p?.clusters as unknown as { name: string } | null)?.name;
@@ -175,6 +179,7 @@ export default async function MemberHome() {
       priorities: pri.map((x) => ({ title: x.title, average: x.average === null ? null : Number(x.average), responses: Number(x.responses) })),
     },
     meetups: (meetups ?? []) as Meetup[],
+    memories: mem.map((r) => ({ id: r.id, photo: memUrls.get(r.photo_path) ?? null, caption: r.caption, name: r.full_name })),
     news: news.slice(0, 4).map((n) => ({ slug: n.slug, title: n.title, date: n.date, kind: n.kind })),
   };
   return <Dashboard d={data} />;
@@ -200,14 +205,16 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (!staff) return [];
   const count = async (table: string, column: string, value: string) =>
     (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
-  const [enquiries, orders, dupes] = await Promise.all([
+  const [enquiries, orders, dupes, reported] = await Promise.all([
     staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
     staff.canManageShop ? count("merch_orders", "status", "new") : 0,
     staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
+    staff.isAdmin ? count("memory_reports", "status", "open") : 0,
   ]);
   const out: ActionItem[] = [];
   if (enquiries) out.push({ icon: "admin", href: "/admin/support", label: "New sponsor and partner enquiries", count: enquiries });
   if (orders) out.push({ icon: "admin", href: "/admin/shop", label: "New merchandise orders", count: orders });
+  if (reported) out.push({ icon: "admin", href: "/app/memories?reported=1", label: "Reported memories to review", count: reported, urgent: true });
   if (dupes) out.push({ icon: "admin", href: "/admin/duplicates", label: "Possible duplicate records", count: dupes });
   return out;
 }

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMember } from "@/lib/members/session";
 import { MEMBER_PHOTO_BUCKET, memberPhotoFile } from "@/lib/members/photos";
+import { MEMORY_BUCKET, memoryFile } from "@/lib/members/memories";
 import { importProviderPhoto } from "@/lib/members/provider-photo";
 import { toInternational } from "@/lib/phone";
 import { occupationOptions, type Occupation } from "@/lib/registration";
@@ -359,4 +360,80 @@ export async function saveClassGroup(_prev: ActionState, formData: FormData): Pr
   }
   revalidatePath("/app", "layout");
   return done(url ? "Saved. Your classmates now see the WhatsApp button." : "Link removed.");
+}
+
+// Memories ----------------------------------------------------------------------------------------------
+
+export async function postMemory(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const large = formData.get("large");
+  const small = formData.get("small");
+  for (const f of [large, small]) {
+    if (!(f instanceof File) || f.size === 0 || f.size > 2 * 1024 * 1024 || !["image/webp", "image/jpeg"].includes(f.type)) {
+      return fail("Choose a photo first (JPG or PNG).");
+    }
+  }
+  const caption = String(formData.get("caption") ?? "").trim().slice(0, 500);
+  const place = String(formData.get("place") ?? "").trim().slice(0, 80) || null;
+  const yearRaw = String(formData.get("year") ?? "").trim();
+  const year = /^(19[6-9]\d|20\d\d)$/.test(yearRaw) ? Number(yearRaw) : null;
+  if (yearRaw && !year) return fail("Enter the year as four digits, e.g. 2009.");
+  const path = `${m.personId}/${crypto.randomUUID()}`;
+  for (const [file, size] of [[large as File, "large"], [small as File, "small"]] as const) {
+    const { error } = await m.supabase.storage.from(MEMORY_BUCKET).upload(memoryFile(path, size), file, { contentType: file.type, cacheControl: "3600", upsert: false });
+    if (error) {
+      console.error("Memory upload failed", error);
+      return fail("The photo could not be saved. Please try again.");
+    }
+  }
+  const { error } = await m.supabase.from("memories").insert({ person_id: m.personId, photo_path: path, caption, place, taken_year: year });
+  if (error) {
+    console.error(error);
+    return fail("Your memory could not be shared. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done("Shared. Fellow members can now see it.");
+}
+
+export async function toggleHeart(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase
+    .from("memory_reactions")
+    .upsert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, active: formData.get("on") === "yes" }, { onConflict: "memory_id,person_id" });
+  revalidatePath("/app", "layout");
+}
+
+export async function addComment(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const body = String(formData.get("body") ?? "").trim().slice(0, 500);
+  if (!body) return;
+  await m.supabase.from("memory_comments").insert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, body });
+  revalidatePath("/app", "layout");
+}
+
+export async function reportMemory(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase
+    .from("memory_reports")
+    .upsert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, reason: String(formData.get("reason") ?? "").slice(0, 300) }, { onConflict: "memory_id,person_id", ignoreDuplicates: true });
+  revalidatePath("/app/memories");
+}
+
+/** The owner removes their memory, or an administrator hides or restores one. Nothing is deleted. */
+export async function setMemoryStatus(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "hidden", "removed"].includes(status)) return;
+  const id = String(formData.get("id") ?? "");
+  const { error } = await m.supabase.from("memories").update({ status }).eq("id", id);
+  if (!error && status !== "removed") {
+    // An administrator's decision closes the open reports on it.
+    await m.supabase.from("memory_reports").update({ status: "resolved" }).eq("memory_id", id).eq("status", "open");
+  }
+  revalidatePath("/app", "layout");
 }

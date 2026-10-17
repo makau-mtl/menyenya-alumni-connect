@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, Building2, CalendarDays, CheckCircle2, CircleUserRound, Gift, GraduationCap, Handshake, HeartHandshake,
+  ArrowRight, BadgeCheck, Images, Building2, CalendarDays, CheckCircle2, CircleUserRound, Gift, GraduationCap, Handshake, HeartHandshake,
   MapPin, Megaphone, MessageCircle, Search, ShoppingBag, Trophy, UserPen, UserPlus, Users, Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
@@ -26,6 +26,7 @@ export type DashboardData = {
     whatsapp: { url: string | null; canEdit: boolean };
   } | null;
   meetups: Meetup[];
+  memories: { id: string; photo: string | null; caption: string; name: string }[];
   community: {
     total: number; alumni: number; friends: number; classes: number;
     topClasses: { label: string; value: number }[];
@@ -208,6 +209,33 @@ export function Dashboard({ d }: { d: DashboardData }) {
         ) : (
           <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">
             Going to be in town? Post where you&rsquo;ll be and see which alumni can join you for nyama choma or a cup of tea.
+          </p>
+        )}
+      </section>
+
+      {/* Memories */}
+      <section className="flex flex-col gap-5">
+        <SectionTitle
+          eyebrow="Our memories"
+          title="Memories from members"
+          action={<Button asChild variant="outline"><Link href="/app/memories"><Images /> See all and share yours</Link></Button>}
+        />
+        {d.memories.length ? (
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {d.memories.map((m) => (
+              <li key={m.id}>
+                <Link href="/app/memories" className="group relative block aspect-square overflow-hidden rounded-xl bg-muted" title={`${m.name}: ${m.caption}`}>
+                  {m.photo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.photo} alt={m.caption || `A memory shared by ${m.name}`} loading="lazy" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">
+            Got an old class photo, or pictures from a visit to the school? <Link href="/app/memories" className="font-semibold text-tea underline">Share the first memory</Link>.
           </p>
         )}
       </section>

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { getStaff } from "@/lib/admin/staff";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { getPortalNav } from "@/lib/portal-nav";
+import { PortalShell } from "@/components/portal/portal-shell";
 
 // Always built for the person viewing it, never cached.
 export const dynamic = "force-dynamic";
@@ -25,41 +26,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const staff = await getStaff();
   if (!staff) redirect("/login?next=/admin");
 
-  const tabs = [
-    ...(staff.isFinance ? [{ href: "/admin", label: "Overview" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/members", label: "Members" }] : []),
-    ...(staff.isAdmin || staff.isVerifier ? [{ href: "/admin/duplicates", label: "Duplicates" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/roles", label: "Roles" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/people", label: "Our people" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/causes", label: "Causes" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/support", label: "Sponsors and partners" }] : []),
-    ...(staff.canManageShop ? [{ href: "/admin/shop", label: "Merchandise" }] : []),
-    ...(staff.canEditNews ? [{ href: "/admin/news", label: "News and events" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/site", label: "Photos and video" }] : []),
-    ...(staff.isAdmin ? [{ href: "/admin/settings", label: "Settings" }] : []),
-  ];
+  const { groups, user } = await getPortalNav();
+  const hasAdmin = groups.some((g) => g.root === "/admin");
 
   return (
-    <div className="section pb-10 pt-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold">Admin</h1>
-          <p className="mt-2 text-ink-soft">Signed in as {staff.email}</p>
-        </div>
-      </div>
-      {tabs.length === 0 ? (
-        <div className="mt-8 max-w-2xl rounded-xl border border-line bg-surface p-6">
-          <h2 className="text-2xl font-bold">No admin access</h2>
-          <p className="mt-2 text-ink-soft">
-            This account has no admin role. An administrator can give you one.
-          </p>
-        </div>
+    <PortalShell groups={groups} user={user}>
+      {hasAdmin ? (
+        children
       ) : (
-        <>
-          <AdminNav tabs={tabs} />
-          <div className="pt-8">{children}</div>
-        </>
+        <div className="max-w-2xl rounded-xl border bg-card p-6">
+          <h1 className="text-2xl font-bold">No admin access</h1>
+          <p className="mt-2 text-muted-foreground">This account has no admin role. An administrator can give you one.</p>
+        </div>
       )}
-    </div>
+    </PortalShell>
   );
 }

@@ -3,6 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
+import { ChevronDown, CircleUserRound, LayoutDashboard, LogOut, UserRound, Users } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/shadcn/dropdown-menu";
+
+function AccountMenu() {
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger className="flex items-center gap-1.5 rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper data-[state=open]:bg-paper">
+        <CircleUserRound className="size-5 text-tea" /> My account <ChevronDown className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem asChild><Link href="/app"><LayoutDashboard /> Dashboard</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link href="/app/profile"><UserRound /> My profile</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link href="/app/directory"><Users /> Member directory</Link></DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <form action="/auth/signout" method="post">
+          <DropdownMenuItem asChild>
+            <button type="submit" className="w-full"><LogOut /> Log out</button>
+          </DropdownMenuItem>
+        </form>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 // Shows "Log in" to visitors and "My account" + "Log out" to signed-in people.
 // It only checks whether a sign-in cookie exists, without contacting the server, so public pages
@@ -21,14 +46,7 @@ export function AccountLinks({ variant }: { variant: "desktop" | "mobile" }) {
   if (variant === "desktop") {
     return signedIn ? (
       <>
-        <Link href="/app" className="rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper">
-          My account
-        </Link>
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="rounded-md px-3 py-2 font-semibold text-ink hover:bg-paper">
-            Log out
-          </button>
-        </form>
+        <AccountMenu />
       </>
     ) : (
       <>

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMember } from "@/lib/members/session";
 import { MEMBER_PHOTO_BUCKET, memberPhotoFile } from "@/lib/members/photos";
+import { MEMORY_BUCKET, memoryFile } from "@/lib/members/memories";
 import { importProviderPhoto } from "@/lib/members/provider-photo";
 import { toInternational } from "@/lib/phone";
 import { occupationOptions, type Occupation } from "@/lib/registration";
@@ -87,6 +88,7 @@ const workSchema = z.object({
   social_links: z.array(z.object({ label: z.string().trim().min(1).max(30), url })).max(3),
   willing_to_volunteer: z.boolean(),
   mentoring_offer: z.enum(["none", "can_mentor", "wants_mentor"]),
+  gender: z.enum(["female", "male", "prefer_not_to_say"]).or(z.literal("")),
 });
 
 export async function saveWork(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -107,6 +109,7 @@ export async function saveWork(_prev: ActionState, formData: FormData): Promise<
     social_links: socials,
     willing_to_volunteer: formData.get("willing_to_volunteer") === "on",
     mentoring_offer: formData.get("mentoring_offer") ?? "none",
+    gender: formData.get("gender") ?? "",
   });
   if (!parsed.success) {
     const errors: Record<string, string> = {};
@@ -140,6 +143,7 @@ export async function saveWork(_prev: ActionState, formData: FormData): Promise<
       social_links: w.social_links,
       willing_to_volunteer: w.willing_to_volunteer,
       mentoring_offer: w.mentoring_offer,
+      gender: w.gender || null,
     })
     .eq("person_id", m.personId);
   if (error) {
@@ -254,4 +258,227 @@ export async function rejoinMembership(): Promise<void> {
   if (error) console.error("Rejoin failed", error);
   revalidatePath("/", "layout");
   redirect("/app");
+}
+
+// The school's priorities: a member's view -----------------------------------------------------------
+
+const viewSchema = z.object({
+  priorityId: z.string().uuid(),
+  importance: z.coerce.number().int().min(1, "Choose how important this is.").max(5),
+  comment: z.string().trim().max(1000, "Keep your comment under 1,000 characters."),
+});
+
+export async function savePriorityView(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = viewSchema.safeParse({
+    priorityId: formData.get("priorityId"),
+    importance: formData.get("importance") ?? 0,
+    comment: formData.get("comment") ?? "",
+  });
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check your answer.");
+  const v = parsed.data;
+  const { error } = await m.supabase
+    .from("priority_views")
+    .upsert({ priority_id: v.priorityId, person_id: m.personId, importance: v.importance, comment: v.comment }, { onConflict: "priority_id,person_id" });
+  if (error) {
+    console.error(error);
+    return fail("Your view could not be saved. Please try again.");
+  }
+  revalidatePath("/app");
+  revalidatePath("/app/school");
+  return done("Thank you. Your view is saved.");
+}
+
+// Meet-ups ("Who's around?") ---------------------------------------------------------------------------
+
+const meetupSchema = z.object({
+  title: z.string().trim().min(3, "Say what it is, e.g. Nyama choma.").max(100, "Keep this under 100 characters."),
+  place: z.string().trim().min(2, "Say the town or area.").max(100, "Keep this under 100 characters."),
+  happensOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose the date."),
+  timeNote: z.string().trim().max(60, "Keep this short, e.g. from 2 pm."),
+  note: z.string().trim().max(500, "Keep the note under 500 characters."),
+  audience: z.enum(["everyone", "class", "region"]),
+});
+
+export async function createMeetup(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = meetupSchema.safeParse({
+    title: formData.get("title") ?? "", place: formData.get("place") ?? "", happensOn: formData.get("happensOn") ?? "",
+    timeNote: formData.get("timeNote") ?? "", note: formData.get("note") ?? "", audience: formData.get("audience") ?? "everyone",
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const i of parsed.error.issues) errors[String(i.path[0])] ??= i.message;
+    return fail("Please fix the highlighted fields.", errors);
+  }
+  const v = parsed.data;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+  if (v.happensOn < today) return fail("Choose today or a later date.", { happensOn: "Choose today or a later date." });
+  const { error } = await m.supabase.from("meetups").insert({
+    organiser_id: m.personId, title: v.title, place: v.place, happens_on: v.happensOn, time_note: v.timeNote, note: v.note, audience: v.audience,
+  });
+  if (error) {
+    console.error(error);
+    return fail("Your meet-up could not be posted. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done("Form imewekwa! Members can now say they're in.");
+}
+
+/** "I'm in" or "Not going" for a meet-up. */
+export async function respondMeetup(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const going = formData.get("going") === "yes";
+  await m.supabase.from("meetup_responses").upsert({ meetup_id: id, person_id: m.personId, going }, { onConflict: "meetup_id,person_id" });
+  revalidatePath("/app", "layout");
+}
+
+export async function cancelMeetup(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase.from("meetups").update({ status: "cancelled" }).eq("id", String(formData.get("id") ?? "")).eq("organiser_id", m.personId);
+  revalidatePath("/app", "layout");
+}
+
+// Class WhatsApp group (class rep or administrator) ---------------------------------------------------------
+
+export async function saveClassGroup(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const url = String(formData.get("url") ?? "").trim();
+  if (url && !/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+$/.test(url)) {
+    return fail("Paste the group's invite link. It starts with https://chat.whatsapp.com/");
+  }
+  const { error } = await m.supabase.rpc("set_class_group", { p_year: Number(formData.get("year")), p_url: url });
+  if (error) {
+    console.error(error);
+    return fail(/class rep/.test(error.message) ? "Only your class rep or an administrator can change this." : "The link could not be saved.");
+  }
+  revalidatePath("/app", "layout");
+  return done(url ? "Saved. Your classmates now see the WhatsApp button." : "Link removed.");
+}
+
+// Memories ----------------------------------------------------------------------------------------------
+
+export async function postMemory(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const large = formData.get("large");
+  const small = formData.get("small");
+  for (const f of [large, small]) {
+    if (!(f instanceof File) || f.size === 0 || f.size > 2 * 1024 * 1024 || !["image/webp", "image/jpeg"].includes(f.type)) {
+      return fail("Choose a photo first (JPG or PNG).");
+    }
+  }
+  const caption = String(formData.get("caption") ?? "").trim().slice(0, 500);
+  const place = String(formData.get("place") ?? "").trim().slice(0, 80) || null;
+  const yearRaw = String(formData.get("year") ?? "").trim();
+  const year = /^(19[6-9]\d|20\d\d)$/.test(yearRaw) ? Number(yearRaw) : null;
+  if (yearRaw && !year) return fail("Enter the year as four digits, e.g. 2009.");
+  const path = `${m.personId}/${crypto.randomUUID()}`;
+  for (const [file, size] of [[large as File, "large"], [small as File, "small"]] as const) {
+    const { error } = await m.supabase.storage.from(MEMORY_BUCKET).upload(memoryFile(path, size), file, { contentType: file.type, cacheControl: "3600", upsert: false });
+    if (error) {
+      console.error("Memory upload failed", error);
+      return fail("The photo could not be saved. Please try again.");
+    }
+  }
+  const { error } = await m.supabase.from("memories").insert({ person_id: m.personId, photo_path: path, caption, place, taken_year: year });
+  if (error) {
+    console.error(error);
+    return fail("Your memory could not be shared. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done("Shared. Fellow members can now see it.");
+}
+
+export async function toggleHeart(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase
+    .from("memory_reactions")
+    .upsert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, active: formData.get("on") === "yes" }, { onConflict: "memory_id,person_id" });
+  revalidatePath("/app", "layout");
+}
+
+export async function addComment(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const body = String(formData.get("body") ?? "").trim().slice(0, 500);
+  if (!body) return;
+  await m.supabase.from("memory_comments").insert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, body });
+  revalidatePath("/app", "layout");
+}
+
+export async function reportMemory(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase
+    .from("memory_reports")
+    .upsert({ memory_id: String(formData.get("id") ?? ""), person_id: m.personId, reason: String(formData.get("reason") ?? "").slice(0, 300) }, { onConflict: "memory_id,person_id", ignoreDuplicates: true });
+  revalidatePath("/app/memories");
+}
+
+/** The owner removes their memory, or an administrator hides or restores one. Nothing is deleted. */
+export async function setMemoryStatus(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "hidden", "removed"].includes(status)) return;
+  const id = String(formData.get("id") ?? "");
+  const { error } = await m.supabase.from("memories").update({ status }).eq("id", id);
+  if (!error && status !== "removed") {
+    // An administrator's decision closes the open reports on it.
+    await m.supabase.from("memory_reports").update({ status: "resolved" }).eq("memory_id", id).eq("status", "open");
+  }
+  revalidatePath("/app", "layout");
+}
+
+// Cases for support ------------------------------------------------------------------------------------
+
+const caseSchema = z.object({
+  kind: z.enum(["member_in_need", "needy_student", "project_idea", "other"], { message: "Choose what the case is about." }),
+  title: z.string().trim().min(3, "Give it a short title.").max(120, "Keep the title under 120 characters."),
+  details: z.string().trim().min(10, "Tell us a little more (at least a sentence).").max(4000, "Keep this under 4,000 characters."),
+  helpNeeded: z.string().trim().max(1000, "Keep this under 1,000 characters."),
+  mayShare: z.boolean(),
+});
+
+export async function raiseCase(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = caseSchema.safeParse({
+    kind: formData.get("kind") ?? "", title: formData.get("title") ?? "", details: formData.get("details") ?? "",
+    helpNeeded: formData.get("helpNeeded") ?? "", mayShare: formData.get("mayShare") === "on",
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const i of parsed.error.issues) errors[String(i.path[0])] ??= i.message;
+    return fail("Please fix the highlighted fields.", errors);
+  }
+  const v = parsed.data;
+  const { data, error } = await m.supabase
+    .from("support_cases")
+    .insert({ person_id: m.personId, kind: v.kind, title: v.title, details: v.details, help_needed: v.helpNeeded, may_share: v.mayShare })
+    .select("reference")
+    .single();
+  if (error) {
+    console.error(error);
+    return fail("Your case could not be sent. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done(`Sent. Your reference is ${data.reference}. You'll see replies here.`);
+}
+
+export async function replyToCase(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
+  if (!body) return;
+  await m.supabase.from("case_updates").insert({ case_id: String(formData.get("id") ?? ""), author_id: m.personId, body });
+  revalidatePath("/app/support");
 }

@@ -1,27 +1,41 @@
 import type { Metadata } from "next";
 import { getMember } from "@/lib/members/session";
 import { getStaff } from "@/lib/admin/staff";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { MemberNav, type MemberTab } from "@/components/member/member-nav";
+import { Toaster } from "@/components/shadcn/sonner";
 
 export const metadata: Metadata = { title: { default: "My account", template: "%s | My account" }, robots: { index: false } };
 export const dynamic = "force-dynamic";
 
+// Members use the platform inside the website: the site header and footer stay, with these tabs underneath.
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const member = await getMember();
-  let tabs: { href: string; label: string }[] = [];
+  let tabs: MemberTab[] = [];
   if (member?.registered && member.membershipStatus !== "terminated") {
-    const [{ data: waiting }, staff] = await Promise.all([member.supabase.rpc("confirmations_waiting"), getStaff()]);
+    // "Confirm members" shows only for people set up as confirmers (Settings), with a count of who is waiting.
+    const [{ data: confirmer }, { data: waiting }, staff] = await Promise.all([
+      member.supabase.rpc("is_confirmer"),
+      member.supabase.rpc("confirmations_waiting"),
+      getStaff(),
+    ]);
+    const confirm = (waiting as unknown[] | null)?.length ?? 0;
     tabs = [
-      { href: "/app", label: "My account" },
-      { href: "/app/directory", label: "Member directory" },
-      ...((waiting as unknown[] | null)?.length ? [{ href: "/app/confirm", label: `Confirm members (${(waiting as unknown[]).length})` }] : []),
-      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier) ? [{ href: "/admin", label: "Admin" }] : []),
+      { href: "/app", label: "Dashboard", short: "Home", icon: "dashboard" },
+      { href: "/app/directory", label: "Member directory", short: "Directory", icon: "directory" },
+      { href: "/app/meetups", label: "Meet-ups", short: "Meet up", icon: "meetups" },
+      { href: "/app/memories", label: "Memories", short: "Memories", icon: "memories" },
+      { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
+      ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined, phone: false }] : []),
+      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases)
+        ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const, phone: false }]
+        : []),
     ];
   }
   return (
-    <div className="section pb-16 pt-6 lg:pt-8">
-      {tabs.length > 0 && <AdminNav tabs={tabs} label="Member area" root="/app" />}
-      <div className="pt-8 lg:pt-10">{children}</div>
-    </div>
+    <>
+      {tabs.length > 0 && <MemberNav tabs={tabs} />}
+      <div className={`section pt-6 md:pb-16 md:pt-10 ${tabs.length ? "pb-28" : "pb-16"}`}>{children}</div>
+      <Toaster position="top-center" richColors />
+    </>
   );
 }

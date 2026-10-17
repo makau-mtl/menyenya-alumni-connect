@@ -48,6 +48,7 @@ export type WorkValues = {
   social_links: { label: string; url: string }[];
   willing_to_volunteer: boolean;
   mentoring_offer: string;
+  gender: string;
   canMentor: boolean;
   canRequestMentor: boolean;
 };
@@ -70,6 +71,18 @@ export function WorkForm({ v, skillOptions }: { v: WorkValues; skillOptions: str
           <input id="profession" name="profession" defaultValue={v.profession} maxLength={80} className={inputClass} />
         </Field>
       </div>
+      <Field
+        label="Gender (optional)"
+        name="gender"
+        hint="Used only for overall figures, such as how many women and men are members. Never shown on your profile or to anyone else."
+      >
+        <select id="gender" name="gender" defaultValue={v.gender} className={`${inputClass} sm:max-w-xs`}>
+          <option value="">Prefer not to answer</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="prefer_not_to_say">Prefer not to say</option>
+        </select>
+      </Field>
       <Field label="Employer or business name (optional)" name="employer_or_business" error={err("employer_or_business")}>
         <input id="employer_or_business" name="employer_or_business" defaultValue={v.employer_or_business} maxLength={120} className={inputClass} />
       </Field>

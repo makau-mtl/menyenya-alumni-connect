@@ -64,7 +64,7 @@ export default async function CommunityPage() {
           </CardHeader>
           <CardContent>
             {b.classes.length ? (
-              <BarList rows={b.classes.map((c) => ({ label: `Class of ${c.year}`, value: c.count, href: `/app/directory?year=${c.year}` }))} highlight={myClass} />
+              <BarList rows={b.classes.map((c) => ({ label: `Class of ${c.year}`, value: c.count, href: `/app/cohorts/${c.year}` }))} highlight={myClass} />
             ) : <p className="text-muted-foreground">No classes yet.</p>}
           </CardContent>
         </Card>

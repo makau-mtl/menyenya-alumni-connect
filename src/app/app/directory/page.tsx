@@ -56,7 +56,10 @@ export default async function DirectoryPage({ searchParams }: Props) {
         eyebrow="My account"
         title="Member directory"
         description="Every member of the association. Phone numbers and emails appear on a member's card only if they choose to share them."
-        actions={<Button asChild variant="outline"><Link href="/app/community">Members in numbers</Link></Button>}
+        actions={<>
+          <Button asChild variant="outline"><Link href="/app/cohorts">Cohorts</Link></Button>
+          <Button asChild variant="outline"><Link href="/app/community">Members in numbers</Link></Button>
+        </>}
       />
 
       <form method="get" className="grid gap-3 rounded-xl bg-card p-4 shadow-sm ring-1 ring-border sm:grid-cols-2 lg:grid-cols-4 lg:items-end">

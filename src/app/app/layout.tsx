@@ -12,14 +12,19 @@ export default async function MemberLayout({ children }: { children: React.React
   const member = await getMember();
   let tabs: MemberTab[] = [];
   if (member?.registered && member.membershipStatus !== "terminated") {
-    const [{ data: waiting }, staff] = await Promise.all([member.supabase.rpc("confirmations_waiting"), getStaff()]);
+    // "Confirm members" shows only for people set up as confirmers (Settings), with a count of who is waiting.
+    const [{ data: confirmer }, { data: waiting }, staff] = await Promise.all([
+      member.supabase.rpc("is_confirmer"),
+      member.supabase.rpc("confirmations_waiting"),
+      getStaff(),
+    ]);
     const confirm = (waiting as unknown[] | null)?.length ?? 0;
     tabs = [
       { href: "/app", label: "Dashboard", short: "Home", icon: "dashboard" },
       { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
       { href: "/app/directory", label: "Member directory", short: "Directory", icon: "directory" },
-      ...(confirm ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm }] : []),
-      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop)
+      ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined }] : []),
+      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool)
         ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const }]
         : []),
     ];

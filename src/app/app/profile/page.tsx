@@ -30,7 +30,7 @@ export default async function ProfilePage() {
   const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase
       .from("member_profiles")
-      .select("contact_visibility, headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
+      .select("contact_visibility, gender, headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
       .eq("person_id", member.personId!)
       .single(),
     member.supabase.from("consents").select("purpose, granted, created_at").order("created_at", { ascending: false }),
@@ -96,6 +96,7 @@ export default async function ProfilePage() {
           v={{
             headline: p?.headline ?? "",
             occupation_status: p?.occupation_status ?? "",
+            gender: p?.gender ?? "",
             profession: p?.profession ?? "",
             employer_or_business: p?.employer_or_business ?? "",
             products_services: p?.products_services ?? "",

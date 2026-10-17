@@ -14,10 +14,13 @@ export const metadata: Metadata = {
   },
   description:
     "The Menyenya SDA High School Alumni Association: reconnect with classmates, give to the tuition block, and support the school.",
+  applicationName: "mhs.alumni",
+  appleWebApp: { capable: true, title: "mhs.alumni", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
   themeColor: "#17283b",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

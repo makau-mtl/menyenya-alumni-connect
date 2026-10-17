@@ -87,6 +87,7 @@ const workSchema = z.object({
   social_links: z.array(z.object({ label: z.string().trim().min(1).max(30), url })).max(3),
   willing_to_volunteer: z.boolean(),
   mentoring_offer: z.enum(["none", "can_mentor", "wants_mentor"]),
+  gender: z.enum(["female", "male", "prefer_not_to_say"]).or(z.literal("")),
 });
 
 export async function saveWork(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -107,6 +108,7 @@ export async function saveWork(_prev: ActionState, formData: FormData): Promise<
     social_links: socials,
     willing_to_volunteer: formData.get("willing_to_volunteer") === "on",
     mentoring_offer: formData.get("mentoring_offer") ?? "none",
+    gender: formData.get("gender") ?? "",
   });
   if (!parsed.success) {
     const errors: Record<string, string> = {};
@@ -140,6 +142,7 @@ export async function saveWork(_prev: ActionState, formData: FormData): Promise<
       social_links: w.social_links,
       willing_to_volunteer: w.willing_to_volunteer,
       mentoring_offer: w.mentoring_offer,
+      gender: w.gender || null,
     })
     .eq("person_id", m.personId);
   if (error) {
@@ -254,4 +257,34 @@ export async function rejoinMembership(): Promise<void> {
   if (error) console.error("Rejoin failed", error);
   revalidatePath("/", "layout");
   redirect("/app");
+}
+
+// The school's priorities: a member's view -----------------------------------------------------------
+
+const viewSchema = z.object({
+  priorityId: z.string().uuid(),
+  importance: z.coerce.number().int().min(1, "Choose how important this is.").max(5),
+  comment: z.string().trim().max(1000, "Keep your comment under 1,000 characters."),
+});
+
+export async function savePriorityView(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = viewSchema.safeParse({
+    priorityId: formData.get("priorityId"),
+    importance: formData.get("importance") ?? 0,
+    comment: formData.get("comment") ?? "",
+  });
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "Please check your answer.");
+  const v = parsed.data;
+  const { error } = await m.supabase
+    .from("priority_views")
+    .upsert({ priority_id: v.priorityId, person_id: m.personId, importance: v.importance, comment: v.comment }, { onConflict: "priority_id,person_id" });
+  if (error) {
+    console.error(error);
+    return fail("Your view could not be saved. Please try again.");
+  }
+  revalidatePath("/app");
+  revalidatePath("/app/school");
+  return done("Thank you. Your view is saved.");
 }

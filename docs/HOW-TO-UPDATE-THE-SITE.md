@@ -240,3 +240,8 @@ For the Bursary Fund, the financial statements should show what was paid to the 
 ## Cohort reps
 
 Cohort reps are elected by their cohort. After the election, an administrator opens **Admin → Roles**, chooses the person, the role **Cohort rep**, the cohort (e.g. Class of 2004 cohort), the start date and, if there is one, the **term end** date. The rep can then edit their cohort page's welcome note and WhatsApp link, and confirm members of the cohort when confirmation is switched on. To end a role early, press **End role**.
+
+## Opportunities: moderation and volunteering
+
+- **Reported jobs or business posts** appear under "Waiting for you" on an administrator's dashboard. Open Opportunities → Jobs (or Business); reported posts say "Reported". Press **Hide** to take one down. Nothing is deleted.
+- **Volunteer opportunities** (administrators and the Secretary): Opportunities → Volunteer → **Post a way to help**. Add skills wanted (e.g. Medicine, Teaching) so members with those skills are told on their dashboard. Open "Who signed up" on the card to see names and phone numbers, and to close sign-ups or cancel.

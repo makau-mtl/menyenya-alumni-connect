@@ -598,3 +598,194 @@ export async function saveCohortWelcome(_prev: ActionState, formData: FormData):
   revalidatePath(`/app/cohorts/${year}`);
   return done("Saved.");
 }
+
+// Opportunities: jobs, businesses, business opportunities, volunteering ------------------------------
+const httpsUrl = z.union([z.literal(""), z.string().trim().max(300).regex(/^https:\/\//, "Start with https://")]);
+const optionalEmail = z.union([z.literal(""), z.string().trim().max(120).email("Enter a valid email.")]);
+
+const jobSchema = z.object({
+  title: z.string().trim().min(3, "What is the job?").max(120),
+  organisation: z.string().trim().min(2, "Which organisation?").max(120),
+  location: z.string().trim().min(2, "Where is it? A town, or Remote.").max(100),
+  workType: z.enum(["full_time", "part_time", "contract", "internship", "attachment", "remote"]),
+  field: z.string().trim().max(60),
+  description: z.string().trim().max(3000),
+  applyUrl: httpsUrl,
+  applyEmail: optionalEmail,
+  closesOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "When does it close?"),
+  fromAssociation: z.boolean(),
+});
+
+function errorsOf(error: z.ZodError) {
+  const errors: Record<string, string> = {};
+  for (const i of error.issues) errors[String(i.path[0])] ??= i.message;
+  return errors;
+}
+const formText = (fd: FormData, keys: string[]) => Object.fromEntries(keys.map((k) => [k, String(fd.get(k) ?? "")]));
+
+export async function postJob(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = jobSchema.safeParse({
+    ...formText(formData, ["title", "organisation", "location", "workType", "field", "description", "applyUrl", "applyEmail", "closesOn"]),
+    fromAssociation: formData.get("fromAssociation") === "on",
+  });
+  if (!parsed.success) return fail("Please fix the highlighted fields.", errorsOf(parsed.error));
+  const v = parsed.data;
+  if (!v.applyUrl && !v.applyEmail) return fail("Please fix the highlighted fields.", { applyUrl: "Add a link or an email for applications." });
+  const closes = new Date(`${v.closesOn}T12:00:00`);
+  const today = new Date();
+  if (closes < new Date(today.toDateString()) || closes.getTime() - today.getTime() > 120 * 86400_000) {
+    return fail("Please fix the highlighted fields.", { closesOn: "Choose a date within the next four months." });
+  }
+  const { error } = await m.supabase.from("job_posts").insert({
+    posted_by: m.personId, from_association: v.fromAssociation, title: v.title, organisation: v.organisation, location: v.location,
+    work_type: v.workType, field: v.field, description: v.description, apply_url: v.applyUrl || null, apply_email: v.applyEmail || null, closes_on: v.closesOn,
+  });
+  if (error) {
+    console.error(error);
+    return fail(error.message.includes("ten times") ? "You have posted ten times today. Please try again tomorrow." : "The job could not be posted. Please try again.");
+  }
+  revalidatePath("/app/opportunities", "layout");
+  return done("Posted. Members can see it now.");
+}
+
+const businessSchema = z.object({
+  name: z.string().trim().min(2, "What is the business called?").max(100),
+  description: z.string().trim().min(10, "Say what the business does.").max(800),
+  sector: z.string().trim().min(2, "Choose a sector.").max(60),
+  county: z.string().trim().max(60),
+  area: z.string().trim().max(100),
+  phone: z.string().trim().max(30),
+  email: optionalEmail,
+  website: httpsUrl,
+  memberOffer: z.string().trim().max(200),
+});
+
+export async function postBusiness(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = businessSchema.safeParse(formText(formData, ["name", "description", "sector", "county", "area", "phone", "email", "website", "memberOffer"]));
+  if (!parsed.success) return fail("Please fix the highlighted fields.", errorsOf(parsed.error));
+  const v = parsed.data;
+  const { error } = await m.supabase.from("businesses").insert({
+    posted_by: m.personId, name: v.name, description: v.description, sector: v.sector, county: v.county, area: v.area,
+    phone: v.phone || null, whatsapp: formData.get("whatsapp") === "on", email: v.email || null, website: v.website || null,
+    member_offer: v.memberOffer, public_listing: formData.get("publicListing") === "on",
+  });
+  if (error) {
+    console.error(error);
+    return fail(error.message.includes("ten times") ? "You have posted ten times today. Please try again tomorrow." : "The business could not be listed. Please try again.");
+  }
+  revalidatePath("/app/opportunities", "layout");
+  revalidatePath("/businesses");
+  return done("Listed. Fellow members can find it now.");
+}
+
+const businessOppSchema = z.object({
+  kind: z.enum(["tender", "partner", "investor", "distributor", "offer", "other"]),
+  title: z.string().trim().min(3, "Give it a short title.").max(120),
+  details: z.string().trim().min(10, "Add a few details.").max(2000),
+  sector: z.string().trim().max(60),
+  location: z.string().trim().max(100),
+  contact: z.string().trim().min(3, "How should people respond?").max(200),
+  closesOn: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]),
+});
+
+export async function postBusinessOpportunity(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = businessOppSchema.safeParse(formText(formData, ["kind", "title", "details", "sector", "location", "contact", "closesOn"]));
+  if (!parsed.success) return fail("Please fix the highlighted fields.", errorsOf(parsed.error));
+  const v = parsed.data;
+  const { error } = await m.supabase.from("business_opportunities").insert({
+    posted_by: m.personId, kind: v.kind, title: v.title, details: v.details, sector: v.sector, location: v.location, contact: v.contact, closes_on: v.closesOn || null,
+  });
+  if (error) {
+    console.error(error);
+    return fail(error.message.includes("ten times") ? "You have posted ten times today. Please try again tomorrow." : "It could not be posted. Please try again.");
+  }
+  revalidatePath("/app/opportunities", "layout");
+  return done("Posted. Members can see it now.");
+}
+
+const opportunityTables = { job: "job_posts", business: "businesses", business_opportunity: "business_opportunities" } as const;
+
+/** The poster removes their own post; an administrator hides or restores one (closing its reports). */
+export async function setOpportunityStatus(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const type = String(formData.get("type") ?? "") as keyof typeof opportunityTables;
+  const table = opportunityTables[type];
+  const status = String(formData.get("status") ?? "");
+  if (!table || !["published", "hidden", "removed"].includes(status)) return;
+  const id = String(formData.get("id") ?? "");
+  const { error } = await m.supabase.from(table).update({ status }).eq("id", id);
+  if (!error && status !== "removed") {
+    await m.supabase.from("opportunity_reports").update({ status: "resolved" }).eq("target_type", type).eq("target_id", id).eq("status", "open");
+  }
+  revalidatePath("/app/opportunities", "layout");
+  revalidatePath("/businesses");
+}
+
+export async function reportOpportunity(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const type = String(formData.get("type") ?? "");
+  if (!(type in opportunityTables)) return;
+  await m.supabase.from("opportunity_reports").upsert(
+    { target_type: type, target_id: String(formData.get("id") ?? ""), person_id: m.personId, reason: String(formData.get("reason") ?? "").slice(0, 300) },
+    { onConflict: "target_type,target_id,person_id", ignoreDuplicates: true },
+  );
+  revalidatePath("/app/opportunities", "layout");
+}
+
+/** Sign up to volunteer, change the note, or withdraw. */
+export async function volunteerSignup(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase.from("volunteer_signups").upsert(
+    { role_id: String(formData.get("id") ?? ""), person_id: m.personId, note: String(formData.get("note") ?? "").trim().slice(0, 300), active: formData.get("withdraw") !== "yes" },
+    { onConflict: "role_id,person_id" },
+  );
+  revalidatePath("/app", "layout");
+}
+
+const volunteerSchema = z.object({
+  title: z.string().trim().min(3, "What is the help needed?").max(120),
+  details: z.string().trim().max(2000),
+  place: z.string().trim().max(100),
+  happensOn: z.union([z.literal(""), z.string().regex(/^\d{4}-\d{2}-\d{2}$/)]),
+  timeNote: z.string().trim().max(60),
+  peopleNeeded: z.union([z.literal(""), z.string().regex(/^\d{1,3}$/, "A number, e.g. 5.")]),
+  skills: z.string().trim().max(300),
+});
+
+/** Administrators and the Secretary post a way to help. */
+export async function postVolunteerRole(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = volunteerSchema.safeParse(formText(formData, ["title", "details", "place", "happensOn", "timeNote", "peopleNeeded", "skills"]));
+  if (!parsed.success) return fail("Please fix the highlighted fields.", errorsOf(parsed.error));
+  const v = parsed.data;
+  const { error } = await m.supabase.from("volunteer_roles").insert({
+    title: v.title, details: v.details, place: v.place, happens_on: v.happensOn || null, time_note: v.timeNote,
+    people_needed: v.peopleNeeded ? Number(v.peopleNeeded) : null,
+    skills: [...new Set(v.skills.split(",").map((x) => x.trim()).filter(Boolean))].slice(0, 10),
+  });
+  if (error) {
+    console.error(error);
+    return fail("Only administrators and the Secretary can post volunteer opportunities.");
+  }
+  revalidatePath("/app", "layout");
+  return done("Posted. Members whose skills match will see it on their dashboard.");
+}
+
+export async function setVolunteerRoleStatus(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["open", "closed", "cancelled"].includes(status)) return;
+  await m.supabase.from("volunteer_roles").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/app", "layout");
+}

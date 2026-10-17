@@ -23,6 +23,7 @@ const columns = [
       { label: "Corporate sponsorships", href: "/support/corporate-sponsorships" },
       { label: "Strategic partnerships", href: "/support/strategic-partnerships" },
       { label: "Alumni merchandise", href: "/shop" },
+      { label: "Buy from alumni", href: "/businesses" },
     ],
   },
   {

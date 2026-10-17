@@ -1,5 +1,26 @@
 # Progress
 
+## 18 October 2026: Opportunities (jobs, business, volunteer)
+
+- New member tab **Opportunities** ("Work" on phones) with three parts:
+  - **Jobs:**
+    - Members post jobs, internships and attachments, with apply link or email and a closing date.
+    - "For you" matches jobs to your profession, skills and county; "All jobs" shows everything.
+    - Officials can post on behalf of the association.
+    - Posts appear straight away, can be reported with the flag, and disappear after the closing date.
+  - **Business:**
+    - The **alumni business directory** (search, sector filter, call, WhatsApp, email, member offers).
+    - **Business opportunities:** tenders, partners, investors, distributors, offers.
+    - Owners can also show their business on the new public page **Buy from alumni** (`/businesses`, in the footer).
+  - **Volunteer:**
+    - Administrators and the Secretary post ways to help (where, when, how many, skills).
+    - Members tap **I'll help**; officials see who signed up, with phone numbers, and can close or cancel.
+    - Members whose skills match see it under "Waiting for you".
+- Administrators hide reported posts; reports also appear under "Waiting for you". Nothing is deleted. At most ten posts a day per member.
+- Meet-ups moved off the phone bar (still on the dashboard: "Drop your pin").
+- Next: jobs from worldwide job boards (Jooble or Careerjet), once the association registers a free key.
+- Tests: 4 new database tests; 134 pass.
+
 ## 18 October 2026: cohort pages and cohort reps
 
 - Every year group has a members-only **cohort page** ("Class of 2004 cohort", `/app/cohorts/2004`), opened from the dashboard ("Our cohort page"), the member card, the directory (Cohorts) and Members in numbers.

@@ -22,11 +22,12 @@ export default async function MemberLayout({ children }: { children: React.React
     tabs = [
       { href: "/app", label: "Dashboard", short: "Home", icon: "dashboard" },
       { href: "/app/directory", label: "Member directory", short: "Directory", icon: "directory" },
-      { href: "/app/meetups", label: "Meet-ups", short: "Meet up", icon: "meetups" },
+      { href: "/app/opportunities", label: "Opportunities", short: "Work", icon: "opportunities" },
+      { href: "/app/meetups", label: "Meet-ups", short: "Meet up", icon: "meetups", phone: false },
       { href: "/app/memories", label: "Memories", short: "Memories", icon: "memories" },
       { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
       ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined, phone: false }] : []),
-      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases)
+      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases || staff.canEditStories || staff.canManageReports || staff.canEditImpact)
         ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const, phone: false }]
         : []),
     ];

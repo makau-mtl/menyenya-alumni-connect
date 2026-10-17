@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { getStaff } from "@/lib/admin/staff";
 import { resolveDuplicate } from "@/app/admin/actions";
-import { buttonClass, inputClass } from "@/components/ui";
+import { inputClass } from "@/components/ui";
+import { Empty, PageHeader, Panel, Pill } from "@/components/portal/page-parts";
+import { ConfirmAction, ConfirmSubmit } from "@/components/portal/confirm-action";
+import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "Duplicates" };
 
@@ -50,44 +53,45 @@ export default async function DuplicatesPage({ searchParams }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-12">
-      <section>
-        <h2 className="text-2xl font-bold">Possible duplicates</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          Pairs of records that might be the same person. Choose which record to keep: gifts, pledges, payments and the
-          login move to it, contact details are copied, and the other is marked as merged. Nothing is deleted, and an
-          administrator can undo a merge.
-        </p>
-        {q.error && <p role="alert" className="mt-4 rounded-md bg-alert/10 p-4 font-semibold text-alert">{q.error}</p>}
-        {q.done && !q.error && <p role="status" className="mt-4 rounded-md bg-tea-tint p-4 font-semibold">Done.</p>}
-        {(flags ?? []).length === 0 ? (
-          <p className="mt-6 text-ink-soft">No possible duplicates right now.</p>
-        ) : (
-          <ul className="mt-6 flex flex-col gap-6">
-            {(flags ?? []).map((f) => {
-              const pair = [person(f.person_a_id), person(f.person_b_id)];
-              return (
-                <li key={f.id} className="rounded-xl border border-line bg-surface p-5">
-                  <p className="text-sm font-semibold text-ink-soft">
-                    {reasons[f.reason] ?? f.reason} · flagged {dateFormat.format(new Date(f.created_at))}
-                  </p>
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Possible duplicates"
+        description="Pairs of records that might be the same person. Choose which record to keep: gifts, pledges, payments and the login move to it, contact details are copied, and the other is marked as merged. Nothing is deleted, and an administrator can undo a merge."
+      />
+      {q.error && <p role="alert" className="rounded-md bg-alert/10 p-4 font-semibold text-alert">{q.error}</p>}
+      {q.done && !q.error && <p role="status" className="rounded-md bg-secondary p-4 font-semibold">Done.</p>}
+      {(flags ?? []).length === 0 ? (
+        <Empty>No possible duplicates right now.</Empty>
+      ) : (
+        <ul className="flex flex-col gap-6">
+          {(flags ?? []).map((f) => {
+            const pair = [person(f.person_a_id), person(f.person_b_id)];
+            return (
+              <li key={f.id}>
+                <Panel title={<span className="flex flex-wrap items-center gap-2"><Pill tone="warn">{reasons[f.reason] ?? f.reason}</Pill><span className="text-sm font-normal text-muted-foreground">flagged {dateFormat.format(new Date(f.created_at))}</span></span>}>
+                  <div className="grid gap-4 md:grid-cols-2">
                     {pair.map((p, i) => {
                       const other = pair[1 - i];
                       return (
-                        <div key={p.id} className="flex flex-col gap-2 rounded-lg border border-line p-4">
+                        <div key={p.id} className="flex flex-col gap-2 rounded-lg bg-muted/40 p-4 ring-1 ring-border">
                           <p className="text-lg font-bold">{p.name}</p>
                           <p className="text-sm">{p.member ?? "Not a registered member (gave or pledged)"}</p>
-                          <p className="break-words text-sm text-ink-soft">{p.contacts.join(" · ")}</p>
-                          <p className="text-sm text-ink-soft">
-                            {p.gifts} gift{p.gifts === 1 ? "" : "s"} · {p.pledges} pledge{p.pledges === 1 ? "" : "s"} · {p.hasLogin ? "has a login" : "no login"}
+                          <p className="break-words text-sm text-muted-foreground">{p.contacts.join(" · ")}</p>
+                          <p className="flex flex-wrap gap-1.5 text-sm">
+                            <Pill>{p.gifts} gift{p.gifts === 1 ? "" : "s"}</Pill>
+                            <Pill>{p.pledges} pledge{p.pledges === 1 ? "" : "s"}</Pill>
+                            <Pill tone={p.hasLogin ? "good" : "muted"}>{p.hasLogin ? "Has a login" : "No login"}</Pill>
                           </p>
                           <form action={resolveDuplicate} className="mt-auto flex flex-col gap-2 pt-2">
                             <input type="hidden" name="action" value="merge" />
                             <input type="hidden" name="survivor" value={p.id} />
                             <input type="hidden" name="merged" value={other.id} />
                             <input name="note" maxLength={200} placeholder="Note (optional)" aria-label="Note" className={`${inputClass} py-1.5 text-sm`} />
-                            <button type="submit" className={`${buttonClass("primary", "sm")} self-start`}>Keep this record and merge</button>
+                            <div>
+                              <ConfirmSubmit label="Keep this record and merge" title={`Keep ${p.name} and merge ${other.name} into it?`}
+                                description="Gifts, pledges, payments and the login move to the kept record. An administrator can undo this later." confirmLabel="Merge" />
+                            </div>
                           </form>
                         </div>
                       );
@@ -96,40 +100,36 @@ export default async function DuplicatesPage({ searchParams }: Props) {
                   <form action={resolveDuplicate} className="mt-4">
                     <input type="hidden" name="action" value="dismiss" />
                     <input type="hidden" name="flag" value={f.id} />
-                    <button type="submit" className={buttonClass("secondary", "sm")}>They are different people</button>
+                    <Button variant="outline" size="sm">They are different people</Button>
                   </form>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+                </Panel>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       {(merges ?? []).length > 0 && (
-        <section>
-          <h2 className="text-2xl font-bold">Recent merges</h2>
-          <ul className="mt-4 divide-y divide-line rounded-xl border border-line bg-surface">
+        <Panel title="Recent merges">
+          <ul className="flex flex-col divide-y">
             {(merges ?? []).map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <li key={m.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div>
-                  <p className="font-semibold">{person(m.merged_id).name} merged into {person(m.survivor_id).name}</p>
-                  <p className="text-sm text-ink-soft">
+                  <p className="font-semibold">{person(m.merged_id).name} merged into {person(m.survivor_id).name} {m.undone_at && <Pill>Undone</Pill>}</p>
+                  <p className="text-sm text-muted-foreground">
                     {dateFormat.format(new Date(m.created_at))}
                     {m.note ? ` · ${m.note}` : ""}
                     {m.undone_at ? ` · undone ${dateFormat.format(new Date(m.undone_at))}` : ""}
                   </p>
                 </div>
                 {!m.undone_at && staff.isAdmin && (
-                  <form action={resolveDuplicate}>
-                    <input type="hidden" name="action" value="undo" />
-                    <input type="hidden" name="merge" value={m.id} />
-                    <button type="submit" className="text-sm font-semibold text-alert underline underline-offset-4">Undo</button>
-                  </form>
+                  <ConfirmAction action={resolveDuplicate} fields={{ action: "undo", merge: m.id }} variant="outline" label="Undo"
+                    title="Undo this merge?" description="The two records are separated again and the possible duplicate is reopened." confirmLabel="Undo merge" />
                 )}
               </li>
             ))}
           </ul>
-        </section>
+        </Panel>
       )}
     </div>
   );

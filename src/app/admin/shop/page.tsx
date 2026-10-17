@@ -5,7 +5,11 @@ import { getStaff } from "@/lib/admin/staff";
 import { moveMerchItem, setMerchItemStatus, updateMerchOrder } from "@/app/admin/actions";
 import { toPhoto } from "@/lib/photos";
 import { emptyMerch, MerchForm, type MerchValues } from "@/components/admin/merch-form";
-import { buttonClass, inputClass } from "@/components/ui";
+import { Plus } from "lucide-react";
+import { inputClass } from "@/components/ui";
+import { Empty, PageHeader, Panel, Pill, StatTiles } from "@/components/portal/page-parts";
+import { RowActions } from "@/components/portal/row-actions";
+import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "Merchandise" };
 
@@ -56,26 +60,35 @@ export default async function AdminShopPage({ searchParams }: Props) {
   const waiting = orders.filter((x) => x.status === "new").length;
 
   return (
-    <div className="flex flex-col gap-14">
-      {q.saved && <p role="status" className="rounded-md bg-tea-tint p-4 font-semibold">Saved. The merchandise page is updated.</p>}
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Merchandise"
+        description="Orders from the Alumni merchandise page, and the items on sale."
+        actions={<Button asChild variant="outline"><Link href="/shop">View the shop</Link></Button>}
+      />
+      {q.saved && <p role="status" className="rounded-md bg-secondary p-4 font-semibold">Saved. The merchandise page is updated.</p>}
+      <StatTiles
+        items={[
+          { label: "New orders", value: String(waiting) },
+          { label: "Open orders", value: String(orders.filter((o) => !["collected", "cancelled"].includes(o.status)).length) },
+          { label: "Items on sale", value: String(items.filter((i) => i.status === "published").length) },
+          { label: "Value of open orders", value: `KES ${kes.format(orders.filter((o) => !["collected", "cancelled"].includes(o.status)).reduce((t, o) => t + Number(o.total_kes), 0))}` },
+        ]}
+      />
 
-      <section id="orders" className="scroll-mt-24">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-2xl font-bold">Orders {waiting > 0 && <span className="ml-2 rounded-full bg-gold px-3 py-0.5 text-base">{waiting} new</span>}</h2>
-          <Link href={showDone ? "/admin/shop#orders" : "/admin/shop?show=all#orders"} className="font-semibold text-tea underline">
-            {showDone ? "Hide collected and cancelled" : "Show collected and cancelled too"}
-          </Link>
-        </div>
-        <p className="mt-2 max-w-3xl text-ink-soft">
-          Call the buyer to confirm, then mark <strong>Confirmed</strong>. When the payment shows on the Paybill statement with
-          the order reference, mark <strong>Paid</strong>; then <strong>Ready to collect</strong> and <strong>Collected</strong>.
-        </p>
+      <Panel
+        id="orders"
+        title="Orders"
+        description={<>Call the buyer to confirm, then mark <strong>Confirmed</strong>. When the payment shows on the Paybill statement with the order reference, mark <strong>Paid</strong>; then <strong>Ready to collect</strong> and <strong>Collected</strong>.</>}
+        actions={<Button asChild variant="outline" size="sm"><Link href={showDone ? "/admin/shop#orders" : "/admin/shop?show=all#orders"}>{showDone ? "Hide collected and cancelled" : "Show collected and cancelled too"}</Link></Button>}
+      >
         {orders.length === 0 ? (
-          <p className="mt-4 text-ink-soft">No open orders.</p>
+          <Empty>No open orders.</Empty>
         ) : (
-          <ul className="mt-5 flex flex-col gap-4">
+          <ul className="flex flex-col gap-4">
             {orders.map((x) => (
-              <li key={x.id} className="rounded-xl border border-line bg-surface p-5">
+              <li key={x.id} className="rounded-lg bg-muted/40 p-4 ring-1 ring-border">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-bold">
@@ -87,7 +100,7 @@ export default async function AdminShopPage({ searchParams }: Props) {
                     </p>
                     <p className="text-ink-soft">Collect: {x.collection}</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statuses[x.status].tone}`}>{statuses[x.status].label}</span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statuses[x.status].tone}`}>{statuses[x.status].label}</span>
                 </div>
                 <ul className="mt-3 text-[0.95rem]">
                   {x.merch_order_items.map((l, n) => (
@@ -107,60 +120,42 @@ export default async function AdminShopPage({ searchParams }: Props) {
                   <select name="status" defaultValue={x.status} aria-label="Status" className={`${inputClass} w-48`}>
                     {(Object.keys(statuses) as Status[]).map((s) => <option key={s} value={s}>{statuses[s].label}</option>)}
                   </select>
-                  <button className={buttonClass("secondary", "sm")}>Save</button>
+                  <Button size="sm" variant="outline">Save</Button>
                 </form>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Panel>
 
-      <section id="items" className="scroll-mt-24">
-        <h2 className="text-2xl font-bold">Items</h2>
+      <Panel id="items" title="Items" actions={<Button asChild size="sm"><Link href="/admin/shop#item-form"><Plus /> Add an item</Link></Button>}>
         {items.length === 0 ? (
-          <p className="mt-3 text-ink-soft">No items yet. Add the first one below.</p>
+          <Empty>No items yet. Add the first one below.</Empty>
         ) : (
-          <ol className="mt-4 divide-y divide-line rounded-xl border border-line bg-surface">
+          <ol className="flex flex-col divide-y">
             {items.map((x, n) => (
-              <li key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+              <li key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
                 <span className="size-14 shrink-0 overflow-hidden rounded bg-paper ring-1 ring-line">
                   {x.photo_path && <img src={toPhoto(x.photo_path, x.name).srcSmall} alt="" className="size-full object-cover" />}
                 </span>
                 <div className="min-w-40 flex-1">
-                  <p className="font-semibold">
-                    {x.name}
-                    {x.status === "draft" && <span className="ml-2 rounded bg-paper px-2 py-0.5 text-xs font-semibold text-ink-soft">Hidden</span>}
-                  </p>
+                  <p className="flex flex-wrap items-center gap-2 font-semibold">{x.name}{x.status === "draft" && <Pill>Hidden</Pill>}</p>
                   <p className="text-sm text-ink-soft">KES {kes.format(x.price_kes)}{x.options?.length ? ` · ${x.option_label}: ${x.options.join(", ")}` : ""}</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <form action={moveMerchItem}>
-                    <input type="hidden" name="id" value={x.id} />
-                    <button name="direction" value="up" disabled={n === 0} aria-label={`Move ${x.name} up`} className={buttonClass("secondary", "sm")}>↑</button>
-                    <button name="direction" value="down" disabled={n === items.length - 1} aria-label={`Move ${x.name} down`} className={`${buttonClass("secondary", "sm")} ml-1`}>↓</button>
-                  </form>
-                  <Link href={`/admin/shop?item=${x.id}#item-form`} className={buttonClass("secondary", "sm")}>Edit</Link>
-                  <form action={setMerchItemStatus}>
-                    <input type="hidden" name="id" value={x.id} />
-                    <button name="status" value={x.status === "draft" ? "published" : "draft"} className={buttonClass("secondary", "sm")}>{x.status === "draft" ? "Show" : "Hide"}</button>
-                  </form>
-                  <form action={setMerchItemStatus}>
-                    <input type="hidden" name="id" value={x.id} />
-                    <button name="status" value="archived" className={buttonClass("quiet", "sm")}>Remove</button>
-                  </form>
-                </div>
+                <RowActions id={x.id} name={x.name} status={x.status} first={n === 0} last={n === items.length - 1}
+                  editHref={`/admin/shop?item=${x.id}#item-form`} move={moveMerchItem} setStatus={setMerchItemStatus} />
               </li>
             ))}
           </ol>
         )}
-        <div id="item-form" className="mt-8 max-w-3xl scroll-mt-24 rounded-xl border border-line bg-surface p-6">
+        <div id="item-form" className="mt-6 max-w-3xl scroll-mt-24 rounded-lg bg-muted/40 p-5 ring-1 ring-border">
           <h3 className="text-xl font-bold">{editing ? `Change: ${editing.name}` : "Add an item"}</h3>
           <p className="mt-1 text-sm text-ink-soft">Changing a price affects new orders only; orders already sent keep their price.</p>
           <div className="mt-5">
             <MerchForm key={initial.id || "new"} initial={initial} />
           </div>
         </div>
-      </section>
+      </Panel>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { kindInfo, statusInfo } from "@/lib/cases";
+import { PageHeader } from "@/components/portal/page-parts";
 
 export const metadata: Metadata = { title: "Cases for support" };
 
@@ -21,13 +22,12 @@ export default async function CasesPage({ searchParams }: Props) {
   const rows = (data ?? []) as { id: string; reference: string; kind: string; title: string; status: string; raised_by: string; year_left: number | null; created_at: string; updated_at: string; updates: number }[];
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold">Cases for support</h1>
-          <p className="text-muted-foreground">Cases you handle. Opening a case is recorded. Keep details within the team.</p>
-        </div>
-        <Button asChild variant="outline"><Link href={q.show === "all" ? "/admin/cases" : "/admin/cases?show=all"}>{q.show === "all" ? "Open cases only" : "Include closed"}</Link></Button>
-      </div>
+      <PageHeader
+        eyebrow="Administration"
+        title="Cases for support"
+        description="Cases you handle. Opening a case is recorded. Keep details within the team."
+        actions={<Button asChild variant="outline"><Link href={q.show === "all" ? "/admin/cases" : "/admin/cases?show=all"}>{q.show === "all" ? "Open cases only" : "Include closed"}</Link></Button>}
+      />
       <Card>
         <CardContent>
           {rows.length === 0 ? (

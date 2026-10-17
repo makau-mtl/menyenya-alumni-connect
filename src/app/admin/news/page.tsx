@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { Pencil, Plus } from "lucide-react";
+import { Empty, PageHeader, Panel, Pill } from "@/components/portal/page-parts";
+import { Button } from "@/components/shadcn/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/shadcn/table";
 import type { Metadata } from "next";
 import { getStaff } from "@/lib/admin/staff";
 import { statusLabels } from "@/lib/admin/labels";
 import { newsDateFormat } from "@/components/news-card";
-import { buttonClass } from "@/components/ui";
 
 export const metadata: Metadata = { title: "News and events" };
 
@@ -20,44 +23,39 @@ export default async function AdminNewsPage({ searchParams }: Props) {
   const posts = (data ?? []) as { id: string; slug: string; kind: string; title: string; happens_on: string; status: string; body: string[] }[];
 
   return (
-    <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold">News and events</h2>
-          <p className="mt-2 max-w-2xl text-ink-soft">The three most recent published items also show on the home page.</p>
-        </div>
-        <Link href="/admin/news/new" className={buttonClass("primary")}>
-          New post
-        </Link>
-      </div>
-      {saved && (
-        <p role="status" className="mt-6 rounded-md bg-tea-tint p-4 font-semibold">
-          Saved. Published posts show on the website straight away.
-        </p>
-      )}
-      <ul className="mt-6 divide-y divide-line rounded-xl border border-line bg-surface">
-        {posts.map((p) => (
-          <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 p-5">
-            <div>
-              <p className="text-lg font-bold">{p.title}</p>
-              <p className="text-sm text-ink-soft">
-                {p.kind === "event" ? "Event" : "News"} · {newsDateFormat.format(new Date(p.happens_on))} ·{" "}
-                <span className={p.status === "published" ? "font-semibold text-tea" : ""}>{statusLabels[p.status]}</span>
-              </p>
-            </div>
-            <div className="flex gap-4">
-              {p.status === "published" && p.body?.length > 0 && (
-                <Link href={`/news/${p.slug}`} className="font-semibold text-ink-soft underline underline-offset-4">
-                  View
-                </Link>
-              )}
-              <Link href={`/admin/news/${p.id}`} className="font-semibold text-tea underline underline-offset-4">
-                Edit
-              </Link>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="News and events"
+        description="The three most recent published items also show on the home page."
+        actions={<Button asChild><Link href="/admin/news/new"><Plus /> New post</Link></Button>}
+      />
+      {saved && <p role="status" className="rounded-md bg-secondary p-4 font-semibold">Saved. Published posts show on the website straight away.</p>}
+      <Panel>
+        {posts.length === 0 ? (
+          <Empty>No posts yet.</Empty>
+        ) : (
+          <Table>
+            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Kind</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></TableRow></TableHeader>
+            <TableBody>
+              {posts.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="max-w-96 whitespace-normal font-semibold">{p.title}</TableCell>
+                  <TableCell><Pill tone={p.kind === "event" ? "info" : "muted"}>{p.kind === "event" ? "Event" : "News"}</Pill></TableCell>
+                  <TableCell>{newsDateFormat.format(new Date(p.happens_on))}</TableCell>
+                  <TableCell><Pill tone={p.status === "published" ? "good" : "muted"}>{statusLabels[p.status]}</Pill></TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {p.status === "published" && p.body?.length > 0 && <Button asChild size="sm" variant="ghost"><Link href={`/news/${p.slug}`}>View</Link></Button>}
+                      <Button asChild size="sm" variant="outline"><Link href={`/admin/news/${p.id}`}><Pencil /> Edit</Link></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Panel>
     </div>
   );
 }

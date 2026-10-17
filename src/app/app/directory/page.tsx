@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
 import { signedPhotoUrls } from "@/lib/members/photo-urls";
 import { MemberTile, type TileMember } from "@/components/member/member-tile";
-import { buttonClass, inputClass } from "@/components/ui";
+import { inputClass } from "@/components/ui";
+import { Search } from "lucide-react";
+import { PageHeader } from "@/components/portal/page-parts";
+import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "Member directory" };
 
@@ -44,13 +47,15 @@ export default async function DirectoryPage({ searchParams }: Props) {
   const filtered = Boolean(q.q || q.year || q.region || q.category || q.mentoring);
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold">Member directory</h1>
-      <p className="mt-2 max-w-2xl text-ink-soft">
-        Every member of the association. Phone numbers and emails appear on a member&rsquo;s card only if they choose to share them.
-      </p>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        eyebrow="My account"
+        title="Member directory"
+        description="Every member of the association. Phone numbers and emails appear on a member's card only if they choose to share them."
+        actions={<Button asChild variant="outline"><Link href="/app/community">Members in numbers</Link></Button>}
+      />
 
-      <form method="get" className="mt-8 grid gap-3 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
+      <form method="get" className="grid gap-3 rounded-xl bg-card p-4 shadow-sm ring-1 ring-border sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] lg:items-end">
         <label className="flex flex-col gap-1 text-sm font-semibold">
           Search
           <input name="q" defaultValue={q.q} placeholder="Name, profession, skill…" className={inputClass} />
@@ -88,27 +93,27 @@ export default async function DirectoryPage({ searchParams }: Props) {
           </select>
         </label>
         <div className="flex gap-2">
-          <button type="submit" className={buttonClass("primary")}>Show</button>
-          {filtered && <Link href="/app/directory" className={buttonClass("quiet")}>Clear</Link>}
+          <Button type="submit"><Search /> Show</Button>
+          {filtered && <Button asChild variant="ghost"><Link href="/app/directory">Clear</Link></Button>}
         </div>
       </form>
 
-      <p className="mt-6 text-sm font-semibold text-ink-soft" role="status">
+      <p className="text-sm font-semibold text-muted-foreground" role="status">
         {total === 0 ? "No members match." : `${total} member${total === 1 ? "" : "s"}`}
       </p>
       {rows.length > 0 && (
-        <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {rows.map((m) => <MemberTile key={m.person_id} m={m} photo={m.photo_path ? photos.get(m.photo_path) : undefined} />)}
         </ul>
       )}
       {pages > 1 && (
-        <nav aria-label="Pages" className="mt-8 flex items-center gap-4">
-          {page > 1 && <Link href={link({ page: String(page - 1) })} className={buttonClass("secondary", "sm")}>Previous</Link>}
-          <span className="text-sm text-ink-soft">Page {page} of {pages}</span>
-          {page < pages && <Link href={link({ page: String(page + 1) })} className={buttonClass("secondary", "sm")}>Next</Link>}
+        <nav aria-label="Pages" className="flex items-center gap-4">
+          {page > 1 && <Button asChild size="sm" variant="outline"><Link href={link({ page: String(page - 1) })}>Previous</Link></Button>}
+          <span className="text-sm text-muted-foreground">Page {page} of {pages}</span>
+          {page < pages && <Button asChild size="sm" variant="outline"><Link href={link({ page: String(page + 1) })}>Next</Link></Button>}
         </nav>
       )}
-      <p className="mt-10 text-sm text-ink-soft">
+      <p className="text-sm text-muted-foreground">
         Choose who can see your phone and email in{" "}
         <Link href="/app/profile#choices" className="underline">My profile</Link>.
       </p>

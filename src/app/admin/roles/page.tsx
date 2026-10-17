@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { getStaff } from "@/lib/admin/staff";
 import { endRole } from "@/app/admin/actions";
 import { AssignRoleForm } from "@/components/admin/settings-forms";
+import { Empty, PageHeader, Panel, Pill } from "@/components/portal/page-parts";
+import { ConfirmAction } from "@/components/portal/confirm-action";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/shadcn/table";
 
 export const metadata: Metadata = { title: "Roles" };
 
@@ -37,63 +40,49 @@ export default async function AdminRolesPage() {
   const list = (assignments ?? []) as unknown as Assignment[];
 
   return (
-    <div className="flex flex-col gap-12">
-      <section>
-        <h2 className="text-2xl font-bold">Give a role</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          Roles decide what people can see and do. Class reps and regional reps are limited to their own class or
-          region. You can&rsquo;t give yourself a role; another administrator has to.
-        </p>
-        <div className="mt-5 max-w-3xl rounded-xl border border-line bg-surface p-6">
-          <AssignRoleForm
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Roles"
+        description="Roles decide what people can see and do. Class reps and regional reps are limited to their own class or region. You can't give yourself a role; another administrator has to."
+      />
+      <Panel title="Give a role" className="max-w-4xl">
+        <AssignRoleForm
             people={(people ?? []).map((p) => ({ id: p.id, name: p.full_name }))}
-            roles={(roles ?? []).filter((r) => r.key !== "member" && r.key !== "school_liaison").map((r) => ({ key: r.key, name: r.name, scope: (r.allowed_scope_types as string[])[0] ?? "association" }))}
+            roles={(roles ?? []).filter((r) => r.key !== "member").map((r) => ({ key: r.key, name: r.name, scope: ((r.allowed_scope_types as string[])[0] ?? "association").replace("school", "association") }))}
             years={(cohorts ?? []).map((c) => c.year_left).filter((y) => y <= new Date().getFullYear())}
             regions={(clusters ?? []).filter((c) => c.active).map((c) => c.name)}
             committees={committees ?? []}
           />
-        </div>
-      </section>
+      </Panel>
 
-      <section>
-        <h2 className="text-2xl font-bold">Current roles</h2>
+      <Panel title="Current roles" description="Ending a role keeps the record, with today's date as its end.">
         {list.length === 0 ? (
-          <p className="mt-4 text-ink-soft">No roles yet.</p>
+          <Empty>No roles yet.</Empty>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-xl border border-line bg-surface">
-            <table className="w-full min-w-[40rem] text-left text-[0.95rem]">
-              <thead className="border-b border-line text-ink-soft">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Person</th>
-                  <th className="px-4 py-3 font-semibold">Role</th>
-                  <th className="px-4 py-3 font-semibold">For</th>
-                  <th className="px-4 py-3 font-semibold">Since</th>
-                  <th className="px-4 py-3"><span className="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {list.map((a) => (
-                  <tr key={a.id}>
-                    <td className="px-4 py-3 font-semibold">{a.persons?.full_name}</td>
-                    <td className="px-4 py-3">{a.roles?.name}</td>
-                    <td className="px-4 py-3">{scopeName(a)}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{dateFormat.format(new Date(a.starts_on))}</td>
-                    <td className="px-4 py-3 text-right">
-                      {!a.ends_on && (
-                        <form action={endRole}>
-                          <input type="hidden" name="id" value={a.id} />
-                          <button type="submit" className="text-sm font-semibold text-alert underline underline-offset-4">End role</button>
-                        </form>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>Person</TableHead><TableHead>Role</TableHead><TableHead>For</TableHead><TableHead>Since</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-semibold">{a.persons?.full_name}</TableCell>
+                  <TableCell><Pill tone="info">{a.roles?.name}</Pill></TableCell>
+                  <TableCell>{scopeName(a)}</TableCell>
+                  <TableCell>{dateFormat.format(new Date(a.starts_on))}</TableCell>
+                  <TableCell className="text-right">
+                    {!a.ends_on && (
+                      <ConfirmAction action={endRole} fields={{ id: a.id }} variant="ghost" label="End role"
+                        title={`End ${a.persons?.full_name}'s role as ${a.roles?.name}?`} description="They lose what this role lets them see and do from their next page. The record is kept." confirmLabel="End role" />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-        <p className="mt-3 text-sm text-ink-soft">Ending a role keeps the record, with today&rsquo;s date as its end.</p>
-      </section>
+      </Panel>
     </div>
   );
 }

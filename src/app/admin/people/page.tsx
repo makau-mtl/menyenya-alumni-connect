@@ -4,7 +4,10 @@ import { getStaff } from "@/lib/admin/staff";
 import { movePosition, setPositionStatus } from "@/app/admin/actions";
 import { toPhoto } from "@/lib/photos";
 import { emptyPosition, PositionForm, type PositionValues } from "@/components/admin/position-form";
-import { buttonClass } from "@/components/ui";
+import { Plus } from "lucide-react";
+import { Empty, PageHeader, Panel, Pill } from "@/components/portal/page-parts";
+import { RowActions } from "@/components/portal/row-actions";
+import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "Our people" };
 
@@ -59,11 +62,16 @@ export default async function AdminPeoplePage({ searchParams }: Props) {
   const due = (alerts ?? []) as { id: string; title: string; name: string; term_ends: string; ended: boolean }[];
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Our people"
+        description={<>Positions on the public <Link href="/our-people" className="font-semibold text-tea underline">Our people</Link> page. Holding a position means being shown publicly; contact details are never shown, only LinkedIn.</>}
+        actions={<Button asChild><Link href="/admin/people#form"><Plus /> Add a position</Link></Button>}
+      />
       {due.length > 0 && (
-        <div role="status" className="rounded-xl border-2 border-gold bg-gold/10 p-5">
-          <h2 className="text-xl font-bold">Terms ending</h2>
-          <ul className="mt-2 flex flex-col gap-1">
+        <Panel tone="attention" title="Terms ending" description="After an election, change the holder and the term dates. The page keeps showing the current holder until you do.">
+          <ul className="flex flex-col gap-1">
             {due.map((a) => (
               <li key={a.id}>
                 <strong>{a.title}</strong> ({a.name}): {a.ended ? "ended" : "ends"} {dateFormat.format(new Date(a.term_ends))}.{" "}
@@ -71,25 +79,23 @@ export default async function AdminPeoplePage({ searchParams }: Props) {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-sm text-ink-soft">After an election, change the holder and the term dates. The page keeps showing the current holder until you do.</p>
-        </div>
+        </Panel>
       )}
-      {q.saved && <p role="status" className="rounded-md bg-tea-tint p-4 font-semibold">Saved. The Our people page is updated.</p>}
+      {q.saved && <p role="status" className="rounded-md bg-secondary p-4 font-semibold">Saved. The Our people page is updated.</p>}
 
       {(["leadership", "secretariat"] as const).map((section) => {
         const rows = list.filter((p) => p.section === section);
         return (
-          <section key={section}>
-            <h2 className="text-2xl font-bold">{section === "leadership" ? "Leadership (the board)" : "Secretariat"}</h2>
+          <Panel key={section} title={section === "leadership" ? "Leadership (the board)" : "Secretariat"}>
             {rows.length === 0 ? (
-              <p className="mt-3 text-ink-soft">No positions yet.</p>
+              <Empty>No positions yet.</Empty>
             ) : (
-              <ol className="mt-4 divide-y divide-line rounded-xl border border-line bg-surface">
+              <ol className="flex flex-col divide-y">
                 {rows.map((p, i) => (
-                  <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+                  <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
                     <div className="min-w-48 flex-1">
-                      <p className="font-semibold">{p.title}{p.status === "draft" && <span className="ml-2 rounded bg-paper px-2 py-0.5 text-xs font-semibold text-ink-soft">Hidden</span>}</p>
-                      <p className="text-sm text-ink-soft">
+                      <p className="flex flex-wrap items-center gap-2 font-semibold">{p.title}{p.status === "draft" && <Pill>Hidden</Pill>}</p>
+                      <p className="text-sm text-muted-foreground">
                         {p.person_id ? nameOf.get(p.person_id) ?? "Member no longer active" : `${p.display_name} (not a member)`}
                         {" · "}
                         {p.has_tenure
@@ -97,42 +103,19 @@ export default async function AdminPeoplePage({ searchParams }: Props) {
                           : "No fixed term"}
                       </p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <form action={movePosition}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button name="direction" value="up" disabled={i === 0} aria-label={`Move ${p.title} up`} className={buttonClass("secondary", "sm")}>↑</button>
-                        <button name="direction" value="down" disabled={i === rows.length - 1} aria-label={`Move ${p.title} down`} className={`${buttonClass("secondary", "sm")} ml-1`}>↓</button>
-                      </form>
-                      <Link href={`/admin/people?edit=${p.id}#form`} className={buttonClass("secondary", "sm")}>Edit</Link>
-                      <form action={setPositionStatus}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button name="status" value={p.status === "draft" ? "published" : "draft"} className={buttonClass("secondary", "sm")}>
-                          {p.status === "draft" ? "Show" : "Hide"}
-                        </button>
-                      </form>
-                      <form action={setPositionStatus}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button name="status" value="archived" className={buttonClass("quiet", "sm")}>Remove</button>
-                      </form>
-                    </div>
+                    <RowActions id={p.id} name={p.title} status={p.status} first={i === 0} last={i === rows.length - 1}
+                      editHref={`/admin/people?edit=${p.id}#form`} move={movePosition} setStatus={setPositionStatus} />
                   </li>
                 ))}
               </ol>
             )}
-          </section>
+          </Panel>
         );
       })}
 
-      <section id="form" className="scroll-mt-24">
-        <h2 className="text-2xl font-bold">{editing ? `Change: ${editing.title}` : "Add a position"}</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          Positions appear on the public <Link href="/our-people" className="underline">Our people</Link> page with a photo,
-          name and role. Holding a position means being shown publicly. Contact details are never shown, only LinkedIn.
-        </p>
-        <div className="mt-5 max-w-3xl rounded-xl border border-line bg-surface p-6">
-          <PositionForm key={initial.id || "new"} initial={initial} members={members} />
-        </div>
-      </section>
+      <Panel id="form" title={editing ? `Change: ${editing.title}` : "Add a position"} className="max-w-4xl">
+        <PositionForm key={initial.id || "new"} initial={initial} members={members} />
+      </Panel>
     </div>
   );
 }

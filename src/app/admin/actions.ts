@@ -375,7 +375,9 @@ export async function assignRole(_prev: ActionState, formData: FormData): Promis
   const roleKey = String(formData.get("role") ?? "");
   const { data: role } = await staff.supabase.from("roles").select("id, allowed_scope_types").eq("key", roleKey).maybeSingle();
   if (!person || !role) return fail("Choose a person and a role.");
-  const scope = (role.allowed_scope_types as string[])[0] ?? "association";
+  // The school liaison works for the one school, so the role covers the whole association.
+  const declared = (role.allowed_scope_types as string[])[0] ?? "association";
+  const scope = declared === "school" ? "association" : declared;
   let scopeId: string | null = null;
   if (scope === "cohort") {
     const { data } = await staff.supabase.from("cohorts").select("id").eq("year_left", Number(formData.get("year"))).maybeSingle();

@@ -33,6 +33,7 @@ export default async function AdminSchoolPage({ searchParams }: Props) {
   };
   const editing = q.edit ? list.find((p) => p.id === q.edit) : undefined;
   const last = stats?.[0];
+  const feeRow = (stats ?? []).find((s) => s.annual_fee_kes !== null || s.term_fee_kes !== null || s.needy_admitted_per_year !== null);
 
   return (
     <div className="flex flex-col gap-8">
@@ -45,7 +46,10 @@ export default async function AdminSchoolPage({ searchParams }: Props) {
           <CardDescription>Each update is kept as history; members see the latest. Counts only, never names of students.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          <SchoolStatsForm last={last ? { students: last.students, needy: last.needy_students, supported: last.supported_by_alumni, teachers: last.teachers } : null} />
+          <SchoolStatsForm
+            last={last ? { students: last.students, needy: last.needy_students, supported: last.supported_by_alumni, teachers: last.teachers } : null}
+            fees={feeRow ? { feesYear: feeRow.fees_year, termFee: feeRow.term_fee_kes, annualFee: feeRow.annual_fee_kes, needyAdmitted: feeRow.needy_admitted_per_year } : null}
+          />
           {(stats ?? []).length > 0 && (
             <Table>
               <TableHeader><TableRow><TableHead>As of</TableHead><TableHead>Students</TableHead><TableHead>In need</TableHead><TableHead>Supported</TableHead><TableHead>Teachers</TableHead><TableHead>Note</TableHead></TableRow></TableHeader>

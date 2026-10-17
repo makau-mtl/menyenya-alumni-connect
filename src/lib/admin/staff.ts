@@ -10,7 +10,7 @@ export const getStaff = cache(async () => {
   const supabase = await createSessionClient();
   const { data: claims } = await supabase.auth.getClaims();
   if (!claims?.claims) return null;
-  const [admin, finance, news, verifier, shop, school, cases, stories, reports] = await Promise.all([
+  const [admin, finance, news, verifier, shop, school, cases, stories, reports, impact] = await Promise.all([
     supabase.rpc("is_admin"),
     supabase.rpc("is_finance"),
     supabase.rpc("can_edit_news"),
@@ -20,6 +20,7 @@ export const getStaff = cache(async () => {
     supabase.rpc("can_handle_cases"),
     supabase.rpc("can_edit_stories"),
     supabase.rpc("can_manage_reports"),
+    supabase.rpc("can_edit_impact"),
   ]);
   return {
     supabase,
@@ -33,6 +34,7 @@ export const getStaff = cache(async () => {
     canHandleCases: cases.data === true,
     canEditStories: stories.data === true,
     canManageReports: reports.data === true,
+    canEditImpact: impact.data === true,
   };
 });
 

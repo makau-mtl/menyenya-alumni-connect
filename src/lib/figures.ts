@@ -6,6 +6,7 @@ import { getCauseProgress } from "@/lib/data";
 export type PublicFigures = {
   members: number; alumni: number; friends: number; classes: number; regions: number;
   students: number | null; needy_students: number | null; supported_by_alumni: number | null; school_as_of: string | null;
+  fees_year: number | null; term_fee_kes: number | null; annual_fee_kes: number | null; needy_admitted_per_year: number | null;
   tuitionPledged: number | null;
 };
 

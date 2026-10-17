@@ -8,6 +8,8 @@ import { createPublicClient } from "@/lib/supabase/server";
 import { loadPublicStories, storyPhotoUrls } from "@/lib/stories";
 import { StoryCard } from "@/components/stories/story-card";
 import { buttonClass } from "@/components/ui";
+import { VideoSlot } from "@/components/media";
+import { youtubeId } from "@/lib/photos";
 
 export const revalidate = 300;
 
@@ -16,7 +18,7 @@ export async function generateStaticParams() {
 }
 
 type Props = { params: Promise<{ slug: string }> };
-type Story = { slug: string; title: string; summary: string; body: string; subject_name: string; subject_year_left: number | null; photo_path: string | null; photo_caption: string | null; published_at: string };
+type Story = { slug: string; title: string; summary: string; body: string; subject_name: string; subject_year_left: number | null; photo_path: string | null; photo_caption: string | null; published_at: string; is_impact: boolean; video_url: string | null; cause_slug: string | null; cause_title: string | null };
 
 const getStory = cache(async (slug: string) => {
   if (!isSupabaseConfigured) return null;
@@ -46,11 +48,21 @@ export default async function StoryPage({ params }: Props) {
       <article className="section pt-12 lg:pt-16">
         <div className="mx-auto max-w-3xl">
         <Link href="/stories" className="font-semibold text-tea underline underline-offset-4">All alumni stories</Link>
-        <p className="mt-8 text-sm font-semibold uppercase tracking-[0.16em] text-tea">
+        {s.is_impact && (
+          <p className="mt-8">
+            <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-sm font-semibold text-tea-dark">
+              From our work{s.cause_title ? ": " : ""}{s.cause_slug && <Link href={`/causes/${s.cause_slug}`} className="ml-1 underline">{s.cause_title}</Link>}
+            </span>
+          </p>
+        )}
+        <p className={`${s.is_impact ? "mt-4" : "mt-8"} text-sm font-semibold uppercase tracking-[0.16em] text-tea`}>
           {s.subject_name}{s.subject_year_left ? ` · Class of ${s.subject_year_left}` : ""}
         </p>
         <h1 className="mt-2 text-4xl font-bold leading-[1.1] sm:text-5xl">{s.title}</h1>
         {s.summary && <p className="mt-5 text-xl text-ink-soft">{s.summary}</p>}
+        {s.video_url && youtubeId(s.video_url) && (
+          <div className="mt-10"><VideoSlot youtubeId={youtubeId(s.video_url)} title={s.title} caption={s.title} /></div>
+        )}
         {s.photo && (
           <figure className="mt-10">
             <img src={s.photo} alt={s.photo_caption ?? s.subject_name} className="aspect-[3/2] w-full rounded-2xl object-cover" />
@@ -67,8 +79,17 @@ export default async function StoryPage({ params }: Props) {
       </article>
       <section className="section pt-16">
         <div className="flex flex-col items-start gap-4 rounded-3xl bg-surface p-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="max-w-xl text-lg font-semibold">Has Menyenya shaped your journey too? Every story inspires a student still in class.</p>
-          <Link href="/app/stories" className={buttonClass("gold", "lg")}>Share your story</Link>
+          {s.is_impact && s.cause_slug ? (
+            <>
+              <p className="max-w-xl text-lg font-semibold">Stories like this happen because alumni and friends give. Be part of the next one.</p>
+              <Link href={`/causes/${s.cause_slug}`} className={buttonClass("gold", "lg")}>Support {s.cause_title}</Link>
+            </>
+          ) : (
+            <>
+              <p className="max-w-xl text-lg font-semibold">Has Menyenya shaped your journey too? Every story inspires a student still in class.</p>
+              <Link href="/app/stories" className={buttonClass("gold", "lg")}>Share your story</Link>
+            </>
+          )}
         </div>
       </section>
       {more.length > 0 && (

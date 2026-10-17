@@ -8,6 +8,14 @@ import { ImageSlot } from "@/components/media";
 import { ProgressFigures } from "@/components/progress-figures";
 import { ShareButton } from "@/components/share-button";
 import { buttonClass } from "@/components/ui";
+import { BURSARY_SLUG } from "@/content/bursary";
+import { BursaryGiftValue, BursaryHow, BursaryNeed } from "@/components/bursary-sections";
+import { ImpactSection } from "@/components/impact-section";
+import { getPublicFigures } from "@/lib/figures";
+import { loadImpactFigures } from "@/lib/impact";
+import { loadPublicStories } from "@/lib/stories";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createPublicClient } from "@/lib/supabase/server";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -26,10 +34,15 @@ export const revalidate = 60;
 export default async function CausePage({ params }: Params) {
   const cause = await getCause((await params).slug);
   if (!cause) notFound();
-  const [progress, channel, allPhotos] = await Promise.all([
+  const db = isSupabaseConfigured ? createPublicClient() : null;
+  const bursary = cause.slug === BURSARY_SLUG;
+  const [progress, channel, allPhotos, impactFigures, impactStories, figures] = await Promise.all([
     getCauseProgress(cause.slug),
     getChannelForCause(cause),
     listCausePhotos(cause.slug),
+    loadImpactFigures(db, cause.slug),
+    loadPublicStories(db, 6, false, { kind: "impact", causeSlug: cause.slug }),
+    bursary ? getPublicFigures() : Promise.resolve(null),
   ]);
   const photos = allPhotos.filter((p) => p.status === "published");
   const preparing = cause.lifecycle === "preparation";
@@ -86,6 +99,9 @@ export default async function CausePage({ params }: Params) {
               ))}
             </div>
           </section>
+
+          {bursary && <BursaryNeed f={figures} />}
+          {bursary && <BursaryHow />}
 
           {cause.components.length > 0 && (
             <section>
@@ -168,7 +184,7 @@ export default async function CausePage({ params }: Params) {
                 <p className="mt-3 text-ink-soft">
                   {channel.holder === "school_bom"
                     ? "The money goes directly into a dedicated project account held by the school's Board of Management, never to the association or an individual. An alumni representative on the school's project committee oversees spending and reports back to members."
-                    : "The money goes into the association's own account. The treasurer records every shilling, and the association publishes an annual financial report."}
+                    : <>The money goes into the association&rsquo;s own account. Every gift is recorded, and what is paid out is set out in the Treasurer&rsquo;s annual financial statements on <Link href="/reports" className="underline">Reports and accountability</Link>.</>}
                 </p>
               </details>
               <details className="py-4">
@@ -193,6 +209,7 @@ export default async function CausePage({ params }: Params) {
         </div>
 
         <aside className="flex flex-col gap-8 lg:sticky lg:top-6 lg:self-start">
+          {bursary && <BursaryGiftValue f={figures} />}
           {cause.suggestedPledges.length > 0 && (
             <section className="rounded-lg border border-line bg-surface p-6">
               <h2 className="text-2xl font-bold">Choose a pledge</h2>
@@ -236,6 +253,17 @@ export default async function CausePage({ params }: Params) {
           </section>
         </aside>
       </div>
+
+      {(impactFigures.length > 0 || impactStories.length > 0) && (
+        <div className="section pt-20">
+          <ImpactSection
+            figures={impactFigures}
+            stories={impactStories}
+            title="The difference it makes"
+            intro={bursary ? "Stories are shared only with the agreement of a parent or guardian and the school." : undefined}
+          />
+        </div>
+      )}
     </article>
   );
 }

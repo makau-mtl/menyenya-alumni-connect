@@ -111,10 +111,10 @@ export function AssignRoleForm({
           </select>
         </Field>
         {scope === "cohort" && (
-          <Field label="For which class" name="year">
+          <Field label="For which cohort" name="year">
             <select id="year" name="year" required className={inputClass} defaultValue="">
-              <option value="" disabled>Choose a class</option>
-              {years.map((y) => <option key={y} value={y}>Class of {y}</option>)}
+              <option value="" disabled>Choose a cohort</option>
+              {years.map((y) => <option key={y} value={y}>Class of {y} cohort</option>)}
             </select>
           </Field>
         )}
@@ -136,6 +136,9 @@ export function AssignRoleForm({
         )}
         <Field label="Starts on" name="startsOn">
           <input id="startsOn" name="startsOn" type="date" className={inputClass} />
+        </Field>
+        <Field label="Term ends (optional)" name="endsOn" hint="For elected roles such as cohort reps. The role ends on this date.">
+          <input id="endsOn" name="endsOn" type="date" className={inputClass} />
         </Field>
       </div>
       <Save pending={pending} state={state} label="Give role" />

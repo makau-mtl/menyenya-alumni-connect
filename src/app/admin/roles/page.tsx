@@ -32,7 +32,7 @@ export default async function AdminRolesPage() {
     staff.supabase.from("committees").select("id, name").eq("active", true).order("name"),
   ]);
   const scopeName = (a: Assignment) => {
-    if (a.scope_type === "cohort") return `Class of ${cohorts?.find((c) => c.id === a.scope_id)?.year_left ?? ""}`;
+    if (a.scope_type === "cohort") return `Class of ${cohorts?.find((c) => c.id === a.scope_id)?.year_left ?? ""} cohort`;
     if (a.scope_type === "cluster") return `${clusters?.find((c) => c.id === a.scope_id)?.name ?? ""} region`;
     if (a.scope_type === "committee") return committees?.find((c) => c.id === a.scope_id)?.name ?? "Committee";
     return "Whole association";
@@ -62,7 +62,7 @@ export default async function AdminRolesPage() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Person</TableHead><TableHead>Role</TableHead><TableHead>For</TableHead><TableHead>Since</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></TableRow>
+              <TableRow><TableHead>Person</TableHead><TableHead>Role</TableHead><TableHead>For</TableHead><TableHead>Term</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></TableRow>
             </TableHeader>
             <TableBody>
               {list.map((a) => (
@@ -70,9 +70,9 @@ export default async function AdminRolesPage() {
                   <TableCell className="font-semibold">{a.persons?.full_name}</TableCell>
                   <TableCell><Pill tone="info">{a.roles?.name}</Pill></TableCell>
                   <TableCell>{scopeName(a)}</TableCell>
-                  <TableCell>{dateFormat.format(new Date(a.starts_on))}</TableCell>
+                  <TableCell>{dateFormat.format(new Date(a.starts_on))}{a.ends_on ? ` to ${dateFormat.format(new Date(a.ends_on))}` : ""}</TableCell>
                   <TableCell className="text-right">
-                    {!a.ends_on && (
+                    {(!a.ends_on || a.ends_on > today) && (
                       <ConfirmAction action={endRole} fields={{ id: a.id }} variant="ghost" label="End role"
                         title={`End ${a.persons?.full_name}'s role as ${a.roles?.name}?`} description="They lose what this role lets them see and do from their next page. The record is kept." confirmLabel="End role" />
                     )}

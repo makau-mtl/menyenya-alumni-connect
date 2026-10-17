@@ -49,9 +49,13 @@ export function ProfileCard({ m, photo, publicView = false }: { m: CardMember; p
         )}
       </div>
       <div className="max-w-2xl">
-        <p className={`inline-block rounded-full px-3 py-1 text-sm font-bold ${friend ? "bg-gold text-ink" : "bg-ink text-white"}`}>
-          {friend ? `Friend of the alumni${m.relationship ? ` · ${m.relationship}` : ""}` : `Class of ${m.year_left}`}
-        </p>
+        {!friend && !publicView && m.year_left ? (
+          <a href={`/app/cohorts/${m.year_left}`} className="inline-block rounded-full bg-ink px-3 py-1 text-sm font-bold text-white hover:bg-tea">Class of {m.year_left}</a>
+        ) : (
+          <p className={`inline-block rounded-full px-3 py-1 text-sm font-bold ${friend ? "bg-gold text-ink" : "bg-ink text-white"}`}>
+            {friend ? `Friend of the alumni${m.relationship ? ` · ${m.relationship}` : ""}` : `Class of ${m.year_left}`}
+          </p>
+        )}
         <h1 className="mt-3 text-4xl font-bold">{m.full_name}</h1>
         {m.headline && <p className="mt-3 text-xl">{m.headline}</p>}
         <dl className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">

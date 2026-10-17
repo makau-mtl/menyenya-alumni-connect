@@ -236,3 +236,7 @@ For the Bursary Fund, the financial statements should show what was paid to the 
 ## Streams and dormitories
 
 **Admin → Settings → Streams and dormitories** (administrators). Type the names separated by commas and press Add. Fix spelling with Rename. Hide one that shouldn't be chosen any more; members who already chose it keep it. Members choose theirs under **My profile → My Menyenya**.
+
+## Cohort reps
+
+Cohort reps are elected by their cohort. After the election, an administrator opens **Admin → Roles**, chooses the person, the role **Cohort rep**, the cohort (e.g. Class of 2004 cohort), the start date and, if there is one, the **term end** date. The rep can then edit their cohort page's welcome note and WhatsApp link, and confirm members of the cohort when confirmation is switched on. To end a role early, press **End role**.

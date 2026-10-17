@@ -155,12 +155,12 @@ export function Dashboard({ d }: { d: DashboardData }) {
         </Card>
       </section>
 
-      {/* Your class */}
+      {/* Your cohort */}
       {d.myClass && (
         <section className="overflow-hidden rounded-2xl bg-tea text-white">
           <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your class: {d.myClass.label}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your cohort: {d.myClass.label}</p>
               <p className="mt-2 font-display text-3xl font-bold sm:text-4xl">
                 {d.myClass.count} {d.myClass.count === 1 ? "classmate is" : "classmates are"} here
               </p>
@@ -191,11 +191,11 @@ export function Dashboard({ d }: { d: DashboardData }) {
               </Button>
               {d.myClass.whatsapp.url && (
                 <Button asChild size="lg" className="bg-[#25D366] text-ink hover:bg-[#25D366]/90">
-                  <a href={d.myClass.whatsapp.url} target="_blank" rel="noopener noreferrer"><MessageCircle /> Class WhatsApp group</a>
+                  <a href={d.myClass.whatsapp.url} target="_blank" rel="noopener noreferrer"><MessageCircle /> Cohort WhatsApp group</a>
                 </Button>
               )}
               <Button asChild variant="outline" size="lg" className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white">
-                <Link href={d.myClass.directory}><Users /> See who&rsquo;s here</Link>
+                <Link href={`/app/cohorts/${d.myClass.year}`}><Users /> Our cohort page</Link>
               </Button>
             </div>
           </div>

@@ -585,3 +585,16 @@ export async function saveSchoolLife(_prev: ActionState, formData: FormData): Pr
   }
   return done("Saved.");
 }
+
+/** The cohort rep (or an administrator) writes the cohort page's welcome note. */
+export async function saveCohortWelcome(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const year = Number(formData.get("year"));
+  const text = String(formData.get("welcome") ?? "").trim();
+  if (text.length > 800) return fail("Keep the welcome under 800 characters.");
+  const { error } = await m.supabase.rpc("set_cohort_welcome", { p_year: year, p_text: text });
+  if (error) return fail(error.message.includes("cohort rep") ? "Only the cohort rep can change this." : "The welcome could not be saved.");
+  revalidatePath(`/app/cohorts/${year}`);
+  return done("Saved.");
+}

@@ -1,5 +1,18 @@
 # Progress
 
+## 18 October 2026: cohort pages and cohort reps
+
+- Every year group has a members-only **cohort page** ("Class of 2004 cohort", `/app/cohorts/2004`), opened from the dashboard ("Our cohort page"), the member card, the directory (Cohorts) and Members in numbers.
+- On the page:
+  - the members here and the cohort's ranking
+  - the elected **cohort rep(s)** with their term
+  - a welcome note
+  - the cohort WhatsApp group (only for the cohort's own members) and an Invite classmates button
+  - upcoming cohort meet-ups
+  - memories shared by the cohort
+- The role is now called **Cohort rep**. Reps are elected, then an administrator gives the role in Admin → Roles, now with an optional **term end date**. The rep can edit the welcome note and the WhatsApp link.
+- Tests: 2 new database tests; 130 pass.
+
 ## 18 October 2026: My Menyenya (stream and dormitory)
 
 - **My profile → My Menyenya** (optional): the stream you were in and the dormitories you slept in (tick all that apply). Shown on your member card.

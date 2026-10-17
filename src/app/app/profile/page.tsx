@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
+import { getStaff } from "@/lib/admin/staff";
 import { memberPhotoUrl } from "@/lib/members/photos";
 import { applySignInPhoto, removeMemberPhoto, uploadMemberPhoto } from "@/app/app/actions";
 import { PhotoUpload } from "@/components/admin/photo-upload";
@@ -26,6 +27,8 @@ export default async function ProfilePage() {
   if (!member) redirect("/login?next=/app/profile");
   if (!member.registered) redirect("/join");
   if (member.membershipStatus === "terminated") redirect("/app");
+  const staff = await getStaff();
+  const hasAdmin = Boolean(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool));
 
   const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase
@@ -47,6 +50,9 @@ export default async function ProfilePage() {
     <div className="flex max-w-3xl flex-col gap-8">
       <div>
         <Link href="/app" className="font-semibold text-tea underline underline-offset-4">My account</Link>
+        {hasAdmin && (
+          <Link href="/admin" className={`${buttonClass("secondary", "sm")} mt-4 md:hidden`}>Open the admin area</Link>
+        )}
         <h1 className="mt-4 text-4xl font-bold">My profile</h1>
         <p className="mt-3 text-lg text-ink-soft">Everything here is optional. Save each section on its own.</p>
         <nav aria-label="Sections" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-semibold text-tea">

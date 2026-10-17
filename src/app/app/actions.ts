@@ -288,3 +288,75 @@ export async function savePriorityView(_prev: ActionState, formData: FormData): 
   revalidatePath("/app/school");
   return done("Thank you. Your view is saved.");
 }
+
+// Meet-ups ("Who's around?") ---------------------------------------------------------------------------
+
+const meetupSchema = z.object({
+  title: z.string().trim().min(3, "Say what it is, e.g. Nyama choma.").max(100, "Keep this under 100 characters."),
+  place: z.string().trim().min(2, "Say the town or area.").max(100, "Keep this under 100 characters."),
+  happensOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose the date."),
+  timeNote: z.string().trim().max(60, "Keep this short, e.g. from 2 pm."),
+  note: z.string().trim().max(500, "Keep the note under 500 characters."),
+  audience: z.enum(["everyone", "class", "region"]),
+});
+
+export async function createMeetup(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = meetupSchema.safeParse({
+    title: formData.get("title") ?? "", place: formData.get("place") ?? "", happensOn: formData.get("happensOn") ?? "",
+    timeNote: formData.get("timeNote") ?? "", note: formData.get("note") ?? "", audience: formData.get("audience") ?? "everyone",
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const i of parsed.error.issues) errors[String(i.path[0])] ??= i.message;
+    return fail("Please fix the highlighted fields.", errors);
+  }
+  const v = parsed.data;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+  if (v.happensOn < today) return fail("Choose today or a later date.", { happensOn: "Choose today or a later date." });
+  const { error } = await m.supabase.from("meetups").insert({
+    organiser_id: m.personId, title: v.title, place: v.place, happens_on: v.happensOn, time_note: v.timeNote, note: v.note, audience: v.audience,
+  });
+  if (error) {
+    console.error(error);
+    return fail("Your meet-up could not be posted. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done("Posted. Members can now say they're in.");
+}
+
+/** "I'm in" or "Not going" for a meet-up. */
+export async function respondMeetup(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const going = formData.get("going") === "yes";
+  await m.supabase.from("meetup_responses").upsert({ meetup_id: id, person_id: m.personId, going }, { onConflict: "meetup_id,person_id" });
+  revalidatePath("/app", "layout");
+}
+
+export async function cancelMeetup(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  await m.supabase.from("meetups").update({ status: "cancelled" }).eq("id", String(formData.get("id") ?? "")).eq("organiser_id", m.personId);
+  revalidatePath("/app", "layout");
+}
+
+// Class WhatsApp group (class rep or administrator) ---------------------------------------------------------
+
+export async function saveClassGroup(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const url = String(formData.get("url") ?? "").trim();
+  if (url && !/^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]+$/.test(url)) {
+    return fail("Paste the group's invite link. It starts with https://chat.whatsapp.com/");
+  }
+  const { error } = await m.supabase.rpc("set_class_group", { p_year: Number(formData.get("year")), p_url: url });
+  if (error) {
+    console.error(error);
+    return fail(/class rep/.test(error.message) ? "Only your class rep or an administrator can change this." : "The link could not be saved.");
+  }
+  revalidatePath("/app", "layout");
+  return done(url ? "Saved. Your classmates now see the WhatsApp button." : "Link removed.");
+}

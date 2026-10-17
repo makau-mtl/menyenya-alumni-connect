@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeCheck, LayoutDashboard, Settings2, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Images, LayoutDashboard, MapPin, Settings2, UserRound, Users } from "lucide-react";
 
-const icons = { dashboard: LayoutDashboard, profile: UserRound, directory: Users, confirm: BadgeCheck, admin: Settings2 };
-export type MemberTab = { href: string; label: string; short: string; icon: keyof typeof icons; badge?: number };
+const icons = { dashboard: LayoutDashboard, profile: UserRound, directory: Users, confirm: BadgeCheck, admin: Settings2, meetups: MapPin, memories: Images };
+/** `phone: false` keeps a tab off the phone bar (it is reached another way there, e.g. the action centre). */
+export type MemberTab = { href: string; label: string; short: string; icon: keyof typeof icons; badge?: number; phone?: boolean };
 
 /**
  * The member area's navigation. Laptops: a row of tabs under the website header.
@@ -45,7 +46,7 @@ export function MemberNav({ tabs }: { tabs: MemberTab[] }) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-ink pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(23,40,59,0.25)] md:hidden"
       >
         <ul className="mx-auto flex max-w-md items-stretch justify-around px-1">
-          {tabs.map((t) => {
+          {tabs.filter((t) => t.phone !== false).map((t) => {
             const Icon = icons[t.icon];
             const on = active(t.href);
             return (

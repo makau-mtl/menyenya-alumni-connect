@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight, BadgeCheck, Building2, CalendarDays, CheckCircle2, CircleUserRound, Gift, GraduationCap, Handshake, HeartHandshake,
-  Megaphone, Search, ShoppingBag, Trophy, UserPen, UserPlus, Users, Vote,
+  MapPin, Megaphone, MessageCircle, Search, ShoppingBag, Trophy, UserPen, UserPlus, Users, Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Badge } from "@/components/shadcn/badge";
@@ -9,6 +9,8 @@ import { Button } from "@/components/shadcn/button";
 import { Progress } from "@/components/shadcn/progress";
 import { MembershipCard, type MembershipCardData } from "@/components/member/membership-card";
 import { BarList } from "./bar-list";
+import { ClassGroupForm } from "@/components/member/connections";
+import { MeetupCard, type Meetup } from "@/components/member/meetup-card";
 
 const actionIcons = { profile: CircleUserRound, confirm: BadgeCheck, vote: Vote, renew: Gift, admin: Megaphone, school: GraduationCap, info: CheckCircle2 };
 export type ActionItem = { label: string; detail?: string; href?: string; count?: number; icon: keyof typeof actionIcons; urgent?: boolean };
@@ -18,7 +20,12 @@ export type DashboardData = {
   greeting: string;
   card: MembershipCardData;
   actions: ActionItem[];
-  myClass: { label: string; count: number; rank: number | null; of: number; directory: string; invite: string } | null;
+  myClass: {
+    label: string; year: number; count: number; rank: number | null; of: number; directory: string; invite: string; joined: number;
+    faces: { name: string; photo: string | null }[];
+    whatsapp: { url: string | null; canEdit: boolean };
+  } | null;
+  meetups: Meetup[];
   community: {
     total: number; alumni: number; friends: number; classes: number;
     topClasses: { label: string; value: number }[];
@@ -137,28 +144,73 @@ export function Dashboard({ d }: { d: DashboardData }) {
 
       {/* Your class */}
       {d.myClass && (
-        <section className="grid items-center gap-6 rounded-2xl bg-tea p-6 text-white sm:p-8 lg:grid-cols-[1fr_auto]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">{d.myClass.label}</p>
-            <p className="mt-2 font-display text-3xl font-bold sm:text-4xl">
-              {d.myClass.count} {d.myClass.count === 1 ? "classmate is" : "classmates are"} here
-            </p>
-            {d.myClass.rank && (
-              <p className="mt-2 flex items-center gap-2 text-white/85">
-                <Trophy className="size-4 text-gold" /> {d.myClass.label} is {ordinal(d.myClass.rank)} of {d.myClass.of} classes on mhs.alumni
+        <section className="overflow-hidden rounded-2xl bg-tea text-white">
+          <div className="grid items-center gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto]">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold">Your class: {d.myClass.label}</p>
+              <p className="mt-2 font-display text-3xl font-bold sm:text-4xl">
+                {d.myClass.count} {d.myClass.count === 1 ? "classmate is" : "classmates are"} here
               </p>
-            )}
+              {d.myClass.faces.length > 0 && (
+                <ul className="mt-4 flex -space-x-2" aria-label="Some of your classmates">
+                  {d.myClass.faces.map((f) => (
+                    <li key={f.name} title={f.name}>
+                      {f.photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={f.photo} alt={f.name} className="size-11 rounded-full object-cover ring-2 ring-tea" />
+                      ) : (
+                        <span className="flex size-11 items-center justify-center rounded-full bg-tea-dark text-sm font-bold ring-2 ring-tea">
+                          {f.name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
+                {d.myClass.rank && <span className="flex items-center gap-1.5"><Trophy className="size-4 text-gold" /> {ordinal(d.myClass.rank)} of {d.myClass.of} classes</span>}
+                {d.myClass.joined > 0 && <span className="flex items-center gap-1.5"><UserPlus className="size-4 text-gold" /> {d.myClass.joined} joined through your invitation</span>}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <Button asChild className="bg-gold text-ink hover:bg-gold/90" size="lg">
+                <a href={d.myClass.invite} target="_blank" rel="noopener noreferrer"><UserPlus /> Invite classmates</a>
+              </Button>
+              {d.myClass.whatsapp.url && (
+                <Button asChild size="lg" className="bg-[#25D366] text-ink hover:bg-[#25D366]/90">
+                  <a href={d.myClass.whatsapp.url} target="_blank" rel="noopener noreferrer"><MessageCircle /> Class WhatsApp group</a>
+                </Button>
+              )}
+              <Button asChild variant="outline" size="lg" className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white">
+                <Link href={d.myClass.directory}><Users /> See who&rsquo;s here</Link>
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button asChild className="bg-gold text-ink hover:bg-gold/90" size="lg">
-              <a href={d.myClass.invite} target="_blank" rel="noopener noreferrer"><UserPlus /> Invite classmates</a>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white">
-              <Link href={d.myClass.directory}><Users /> See who&rsquo;s here</Link>
-            </Button>
-          </div>
+          {d.myClass.whatsapp.canEdit && (
+            <div className="border-t border-white/15 bg-tea-dark/40 px-6 py-3 sm:px-8">
+              <ClassGroupForm year={d.myClass.year} current={d.myClass.whatsapp.url} />
+            </div>
+          )}
         </section>
       )}
+
+      {/* Who's around? */}
+      <section className="flex flex-col gap-5">
+        <SectionTitle
+          eyebrow="Meet up"
+          title="Who's around?"
+          action={<Button asChild><Link href="/app/meetups"><MapPin /> Drop your pin</Link></Button>}
+        />
+        {d.meetups.length ? (
+          <div className="grid gap-3 lg:grid-cols-3">
+            {d.meetups.map((m) => <MeetupCard key={m.id} m={m} compact />)}
+          </div>
+        ) : (
+          <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">
+            Going to be in town? Post where you&rsquo;ll be and see which alumni can join you for nyama choma or a cup of tea.
+          </p>
+        )}
+      </section>
 
       {/* Community in numbers */}
       {d.community && (

@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
 import { memberPhotoUrl } from "@/lib/members/photos";
+import { signedPhotoUrls } from "@/lib/members/photo-urls";
+import type { Meetup } from "@/components/member/meetup-card";
 import { getStaff } from "@/lib/admin/staff";
 import { buttonClass } from "@/components/ui";
 import { rejoinMembership } from "@/app/app/actions";
 import { type Standing } from "@/components/member/standing-card";
 import { Dashboard, type ActionItem, type DashboardData } from "@/components/portal/dashboard";
 import { headers } from "next/headers";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCause, getCauseProgress, listNews } from "@/lib/data";
 
 export default async function MemberHome() {
@@ -82,6 +85,12 @@ export default async function MemberHome() {
       db.rpc("is_confirmer"),
       db.rpc("confirmations_waiting"),
     ]);
+  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }] = await Promise.all([
+    db.rpc("my_invite_link"),
+    db.rpc("my_invites_joined"),
+    db.rpc("my_class_group"),
+    db.rpc("upcoming_meetups", { p_limit: 3 }),
+  ]);
   const standing = (standingRows as Standing[] | null)?.[0] ?? null;
   const cat = p?.member_categories as unknown as { key: string; name: string } | null;
   const region = (p?.clusters as unknown as { name: string } | null)?.name;
@@ -100,7 +109,9 @@ export default async function MemberHome() {
   const hour = Number(new Intl.DateTimeFormat("en-KE", { hour: "numeric", hourCycle: "h23", timeZone: "Africa/Nairobi" }).format(new Date()));
   const classLabel = alumnus ? `Class of ${p!.year_left}` : null;
   const origin = await siteOrigin();
-  const inviteText = `Hi! ${classLabel ? `Our ${classLabel} is` : "Menyenya alumni are"} getting together on mhs.alumni, the Menyenya SDA High School alumni platform. Register here: ${origin}/join`;
+  const inviteText = `Hi! ${classLabel ? `Our ${classLabel} is` : "Menyenya alumni are"} getting together on mhs.alumni, the Menyenya SDA High School alumni platform. Join us here: ${origin}/join${inviteToken ? `?invite=${inviteToken}` : ""}`;
+  const classmates = alumnus ? await classFaces(db, p!.year_left!, member.personId!) : [];
+  const grp = ((group ?? []) as { whatsapp_url: string | null; can_edit: boolean }[])[0];
 
   // The action centre: everything waiting for this member.
   const actions: ActionItem[] = [];
@@ -137,6 +148,10 @@ export default async function MemberHome() {
           of: stats.classes_represented,
           directory: `/app/directory?year=${p!.year_left}`,
           invite: `https://wa.me/?text=${encodeURIComponent(inviteText)}`,
+          year: p!.year_left!,
+          joined: Number(joined ?? 0),
+          faces: classmates,
+          whatsapp: { url: grp?.whatsapp_url ?? null, canEdit: Boolean(grp?.can_edit) },
         }
       : null,
     community: stats
@@ -159,9 +174,20 @@ export default async function MemberHome() {
       measure: res.at(-1)?.measure ?? null,
       priorities: pri.map((x) => ({ title: x.title, average: x.average === null ? null : Number(x.average), responses: Number(x.responses) })),
     },
+    meetups: (meetups ?? []) as Meetup[],
     news: news.slice(0, 4).map((n) => ({ slug: n.slug, title: n.title, date: n.date, kind: n.kind })),
   };
   return <Dashboard d={data} />;
+}
+
+/** Up to 8 classmates for the faces strip (photos only where members may see them). */
+async function classFaces(db: SupabaseClient, year: number, me: string) {
+  const { data } = await db.rpc("directory_search", { p_year: year, p_limit: 12 });
+  const rows = ((data ?? []) as { person_id: string; full_name: string; photo_path: string | null }[]).filter((r) => r.person_id !== me);
+  rows.sort((a, b) => Number(Boolean(b.photo_path)) - Number(Boolean(a.photo_path)));
+  const top = rows.slice(0, 8);
+  const urls = await signedPhotoUrls(db, top.map((r) => r.photo_path), "small");
+  return top.map((r) => ({ name: r.full_name, photo: r.photo_path ? urls.get(r.photo_path) ?? null : null }));
 }
 
 async function siteOrigin() {

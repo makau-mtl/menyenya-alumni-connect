@@ -21,11 +21,12 @@ export default async function MemberLayout({ children }: { children: React.React
     const confirm = (waiting as unknown[] | null)?.length ?? 0;
     tabs = [
       { href: "/app", label: "Dashboard", short: "Home", icon: "dashboard" },
-      { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
       { href: "/app/directory", label: "Member directory", short: "Directory", icon: "directory" },
-      ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined }] : []),
+      { href: "/app/meetups", label: "Meet-ups", short: "Meet up", icon: "meetups" },
+      { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
+      ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined, phone: false }] : []),
       ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool)
-        ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const }]
+        ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const, phone: false }]
         : []),
     ];
   }

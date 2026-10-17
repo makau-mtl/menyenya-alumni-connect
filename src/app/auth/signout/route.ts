@@ -7,5 +7,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createSessionClient();
     await supabase.auth.signOut();
   }
-  return NextResponse.redirect(new URL("/", request.url), { status: 303 });
+  // "signedout" tells the installed app to remove the pages it saved for offline use.
+  const response = NextResponse.redirect(new URL("/?signedout=1", request.url), { status: 303 });
+  response.headers.set("Clear-Site-Data", '"cache"');
+  return response;
 }

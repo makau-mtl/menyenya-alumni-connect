@@ -1,5 +1,13 @@
 # Progress
 
+## 18 October 2026: figures and Reports and accountability
+
+- **Our community in numbers** on the home page and Who we are: members registered, classes represented, regions, pledged to the tuition block, students supported by alumni. Live totals; a figure not yet known is left out.
+- New public page **Reports and accountability** (`/reports`, under Who we are, in the footer, and "Where your money goes" on the donate page, the shop and the footer note): how gifts are handled, the tuition block pledged and received so far, and annual reports by year.
+- New admin tab **Reports**: the Treasurer uploads financial reports, the Chairman the moral report (administrators either). PDF up to 15 MB, saved as a draft, then **Publish**. A corrected report is uploaded as a new version; the earlier one stays available. **Withdraw** takes a report down without deleting it.
+- Decided: money paid out is reported in the financial statements, not tracked on the platform. Gifts coming in are still recorded.
+- Tests: 3 new database tests; 120 pass.
+
 ## 17 October 2026: offline use of the installed app
 
 - Pages you have opened recently still open with no connection (on phones and computers), with a bar at the top: "You're offline. Saved pages may be out of date…".

@@ -12,6 +12,7 @@ export const mainNav: NavItem[] = [
       { label: "About us", href: "/who-we-are", text: "Our mission, vision and story" },
       { label: "Our people", href: "/our-people", text: "Leadership, secretariat and members" },
       { label: "Alumni stories", href: "/stories", text: "Journeys that began at Menyenya" },
+      { label: "Reports and accountability", href: "/reports", text: "Where your money goes" },
       { label: "Careers", href: "/careers", text: "Internships and roles with the association" },
     ],
   },

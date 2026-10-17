@@ -9,6 +9,7 @@ const columns = [
       { label: "About us", href: "/who-we-are" },
       { label: "Our people", href: "/our-people" },
       { label: "Alumni stories", href: "/stories" },
+      { label: "Reports and accountability", href: "/reports" },
       { label: "Careers", href: "/careers" },
       { label: "News and events", href: "/news" },
     ],
@@ -77,7 +78,8 @@ export function SiteFooter() {
 
         <div className="mt-12 rounded-lg border border-gold/40 bg-white/5 p-4 text-[0.95rem]">
           <strong className="text-white">Protect your gift.</strong> We never ask anyone to send money to a personal phone
-          number. Give only through this website or the official Paybill shown on it.
+          number. Give only through this website or the official Paybill shown on it.{" "}
+          <Link href="/reports" className="font-semibold text-white underline">Where your money goes</Link>.
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/15 py-6 text-sm sm:flex-row sm:justify-between">

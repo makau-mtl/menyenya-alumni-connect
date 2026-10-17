@@ -10,7 +10,7 @@ import { photoSpaceKeys } from "@/content/photo-spaces";
 
 // Every action checks who is signed in; the database rules check again on every write.
 
-type Need = "admin" | "news" | "shop" | "school" | "stories";
+type Need = "admin" | "news" | "shop" | "school" | "stories" | "reports";
 
 async function staffFor(need: Need): Promise<Staff | string> {
   const staff = await getStaff();
@@ -19,6 +19,7 @@ async function staffFor(need: Need): Promise<Staff | string> {
   if (need === "news" && !staff.canEditNews) return "Only administrators and the Secretary can change news.";
   if (need === "school" && !staff.canEditSchool) return "Only administrators and the school liaison can change the school's figures.";
   if (need === "shop" && !staff.canManageShop) return "Only administrators, the Secretary and the Treasurer can manage merchandise.";
+  if (need === "reports" && !staff.canManageReports) return "Only the Treasurer, the Chairman and administrators can manage reports.";
   if (need === "stories" && !staff.canEditStories) return "Only administrators, the Secretary and the Chairman can review stories.";
   return staff;
 }
@@ -1049,4 +1050,58 @@ export async function saveStory(_prev: ActionState, formData: FormData): Promise
     save: "Saved.",
   };
   return { ok: true, message: messages[intent] ?? "Saved." };
+}
+
+const reportSchema = z.object({
+  kind: z.enum(["financial", "moral", "other"]),
+  year: z.coerce.number().int().min(2020, "Enter the year the report covers.").max(2100),
+  title: z.string().trim().min(3, "Give the report a title.").max(140),
+  summary: z.string().trim().max(1200, "Keep the summary under 1,200 characters."),
+  filePath: z.string().regex(/^(financial|moral|other)\/[0-9a-f-]{36}\.pdf$/, "Choose the PDF again."),
+  fileSize: z.coerce.number().int().positive().max(15 * 1024 * 1024),
+  replacesId: z.union([z.literal(""), z.string().uuid()]),
+});
+
+/** Record a report after its PDF has been uploaded from the browser. It starts as a draft. */
+export async function createReport(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("reports");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = reportSchema.safeParse(Object.fromEntries(["kind", "year", "title", "summary", "filePath", "fileSize", "replacesId"].map((k) => [k, String(formData.get(k) ?? "")])));
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  if (!v.filePath.startsWith(`${v.kind}/`)) return fail("Choose the PDF again.");
+  const { error } = await staff.supabase.from("reports").insert({
+    kind: v.kind, year: v.year, title: v.title, summary: v.summary, file_path: v.filePath, file_size: v.fileSize, replaces_id: v.replacesId || null,
+  });
+  if (error) {
+    console.error(error);
+    return fail(error.message.includes("Only the") ? error.message : "The report could not be saved.");
+  }
+  revalidatePath("/admin/reports");
+  return { ok: true, message: "Saved as a draft. Check it, then press Publish." };
+}
+
+/** Change the title or summary (the PDF itself never changes; upload a new version instead). */
+export async function saveReportDetails(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("reports");
+  if (typeof staff === "string") return fail(staff);
+  const title = String(formData.get("title") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (title.length < 3 || title.length > 140) return fail("Give the report a title.", { title: "3 to 140 characters." });
+  if (summary.length > 1200) return fail("Keep the summary under 1,200 characters.", { summary: "Too long." });
+  const { error } = await staff.supabase.from("reports").update({ title, summary }).eq("id", String(formData.get("id") ?? ""));
+  if (error) return fail("The report could not be saved.");
+  refreshSite();
+  return { ok: true, message: "Saved." };
+}
+
+/** Publish a draft, or withdraw (archive) a report. Nothing is deleted. */
+export async function setReportStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("reports");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "archived"].includes(status)) return;
+  const { error } = await staff.supabase.from("reports").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  if (error) console.error(error);
+  refreshSite();
 }

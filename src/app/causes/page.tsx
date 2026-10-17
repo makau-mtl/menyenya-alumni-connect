@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getCoverPhotos, listCauses } from "@/lib/data";
 import { ImageSlot } from "@/components/media";
+import { VideoFeature } from "@/components/initiative/video-feature";
 import { PageHero } from "@/components/page-hero";
 import { buttonClass } from "@/components/ui";
 import { ImpactSection } from "@/components/impact-section";
@@ -42,7 +43,11 @@ export default async function OurWorkPage() {
       <section className="section flex flex-col gap-14 pt-14">
         {causes.map((c, i) => (
           <article key={c.slug} className={`grid items-center gap-8 md:grid-cols-2 ${i % 2 ? "md:[&>*:first-child]:order-2" : ""}`}>
-            <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} photo={covers[c.slug]} ratio="landscape" sizes="(min-width: 768px) 50vw, 100vw" />
+            {c.video ? (
+              <VideoFeature video={c.video} label={c.title} size="card" fallbackPoster={covers[c.slug]?.src ?? null} />
+            ) : (
+              <ImageSlot caption={images[c.slug] ?? c.title.toLowerCase()} photo={covers[c.slug]} ratio="landscape" sizes="(min-width: 768px) 50vw, 100vw" />
+            )}
             <div className="max-w-lg">
               <h2 className="text-3xl font-bold">{c.title}</h2>
               <p className="mt-3 text-lg text-ink-soft">{c.summary}</p>

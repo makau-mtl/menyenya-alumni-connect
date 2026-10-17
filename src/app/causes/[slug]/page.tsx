@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { getCause, getCauseProgress, getChannelForCause, listCausePhotos, listCauses } from "@/lib/data";
 import { formatKes } from "@/lib/money";
 import { BrickWall } from "@/components/brick-wall";
-import { ImageSlot } from "@/components/media";
+import { VideoSlot } from "@/components/media";
+import { Gallery } from "@/components/initiative/gallery";
+import { VideoFeature } from "@/components/initiative/video-feature";
 import { ProgressFigures } from "@/components/progress-figures";
 import { ShareButton } from "@/components/share-button";
 import { buttonClass } from "@/components/ui";
@@ -45,6 +47,16 @@ export default async function CausePage({ params }: Params) {
     bursary ? getPublicFigures() : Promise.resolve(null),
   ]);
   const photos = allPhotos.filter((p) => p.status === "published");
+  const groupInfo: Record<string, { title: string; intro?: string }> = {
+    design: { title: "The design", intro: "Drawings and 3D views. Tap a picture to see it larger." },
+    today: { title: cause.kind === "campaign" ? "Why it is needed" : "Today" },
+    progress: { title: "Progress" },
+    impact: { title: "Impact" },
+    general: { title: "Photos" },
+  };
+  const groups = (["design", "today", "progress", "impact", "general"] as const)
+    .map((key) => ({ key, ...groupInfo[key], photos: photos.filter((p) => p.purpose === key).map((p) => ({ id: p.id, src: p.src, srcSmall: p.srcSmall, caption: p.caption })) }))
+    .filter((g) => g.photos.length > 0);
   const preparing = cause.lifecycle === "preparation";
 
   return (
@@ -89,6 +101,16 @@ export default async function CausePage({ params }: Params) {
         </div>
       </header>
 
+      <section aria-label="Video" className="section pt-12">
+        <div className="mx-auto max-w-4xl">
+          {cause.video ? (
+            <VideoFeature video={cause.video} label={cause.title} fallbackPoster={photos[0]?.src ?? null} />
+          ) : (
+            <VideoSlot youtubeId={null} title={cause.title} caption={`a short film about ${cause.title.toLowerCase().startsWith("the ") ? cause.title.slice(4) : cause.title}`} />
+          )}
+        </div>
+      </section>
+
       <div className="section grid gap-14 pt-14 lg:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-14">
           <section>
@@ -117,28 +139,11 @@ export default async function CausePage({ params }: Params) {
             </section>
           )}
 
-          {photos.length > 0 ? (
-            <section>
-              <h2 className="text-3xl font-bold">{cause.kind === "campaign" ? "Photos and drawings" : "Photos"}</h2>
-              <ul className="mt-6 grid gap-5 sm:grid-cols-2">
-                {photos.map((p, i) => (
-                  <li key={p.id} className={i === 0 && photos.length % 2 === 1 ? "sm:col-span-2" : ""}>
-                    <figure>
-                      <ImageSlot
-                        caption={p.caption || cause.title}
-                        photo={p}
-                        ratio="landscape"
-                        sizes={i === 0 && photos.length % 2 === 1 ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 640px) 30vw, 100vw"}
-                      />
-                      {p.caption && <figcaption className="mt-2 text-sm text-ink-soft">{p.caption}</figcaption>}
-                    </figure>
-                  </li>
-                ))}
-              </ul>
-            </section>
+          {groups.length > 0 ? (
+            <Gallery groups={groups} />
           ) : cause.kind === "campaign" && (
             <section>
-              <h2 className="text-3xl font-bold">Photos and drawings</h2>
+              <h2 className="text-3xl font-bold">The design</h2>
               <div className="mt-5 rounded-lg border-2 border-dashed border-line p-8 text-ink-soft">
                 <p className="max-w-prose">
                   Photos of today&rsquo;s classrooms and the architectural drawings will appear here once the school

@@ -55,7 +55,17 @@ export interface Cause {
   suggestedPledges: SuggestedPledge[];
   components: Component[];
   readiness: ReadinessItem[];
+  /** One short YouTube video with its caption, e.g. "Message from the lead architect" · "Arch. Jane Moraa". */
+  video?: CauseVideo | null;
 }
+
+export interface CauseVideo {
+  youtubeId: string;
+  title: string;
+  speaker: string | null;
+}
+
+export type PhotoPurpose = "design" | "today" | "progress" | "impact" | "general";
 
 export type PledgeType = "one_time" | "monthly" | "quarterly" | "annual" | "in_kind";
 
@@ -153,6 +163,7 @@ export interface CausePhoto extends Photo {
   id: string;
   status: ContentStatus;
   sortOrder: number;
+  purpose: PhotoPurpose;
 }
 
 export type ContentStatus = "draft" | "published" | "archived";

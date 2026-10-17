@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BadgeCheck, Building2, ChevronsUpDown, ClipboardCheck, Contact, ExternalLink, Handshake, Home, Image as ImageIcon,
-  GraduationCap, KeyRound, Landmark, LifeBuoy, LayoutDashboard, LogOut, Newspaper, Settings, ShoppingBag, UserRound, Users, UsersRound, Copy,
+  GraduationCap, KeyRound, Landmark, LifeBuoy, LayoutDashboard, LogOut, Newspaper, Settings, ShoppingBag, UserRound, Users, UsersRound, Copy, BookOpen,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarMenu,
@@ -21,7 +21,7 @@ import { Toaster } from "@/components/shadcn/sonner";
 const icons = {
   dashboard: LayoutDashboard, profile: UserRound, directory: Users, confirm: BadgeCheck, overview: Landmark,
   members: UsersRound, duplicates: Copy, roles: KeyRound, people: Contact, support: Handshake, shop: ShoppingBag,
-  causes: Building2, news: Newspaper, photos: ImageIcon, settings: Settings, tasks: ClipboardCheck, home: Home, school: GraduationCap, cases: LifeBuoy,
+  causes: Building2, news: Newspaper, photos: ImageIcon, settings: Settings, tasks: ClipboardCheck, home: Home, school: GraduationCap, cases: LifeBuoy, stories: BookOpen,
 } as const;
 export type IconName = keyof typeof icons;
 

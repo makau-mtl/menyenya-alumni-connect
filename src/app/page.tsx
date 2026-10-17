@@ -10,6 +10,10 @@ import { NewsCard } from "@/components/news-card";
 import { buttonClass } from "@/components/ui";
 import { getSupporters } from "@/lib/support";
 import { LogoWall } from "@/components/support/logo-wall";
+import { StoryCard } from "@/components/stories/story-card";
+import { loadPublicStories } from "@/lib/stories";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createPublicClient } from "@/lib/supabase/server";
 
 // Progress figures refresh at least once a minute; pledges also refresh them straight away.
 export const revalidate = 60;
@@ -17,11 +21,12 @@ export const revalidate = 60;
 export default async function HomePage() {
   const block = await getCause("tuition-block");
   if (!block || !block.targetAmount) notFound();
-  const [progress, chairVideoId, news, supporters] = await Promise.all([
+  const [progress, chairVideoId, news, supporters, stories] = await Promise.all([
     getCauseProgress(block.slug),
     getChairVideoId(),
     listNews(),
     getSupporters({ featuredOnly: true }),
+    loadPublicStories(isSupabaseConfigured ? createPublicClient() : null, 3),  // featured first, then the latest
   ]);
 
   return (
@@ -192,6 +197,26 @@ export default async function HomePage() {
           </Link>
         </p>
       </section>
+
+      {/* Alumni stories (only once some are published) */}
+      {stories.length > 0 && (
+        <section className="section pt-20 lg:pt-28">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-3xl font-bold sm:text-4xl">Alumni stories</h2>
+              <p className="mt-2 text-lg text-ink-soft">Journeys that began at Menyenya.</p>
+            </div>
+            <Link href="/stories" className="font-semibold text-tea underline underline-offset-4">
+              All stories
+            </Link>
+          </div>
+          <div className="mt-10 grid gap-8 md:grid-cols-3">
+            {stories.map((s) => (
+              <StoryCard key={s.slug} s={s} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* News and events */}
       <section className="section pt-20 lg:pt-28">

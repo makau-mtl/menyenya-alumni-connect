@@ -8,6 +8,7 @@ const columns = [
     links: [
       { label: "About us", href: "/who-we-are" },
       { label: "Our people", href: "/our-people" },
+      { label: "Alumni stories", href: "/stories" },
       { label: "Careers", href: "/careers" },
       { label: "News and events", href: "/news" },
     ],

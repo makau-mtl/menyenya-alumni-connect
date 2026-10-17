@@ -63,15 +63,17 @@ h3 {
   }
 }
 
-/* Section rhythm */
-.section {
-  margin-inline: auto;
-  max-width: 80rem;
-  padding-inline: 1rem;
-}
-@media (min-width: 1024px) {
+/* Section rhythm. In the components layer so a page can narrow it (e.g. "section max-w-3xl"). */
+@layer components {
   .section {
-    padding-inline: 1.5rem;
+    margin-inline: auto;
+    max-width: 80rem;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 1024px) {
+    .section {
+      padding-inline: 1.5rem;
+    }
   }
 }
 

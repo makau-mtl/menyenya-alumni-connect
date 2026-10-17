@@ -20,6 +20,7 @@ Buttons that are hard to undo (Remove, End role, Merge, closing registration) as
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
+| Alumni stories | Administrators, the Secretary and the Chairman | Review, publish and feature stories members share |
 | The school | Administrators and the school liaison | The school's figures, results and priorities members see |
 | Cases for support | Administrators, the Chairman, Welfare Coordinator, school liaison, Secretary | Cases members raise |
 | Causes | Administrators | The text, launch checklist, stage and photos of each cause |
@@ -189,3 +190,13 @@ Members share photos straight away. Anyone can report one. Administrators see "R
 
 A class rep sees *Add your class WhatsApp group link* on their dashboard. Paste the group's invite link (it starts with https://chat.whatsapp.com/). Classmates then see a green *Class WhatsApp group* button. Administrators can set it for any class.
 
+
+## Alumni stories
+
+Members send stories from **Share a story** in their account. They appear in **Admin → Alumni stories** under *Waiting for review* (and in "Waiting for you" on your dashboard).
+
+1. Open the story. Read it, check the facts, and tidy the title, summary and wording if needed. Leave a blank line between paragraphs.
+2. **If it is about someone else**, contact them (the "How to reach" box), read them the story, then tick *agreed to this story being on the website* and note how they agreed (e.g. "By phone with the Secretary, 20 Oct"). The website will not publish it without this.
+3. Press **Approve and publish**. It appears on the Alumni stories page straight away.
+4. To put it on the home page, tick **Show on the home page** and save. Up to three stories show there.
+5. To take a story down, press **Hide from the website**. To turn one down, press **Don't publish** and write the reason in the notes. Nothing is deleted.

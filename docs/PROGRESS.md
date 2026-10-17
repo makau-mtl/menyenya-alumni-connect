@@ -1,5 +1,14 @@
 # Progress
 
+## 17 October 2026: Alumni stories
+
+- New public page **Alumni stories** (`/stories`, under Who we are and in the footer): a lead story with a large photo, then the rest as cards, and a page for each story with "More stories". The home page shows up to three (those marked for the home page first).
+- Members share from **Share a story** (`/app/stories`, also a dashboard shortcut): their own story, or someone else's (a classmate, a teacher) with how to reach them. Optional photo, shrunk on the phone. They see where each story is in review.
+- New admin tab **Alumni stories** for administrators, the Secretary and the Chairman: read and tidy each story, record how the person agreed, then **Approve and publish**, **Don't publish** or later **Hide**. Tick "Show on the home page" to feature one. New stories also appear in "Waiting for you".
+- Rules in the database: nothing is public until approved; a story about someone else cannot be published until their agreement is recorded; photos stay private until the story is published; contact details and who sent it are never public; nothing is deleted; at most five stories a day per member.
+- Fix: news articles, the privacy policy and the welcome page now keep their narrower reading width.
+- Tests: 4 new database tests; 117 pass.
+
 ## 17 October 2026: mission, vision and What we do
 
 - **Mission** (product owner's wording): to maintain lifelong connections between Menyenya alumni and our alma mater, support current students, and build a trusted network for career and personal growth.

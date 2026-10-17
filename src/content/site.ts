@@ -22,9 +22,9 @@ export const chairMessage = {
 export const mission = {
   draft: true,
   mission:
-    "To unite the alumni and friends of Menyenya SDA High School in support of the school, its students and one another.",
+    "To maintain lifelong connections between Menyenya alumni and our alma mater, support current students, and build a trusted network for career and personal growth.",
   vision:
-    "A Menyenya where every student learns in good facilities with the support to excel, and every alumnus stays connected to the school that shaped them.",
+    "A Menyenya where every student has what they need to excel, and every alumnus belongs to a network that opens doors for life.",
   values: [
     { name: "Service", text: "We give our time, skills and resources to lift those who come after us." },
     { name: "Integrity", text: "We handle every shilling and every record openly, and report back to members." },
@@ -35,18 +35,23 @@ export const mission = {
 
 export const pillars = [
   {
-    title: "Reconnect",
-    text: "Find classmates, join your class and regional groups, and meet at events and homecomings.",
+    title: "Stay connected",
+    text: "Keep every class, region and generation linked to Menyenya and to one another, through class groups, meet-ups, homecomings and news from the school.",
     space: "pillar.reconnect",
   },
   {
-    title: "Give back",
-    text: "Support the school's projects, starting with a new tuition block, and help needy students stay in class.",
+    title: "Back the school",
+    text: "Rally alumni and friends behind the school's development and good name, starting with the new tuition block.",
+    space: "pillar.school",
+  },
+  {
+    title: "Support students",
+    text: "Help needy students stay in class, and guide students through career talks, mentoring and visits from those who walked the same corridors.",
     space: "pillar.give-back",
   },
   {
     title: "Grow together",
-    text: "Mentor younger alumni, share opportunities, and support members through life's milestones.",
+    text: "A trusted network to find mentors, share jobs and business, and stand with one another through life's milestones.",
     space: "pillar.grow-together",
   },
 ];

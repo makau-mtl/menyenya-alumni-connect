@@ -16,6 +16,7 @@ export const photoSpaces: PhotoSpace[] = [
   { key: "home.hero.side-1", page: "Home", label: "alumni at the plenary", ratio: "square" },
   { key: "home.hero.side-2", page: "Home", label: "the school gate", ratio: "square" },
   { key: "pillar.reconnect", page: "Home and Who we are", label: "alumni reunited at a homecoming", ratio: "landscape" },
+  { key: "pillar.school", page: "Home and Who we are", label: "the school compound or a school project", ratio: "landscape" },
   { key: "pillar.give-back", page: "Home and Who we are", label: "students in class at Menyenya", ratio: "landscape" },
   { key: "pillar.grow-together", page: "Home and Who we are", label: "an alumnus mentoring a recent graduate", ratio: "landscape" },
   { key: "home.give-today", page: "Home", label: "a student in the school library", ratio: "landscape" },

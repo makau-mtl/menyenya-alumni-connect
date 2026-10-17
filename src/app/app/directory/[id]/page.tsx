@@ -20,8 +20,8 @@ export default async function MemberCardPage({ params }: Props) {
   const photo = await memberPhotoUrl(member.supabase, m.photo_path, "large");
   return (
     <div>
-      <Link href="/app/directory" className="font-semibold text-tea underline underline-offset-4">Member directory</Link>
-      <div className="mt-6">
+      <Link href="/app/directory" className="text-sm font-semibold text-tea hover:underline">← Member directory</Link>
+      <div className="mt-4">
         <ProfileCard m={m} photo={photo} />
       </div>
     </div>

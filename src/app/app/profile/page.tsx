@@ -8,17 +8,16 @@ import { memberPhotoUrl } from "@/lib/members/photos";
 import { applySignInPhoto, removeMemberPhoto, uploadMemberPhoto } from "@/app/app/actions";
 import { PhotoUpload } from "@/components/admin/photo-upload";
 import { ChoicesForm, WorkForm } from "@/components/member/profile-forms";
-import { buttonClass } from "@/components/ui";
+import { PageHeader, Panel } from "@/components/portal/page-parts";
+import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "My profile" };
 
 function Section({ id, title, intro, children }: { id: string; title: string; intro?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-xl border border-line bg-surface p-6 sm:p-8">
-      <h2 className="text-2xl font-bold">{title}</h2>
-      {intro && <div className="mt-2 text-ink-soft">{intro}</div>}
-      <div className="mt-6">{children}</div>
-    </section>
+    <Panel id={id} title={title} description={intro}>
+      {children}
+    </Panel>
   );
 }
 
@@ -47,19 +46,18 @@ export default async function ProfilePage() {
   const photo = await memberPhotoUrl(member.supabase, p?.photo_path ?? null, "large");
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
-      <div>
-        <Link href="/app" className="font-semibold text-tea underline underline-offset-4">My account</Link>
-        {hasAdmin && (
-          <Link href="/admin" className={`${buttonClass("secondary", "sm")} mt-4 md:hidden`}>Open the admin area</Link>
-        )}
-        <h1 className="mt-4 text-4xl font-bold">My profile</h1>
-        <p className="mt-3 text-lg text-ink-soft">Everything here is optional. Save each section on its own.</p>
-        <nav aria-label="Sections" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-semibold text-tea">
-          <a href="#photo" className="underline underline-offset-4">Photo</a>
-          <a href="#work" className="underline underline-offset-4">Work and links</a>
-          <a href="#choices" className="underline underline-offset-4">Privacy choices</a>
-          <a href="#terminate" className="underline underline-offset-4">Terminate membership</a>
+    <div className="flex max-w-4xl flex-col gap-6">
+      <div className="flex flex-col gap-4">
+        <PageHeader
+          eyebrow="My account"
+          title="My profile"
+          description="Everything here is optional. Save each section on its own."
+          actions={hasAdmin ? <Button asChild variant="outline" className="md:hidden"><Link href="/admin">Open the admin area</Link></Button> : undefined}
+        />
+        <nav aria-label="Sections" className="flex flex-wrap gap-2">
+          {[["#photo", "Photo"], ["#work", "Work and links"], ["#choices", "Privacy choices"], ["#terminate", "Terminate membership"]].map(([href, label]) => (
+            <a key={href} href={href} className="rounded-full bg-card px-3 py-1 text-sm font-semibold ring-1 ring-border hover:ring-tea">{label}</a>
+          ))}
         </nav>
       </div>
 
@@ -69,15 +67,15 @@ export default async function ProfilePage() {
             <div className="flex flex-col items-start gap-2">
               <img src={photo} alt="Your photo" className="size-36 rounded-xl object-cover" />
               <form action={removeMemberPhoto}>
-                <button type="submit" className="text-sm font-semibold text-ink-soft underline underline-offset-4">Remove photo</button>
+                <Button type="submit" size="sm" variant="ghost">Remove photo</Button>
               </form>
             </div>
           ) : (
             <div className="flex flex-col items-start gap-3">
-              <span aria-hidden className="flex size-36 items-center justify-center rounded-xl bg-paper text-sm text-ink-soft">No photo yet</span>
+              <span aria-hidden className="flex size-36 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">No photo yet</span>
               {providerName && member.providerPhoto && (
                 <form action={applySignInPhoto}>
-                  <button type="submit" className={buttonClass("secondary", "sm")}>Use my {providerName} photo</button>
+                  <Button type="submit" size="sm" variant="outline">Use my {providerName} photo</Button>
                 </form>
               )}
             </div>
@@ -127,14 +125,12 @@ export default async function ProfilePage() {
         )}
         <p className="mt-6 text-sm text-ink-soft">To ask for a copy of your data, contact the secretariat.</p>
       </Section>
-      <section id="terminate" className="rounded-xl border-2 border-alert/40 p-6 sm:p-8">
-        <h2 className="text-2xl font-bold text-alert">Terminate membership</h2>
-        <p className="mt-2 text-ink-soft">
+      <section id="terminate" className="scroll-mt-24 rounded-xl bg-alert/5 p-5 ring-1 ring-alert/40 sm:p-6">
+        <h2 className="text-xl font-bold text-alert">Terminate membership</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           End your membership. You can rejoin within a set number of days. You can also ask for your personal data to be deleted.
         </p>
-        <Link href="/app/terminate" className="mt-5 inline-flex rounded-md bg-alert px-5 py-2.5 font-semibold text-white hover:opacity-90">
-          Terminate membership
-        </Link>
+        <Button asChild variant="destructive" className="mt-4"><Link href="/app/terminate">Terminate membership</Link></Button>
       </section>
     </div>
   );

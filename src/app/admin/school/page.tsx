@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getStaff } from "@/lib/admin/staff";
 import { movePriority, setPriorityStatus } from "@/app/admin/actions";
 import { PriorityForm, ResultForm, SchoolStatsForm } from "@/components/admin/school-forms";
+import { PageHeader, Pill } from "@/components/portal/page-parts";
+import { RowActions } from "@/components/portal/row-actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/shadcn/table";
-import { Badge } from "@/components/shadcn/badge";
-import { Button } from "@/components/shadcn/button";
 
 export const metadata: Metadata = { title: "The school" };
 
@@ -37,10 +36,7 @@ export default async function AdminSchoolPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold">The school</h1>
-        <p className="text-muted-foreground">Figures, results and priorities that members see on their dashboard and on &ldquo;The school today&rdquo;.</p>
-      </div>
+      <PageHeader eyebrow="Administration" title="The school" description="Figures, results and priorities that members see on their dashboard and on “The school today”." />
       {q.saved && <p role="status" className="rounded-md bg-secondary p-4 font-semibold">Saved. Members see the change straight away.</p>}
 
       <Card>
@@ -110,25 +106,11 @@ export default async function AdminSchoolPage({ searchParams }: Props) {
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="flex size-8 items-center justify-center rounded-full bg-ink font-bold text-white">{i + 1}</span>
                       <div className="min-w-40 flex-1">
-                        <p className="font-semibold">{p.title} {p.status === "draft" && <Badge variant="outline">Hidden</Badge>}</p>
+                        <p className="flex flex-wrap items-center gap-2 font-semibold">{p.title} {p.status === "draft" && <Pill>Hidden</Pill>}</p>
                         <p className="text-sm text-muted-foreground">{s.n ? `Average ${s.avg}/5 from ${s.n} ${s.n === 1 ? "member" : "members"}` : "No views yet"}</p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <form action={movePriority}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <Button size="sm" variant="outline" name="direction" value="up" disabled={i === 0} aria-label={`Move ${p.title} up`}>↑</Button>
-                          <Button size="sm" variant="outline" name="direction" value="down" disabled={i === list.length - 1} aria-label={`Move ${p.title} down`} className="ml-1">↓</Button>
-                        </form>
-                        <Button asChild size="sm" variant="outline"><Link href={`/admin/school?edit=${p.id}#priority-form`}>Edit</Link></Button>
-                        <form action={setPriorityStatus}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <Button size="sm" variant="outline" name="status" value={p.status === "draft" ? "published" : "draft"}>{p.status === "draft" ? "Show" : "Hide"}</Button>
-                        </form>
-                        <form action={setPriorityStatus}>
-                          <input type="hidden" name="id" value={p.id} />
-                          <Button size="sm" variant="ghost" name="status" value="archived">Remove</Button>
-                        </form>
-                      </div>
+                      <RowActions id={p.id} name={p.title} status={p.status} first={i === 0} last={i === list.length - 1}
+                        editHref={`/admin/school?edit=${p.id}#priority-form`} move={movePriority} setStatus={setPriorityStatus} />
                     </div>
                     {s.comments.length > 0 && (
                       <details className="rounded-md bg-muted/50 p-3 text-sm">

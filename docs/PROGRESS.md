@@ -1,5 +1,13 @@
 # Progress
 
+## 17 October 2026: one look across the platform
+
+- Every admin screen (Overview, Members, Duplicates, Roles, Settings, Our people, Sponsors and partners, Merchandise, Causes, News, Site photos, The school, Cases) and the member pages (Confirm members, Member directory, a member's profile, My profile, Leave the association) now use the same page heading, cards, tables, status labels and buttons as the dashboard.
+- Lists you can reorder now have small up/down arrows, Edit, Hide/Show and Remove on one line.
+- Anything hard to undo (removing an item, ending a role, merging two records, closing registration, switching off invite links) now asks "Are you sure?" first. Nothing is ever deleted; Remove only takes it out of view.
+- The **School liaison** role can now be given from Roles (it lets someone update The school figures and priorities).
+- Tests: 113 pass.
+
 ## 17 October 2026: member area redesign and dashboard
 
 - **Layout:** members stay inside the website, with tabs under the header on laptops and an app-style bottom bar on phones. Officials get a separate admin workspace with a side menu. Built with shadcn/ui in our colours. The site can be added to a phone's home screen.

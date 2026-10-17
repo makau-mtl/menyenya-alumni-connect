@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PageHeader, Panel } from "@/components/portal/page-parts";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getStaff } from "@/lib/admin/staff";
@@ -17,12 +17,11 @@ export default async function EditNewsPage({ params }: Props) {
   const { data } = await staff.supabase.from("news_posts").select(newsColumns).eq("id", id).maybeSingle();
   if (!data) notFound();
   return (
-    <div>
-      <Link href="/admin/news" className="font-semibold text-tea underline underline-offset-4">
-        All news and events
-      </Link>
-      <h2 className="mb-8 mt-4 text-3xl font-bold">Edit post</h2>
-      <NewsForm post={toNewsPost(data as NewsRow)} />
+    <div className="flex flex-col gap-8">
+      <PageHeader back={{ href: "/admin/news", label: "All news and events" }} eyebrow="News and events" title="Edit post" />
+      <Panel className="max-w-4xl">
+        <NewsForm post={toNewsPost(data as NewsRow)} />
+      </Panel>
     </div>
   );
 }

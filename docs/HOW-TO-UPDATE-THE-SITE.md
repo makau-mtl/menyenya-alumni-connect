@@ -8,6 +8,8 @@ audit log. Nothing is deleted: photos and posts are hidden instead, and can be s
 
 ## Who can do what
 
+Buttons that are hard to undo (Remove, End role, Merge, closing registration) ask you to confirm first. Remove never deletes; it only takes the item out of view, and the record is kept.
+
 | Tab | Who sees it | What it is for |
 |---|---|---|
 | Overview | Chairman, Treasurer, administrators | Pledges and gifts so far |

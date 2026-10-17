@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { PageHeader, Panel, Pill } from "@/components/portal/page-parts";
+import { Button } from "@/components/shadcn/button";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getStaff } from "@/lib/admin/staff";
@@ -37,18 +39,13 @@ export default async function EditCausePage({ params }: Props) {
   const firstShown = photos.find((p) => p.status === "published");
 
   return (
-    <div className="flex flex-col gap-14">
-      <div>
-        <Link href="/admin/causes" className="font-semibold text-tea underline underline-offset-4">
-          All causes
-        </Link>
-        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="text-3xl font-bold">{cause.title}</h2>
-          <Link href={`/causes/${cause.slug}`} className="font-semibold text-tea underline underline-offset-4">
-            View on the website
-          </Link>
-        </div>
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        back={{ href: "/admin/causes", label: "All causes" }}
+        eyebrow="Cause"
+        title={cause.title}
+        actions={<Button asChild variant="outline"><Link href={`/causes/${cause.slug}`}>View on the website</Link></Button>}
+      />
 
       <CauseForm
         cause={{
@@ -65,20 +62,19 @@ export default async function EditCausePage({ params }: Props) {
         }}
       />
 
-      <section className="max-w-4xl">
-        <h2 className="text-2xl font-bold">Photos</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          The first photo is the cover on cards and listings. Hidden photos stay on file but don&rsquo;t show on the
-          website. Only use photos of students with the school&rsquo;s and parents&rsquo; consent.
-        </p>
+      <Panel
+        title="Photos"
+        className="max-w-5xl"
+        description="The first photo is the cover on cards and listings. Hidden photos stay on file but don't show on the website. Only use photos of students with the school's and parents' consent."
+      >
 
         {photos.length > 0 && (
-          <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {photos.map((p) => (
-              <li key={p.id} className={`rounded-xl border border-line bg-surface p-3 ${p.status !== "published" ? "opacity-60" : ""}`}>
+              <li key={p.id} className={`rounded-lg bg-muted/40 p-3 ring-1 ring-border ${p.status !== "published" ? "opacity-60" : ""}`}>
                 <img src={p.srcSmall} alt={p.caption} className="aspect-[4/3] w-full rounded-lg bg-line object-cover" loading="lazy" />
-                <p className="mt-2 text-sm font-semibold">
-                  {p.id === firstShown?.id ? "Cover photo" : p.status === "published" ? "Shown" : "Hidden"}
+                <p className="mt-2">
+                  <Pill tone={p.id === firstShown?.id ? "info" : p.status === "published" ? "good" : "muted"}>{p.id === firstShown?.id ? "Cover photo" : p.status === "published" ? "Shown" : "Hidden"}</Pill>
                 </p>
                 <form action={changeCausePhoto} className="mt-2 flex gap-2">
                   <input type="hidden" name="id" value={p.id} />
@@ -105,10 +101,10 @@ export default async function EditCausePage({ params }: Props) {
           </ul>
         )}
 
-        <div className="mt-6 max-w-md rounded-xl border border-dashed border-ink-soft/50 p-5">
+        <div className="mt-6 max-w-md rounded-lg border-2 border-dashed border-border p-5">
           <PhotoUpload action={addCausePhoto} fields={{ slug: cause.slug }} />
         </div>
-      </section>
+      </Panel>
     </div>
   );
 }

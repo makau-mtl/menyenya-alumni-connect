@@ -4,7 +4,10 @@ import { headers } from "next/headers";
 import { getStaff } from "@/lib/admin/staff";
 import { setInviteActive, setRegistrationOpen } from "@/app/admin/actions";
 import { CopyLink, InviteForm } from "@/components/admin/invite-form";
-import { buttonClass } from "@/components/ui";
+import { Empty, PageHeader, Panel, Pill, StatTiles } from "@/components/portal/page-parts";
+import { ConfirmAction } from "@/components/portal/confirm-action";
+import { Button } from "@/components/shadcn/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/shadcn/table";
 
 export const metadata: Metadata = { title: "Members" };
 
@@ -58,143 +61,141 @@ export default async function AdminMembersPage({ searchParams }: Props) {
     const params = new URLSearchParams(Object.entries(merged).filter((e): e is [string, string] => Boolean(e[1])));
     const active = q[key] === value;
     return (
-      <Link key={`${key}-${label}`} href={`/admin/members${params.size ? `?${params}` : ""}`}
-        className={`rounded-full border px-3 py-1 text-sm font-semibold ${active ? "border-tea bg-tea text-white" : "border-line hover:border-ink"}`}>
+      <Link key={`${key}-${label}`} href={`/admin/members${params.size ? `?${params}` : ""}#list`}
+        className={`rounded-full px-3 py-1 text-sm font-semibold ring-1 transition ${active ? "bg-ink text-white ring-ink" : "bg-card ring-border hover:ring-ink"}`}>
         {label}
       </Link>
     );
   };
 
-  return (
-    <div className="flex flex-col gap-12">
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-line bg-surface p-6">
-          <h2 className="text-xl font-bold">Registration</h2>
-          <p className="mt-2 text-ink-soft">
-            {open ? "Open: anyone can register at /join." : "Closed to the public. Administrators can still complete it to test."}
-          </p>
-          <form action={setRegistrationOpen} className="mt-4">
-            <input type="hidden" name="open" value={open ? "false" : "true"} />
-            <button type="submit" className={buttonClass(open ? "secondary" : "primary")}>
-              {open ? "Close registration" : "Open registration"}
-            </button>
-          </form>
-          <p className="mt-4 text-sm text-ink-soft">Membership fees are {feesOn ? "on" : "off"}. {feesOn ? "Members are Active for each year they pay for (last year’s payers until 31 March)." : "While fees are off, every member is Active and can vote."} Members decide fees; they are switched on in the database for now.</p>
-        </div>
-        <div className="rounded-xl border border-line bg-surface p-6">
-          <h2 className="text-xl font-bold">Possible duplicates</h2>
-          <p className="mt-2 font-display text-3xl font-bold">{dupes ?? 0}</p>
-          <p className="mt-2 text-sm text-ink-soft">
-            Records sharing a phone, an email, or a name in the same class. Nothing is merged automatically.{" "}
-            <Link href="/admin/duplicates" className="font-semibold text-tea underline underline-offset-4">Check them</Link>
-          </p>
-        </div>
-      </section>
+  const activeCount = [...standingOf.values()].filter((v) => v === "active").length;
+  const waitingCount = list.filter((m) => m.membership_status === "registered").length;
 
-      <section>
-        <h2 className="text-2xl font-bold">Class invite links</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          Share in class WhatsApp groups. The link fills in the class and records who invited them. People still sign in
-          and finish every step.
-        </p>
-        <div className="mt-5 max-w-3xl rounded-xl border border-line bg-surface p-6">
+  return (
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Members"
+        description="Everyone who has registered, the registration switch and class invite links. Next of kin is never shown here."
+      />
+      <StatTiles
+        items={[
+          { label: "Members", value: String(standingOf.size) },
+          { label: "Active (can vote)", value: String(activeCount), href: "/admin/members?standing=active#list" },
+          { label: "Waiting for confirmation", value: String(waitingCount), href: "/admin/members?status=registered#list" },
+          { label: "Possible duplicates", value: String(dupes ?? 0), href: "/admin/duplicates" },
+        ]}
+      />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel
+          title="Registration"
+          description={open ? "Open: anyone can register at /join." : "Closed to the public. Administrators can still complete it to test."}
+          actions={<Pill tone={open ? "good" : "muted"}>{open ? "Open" : "Closed"}</Pill>}
+        >
+          {open ? (
+            <ConfirmAction action={setRegistrationOpen} fields={{ open: "false" }} variant="outline" size="default" label="Close registration"
+              title="Close registration?" description="New people won't be able to register until you open it again. Existing members are not affected." confirmLabel="Close registration" />
+          ) : (
+            <form action={setRegistrationOpen}>
+              <input type="hidden" name="open" value="true" />
+              <Button type="submit">Open registration</Button>
+            </form>
+          )}
+          <p className="mt-4 text-sm text-muted-foreground">
+            Membership fees are {feesOn ? "on" : "off"}. {feesOn ? "Members are Active for each year they pay for (last year’s payers until 31 March)." : "While fees are off, every member is Active and can vote."} Fees are switched on in the database for now.
+          </p>
+        </Panel>
+        <Panel title="Class invite links" description="Share in class WhatsApp groups. The link fills in the class and records who invited them; people still sign in and finish every step.">
           <InviteForm years={years} />
-        </div>
-        {(invites ?? []).length > 0 && (
-          <ul className="mt-6 max-w-3xl divide-y divide-line rounded-xl border border-line bg-surface">
+        </Panel>
+      </div>
+
+      {(invites ?? []).length > 0 && (
+        <Panel title="Invite links">
+          <ul className="flex flex-col divide-y">
             {(invites ?? []).map((i) => {
               const url = `${origin}/join?invite=${i.token}`;
               return (
-                <li key={i.id} className={`flex flex-wrap items-center justify-between gap-3 p-4 ${i.active ? "" : "opacity-60"}`}>
+                <li key={i.id} className={`flex flex-wrap items-center justify-between gap-3 py-3 ${i.active ? "" : "opacity-60"}`}>
                   <div className="min-w-0">
-                    <p className="font-semibold">{i.label}{!i.active && " (switched off)"}</p>
-                    <p className="truncate text-sm text-ink-soft">{url}</p>
+                    <p className="font-semibold">{i.label} {!i.active && <Pill>Switched off</Pill>}</p>
+                    <p className="truncate text-sm text-muted-foreground">{url}</p>
                   </div>
                   <div className="flex gap-2">
                     {i.active && <CopyLink url={url} />}
-                    <form action={setInviteActive}>
-                      <input type="hidden" name="id" value={i.id} />
-                      <input type="hidden" name="active" value={i.active ? "false" : "true"} />
-                      <button type="submit" className="rounded-md border border-line px-2.5 py-1 text-sm font-semibold hover:border-ink">
-                        {i.active ? "Switch off" : "Switch on"}
-                      </button>
-                    </form>
+                    {i.active ? (
+                      <ConfirmAction action={setInviteActive} fields={{ id: i.id, active: "false" }} variant="outline" label="Switch off"
+                        title="Switch off this link?" description="People who open it won't be able to register through it. You can switch it on again." confirmLabel="Switch off" />
+                    ) : (
+                      <form action={setInviteActive}>
+                        <input type="hidden" name="id" value={i.id} />
+                        <input type="hidden" name="active" value="true" />
+                        <Button size="sm" variant="outline">Switch on</Button>
+                      </form>
+                    )}
                   </div>
                 </li>
               );
             })}
           </ul>
-        )}
-      </section>
+        </Panel>
+      )}
 
-      <section>
-        <h2 className="text-2xl font-bold">Registered members</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {filterLink("category", undefined, "Everyone")}
-          {filterLink("category", "alumnus", "Alumni")}
-          {filterLink("category", "friend", "Friends")}
-          <span className="mx-1 w-px bg-line" />
-          {filterLink("status", "registered", "Waiting for confirmation")}
-          {filterLink("status", "verified", "Verified")}
-          {filterLink("status", "terminated", "Terminated")}
-          <span className="mx-1 w-px bg-line" />
-          {filterLink("standing", "active", "Active (can vote)")}
-          {filterLink("standing", "inactive", "Inactive")}
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {filterLink("region", undefined, "All regions")}
-          {(regions ?? []).map((r) => filterLink("region", r.name, r.name))}
-        </div>
-        <p className="mt-4 text-sm text-ink-soft">{list.length} shown{list.length === 300 ? " (the latest 300)" : ""}. Next of kin is never shown here.</p>
-        {list.length === 0 ? (
-          <p className="mt-4 text-ink-soft">No one matches yet.</p>
-        ) : (
-          <div className="mt-3 overflow-x-auto rounded-xl border border-line bg-surface">
-            <table className="w-full min-w-[44rem] text-left text-[0.95rem]">
-              <thead className="border-b border-line text-ink-soft">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Name</th>
-                  <th className="px-4 py-3 font-semibold">Class or connection</th>
-                  <th className="px-4 py-3 font-semibold">Region</th>
-                  <th className="px-4 py-3 font-semibold">Level</th>
-                  <th className="px-4 py-3 font-semibold">Standing</th>
-                  <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Registered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {list.map((m) => (
-                  <tr key={m.id}>
-                    <td className="px-4 py-3 font-semibold">{m.persons?.full_name}</td>
-                    <td className="px-4 py-3">{m.member_categories?.key === "alumnus" ? `Class of ${m.year_left}` : `Friend: ${m.relationship_to_school ?? ""}`}</td>
-                    <td className="px-4 py-3">{m.clusters?.name}</td>
-                    <td className="px-4 py-3">{m.membership_levels?.name ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      {standingOf.get(m.persons?.id ?? "") === "active" ? (
-                        <span className="rounded-full bg-tea-tint px-2 py-0.5 text-sm font-semibold text-tea-dark">Active</span>
-                      ) : standingOf.get(m.persons?.id ?? "") === "inactive" ? (
-                        <span className="rounded-full bg-paper px-2 py-0.5 text-sm font-semibold text-ink-soft">Inactive</span>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {statusLabel[m.membership_status] ?? m.membership_status}
-                      {m.membership_status === "terminated" && m.rejoin_until && (
-                        <span className="block text-xs text-ink-soft">
-                          Can rejoin until {dateFormat.format(new Date(m.rejoin_until))}
-                          {m.deletion_requested_at ? "; deletion requested" : ""}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{m.registered_at ? dateFormat.format(new Date(m.registered_at)) : "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <Panel id="list" title="Registered members" description={`${list.length} shown${list.length === 300 ? " (the latest 300)" : ""}.`}>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {filterLink("category", undefined, "Everyone")}
+            {filterLink("category", "alumnus", "Alumni")}
+            {filterLink("category", "friend", "Friends")}
+            <span className="mx-1 w-px bg-border" />
+            {filterLink("status", "registered", "Waiting for confirmation")}
+            {filterLink("status", "verified", "Verified")}
+            {filterLink("status", "terminated", "Terminated")}
+            <span className="mx-1 w-px bg-border" />
+            {filterLink("standing", "active", "Active (can vote)")}
+            {filterLink("standing", "inactive", "Inactive")}
           </div>
-        )}
-      </section>
+          <div className="flex flex-wrap gap-2">
+            {filterLink("region", undefined, "All regions")}
+            {(regions ?? []).map((r) => filterLink("region", r.name, r.name))}
+          </div>
+        </div>
+        <div className="mt-4">
+          {list.length === 0 ? (
+            <Empty>No one matches yet.</Empty>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow><TableHead>Name</TableHead><TableHead>Class or connection</TableHead><TableHead>Region</TableHead><TableHead>Level</TableHead><TableHead>Standing</TableHead><TableHead>Status</TableHead><TableHead>Registered</TableHead></TableRow>
+              </TableHeader>
+              <TableBody>
+                {list.map((m) => {
+                  const st = standingOf.get(m.persons?.id ?? "");
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell className="font-semibold">{m.persons?.full_name}</TableCell>
+                      <TableCell>{m.member_categories?.key === "alumnus" ? `Class of ${m.year_left}` : `Friend: ${m.relationship_to_school ?? ""}`}</TableCell>
+                      <TableCell>{m.clusters?.name}</TableCell>
+                      <TableCell>{m.membership_levels?.name ?? "—"}</TableCell>
+                      <TableCell>{st === "active" ? <Pill tone="good">Active</Pill> : st === "inactive" ? <Pill>Inactive</Pill> : "—"}</TableCell>
+                      <TableCell className="whitespace-normal">
+                        <Pill tone={m.membership_status === "registered" ? "warn" : m.membership_status === "terminated" ? "bad" : "good"}>{statusLabel[m.membership_status] ?? m.membership_status}</Pill>
+                        {m.membership_status === "terminated" && m.rejoin_until && (
+                          <span className="mt-1 block text-xs text-muted-foreground">
+                            Can rejoin until {dateFormat.format(new Date(m.rejoin_until))}{m.deletion_requested_at ? "; deletion requested" : ""}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{m.registered_at ? dateFormat.format(new Date(m.registered_at)) : "—"}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </Panel>
     </div>
   );
 }

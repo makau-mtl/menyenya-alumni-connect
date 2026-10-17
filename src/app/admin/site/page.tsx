@@ -1,5 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
+import { PageHeader, Panel, Pill, StatTiles } from "@/components/portal/page-parts";
+import { ConfirmAction } from "@/components/portal/confirm-action";
+import { Button } from "@/components/shadcn/button";
 import type { Metadata } from "next";
 import { getStaff } from "@/lib/admin/staff";
 import { removeSitePhoto, setSitePhoto } from "@/app/admin/actions";
@@ -17,6 +20,10 @@ const pageLinks: Record<string, string> = {
   "Ways to give": "/ways-to-give",
   Join: "/join",
   Careers: "/careers",
+  "Our people": "/our-people",
+  "Corporate sponsorships": "/support/corporate-sponsorships",
+  "Strategic partnerships": "/support/strategic-partnerships",
+  "Alumni merchandise": "/shop",
 };
 
 export default async function AdminSitePage() {
@@ -35,68 +42,57 @@ export default async function AdminSitePage() {
   const filled = photoSpaces.filter((s) => photos.has(s.key)).length;
 
   return (
-    <div className="flex flex-col gap-14">
-      <section>
-        <h2 className="text-2xl font-bold">The Chairman&rsquo;s video</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">Shown on the home page under &ldquo;A message from our Chairman&rdquo;.</p>
-        <div className="mt-5">
-          <VideoForm current={videoId} />
-        </div>
-      </section>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        eyebrow="Administration"
+        title="Photos and video"
+        description="The Chairman's video and the photo spaces around the website. Photos are shrunk before upload so pages load quickly on phones. Only use photos of students with the school's and parents' consent."
+      />
+      <StatTiles
+        items={[
+          { label: "Photo spaces filled", value: `${filled} of ${photoSpaces.length}` },
+          { label: "Chairman's video", value: videoId ? "Added" : "Not yet" },
+        ]}
+        className="lg:grid-cols-2 max-w-2xl"
+      />
+      <Panel title="The Chairman's video" description="Shown on the home page under “A message from our Chairman”." className="max-w-4xl">
+        <VideoForm current={videoId} />
+      </Panel>
 
-      <section>
-        <h2 className="text-2xl font-bold">Website photos</h2>
-        <p className="mt-2 max-w-2xl text-ink-soft">
-          {filled} of {photoSpaces.length} photo spaces filled. Each space says what belongs in it. Photos are shrunk
-          before upload so pages load quickly on phones. Cause photos are added on each cause&rsquo;s page, and news
-          photos on each post. Only use photos of students with the school&rsquo;s and parents&rsquo; consent.
-        </p>
-
-        {pages.map((page) => (
-          <div key={page} className="mt-10">
-            <h3 className="flex flex-wrap items-baseline gap-3 text-xl font-bold">
-              {page}
-              {pageLinks[page] && (
-                <Link href={pageLinks[page]} className="text-base font-semibold text-tea underline underline-offset-4">
-                  View page
-                </Link>
-              )}
-            </h3>
-            <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {photoSpaces
-                .filter((s) => s.page === page)
-                .map((s) => {
-                  const photo = photos.get(s.key);
-                  return (
-                    <li key={s.key} className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4">
-                      <p className="font-semibold first-letter:uppercase">{s.label}</p>
-                      {photo ? (
-                        <>
-                          <img src={photo.srcSmall} alt={photo.caption || s.label} className="aspect-[4/3] w-full rounded-lg bg-line object-cover" loading="lazy" />
-                          {photo.caption && <p className="text-sm text-ink-soft">{photo.caption}</p>}
-                          <form action={removeSitePhoto}>
-                            <input type="hidden" name="space" value={s.key} />
-                            <button type="submit" className="text-sm font-semibold text-ink-soft underline underline-offset-4">
-                              Remove photo
-                            </button>
-                          </form>
-                        </>
-                      ) : (
-                        <p className="rounded-lg bg-paper px-3 py-6 text-center text-sm text-ink-soft">No photo yet</p>
-                      )}
-                      <PhotoUpload
-                        action={setSitePhoto}
-                        fields={{ space: s.key }}
-                        buttonLabel="Save photo"
-                        compact={!!photo}
-                      />
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
-        ))}
-      </section>
+      {pages.map((page) => (
+        <Panel
+          key={page}
+          title={page}
+          description={`${photoSpaces.filter((s) => s.page === page && photos.has(s.key)).length} of ${photoSpaces.filter((s) => s.page === page).length} filled`}
+          actions={pageLinks[page] ? <Button asChild size="sm" variant="outline"><Link href={pageLinks[page]}>View page</Link></Button> : undefined}
+        >
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {photoSpaces
+              .filter((s) => s.page === page)
+              .map((s) => {
+                const photo = photos.get(s.key);
+                return (
+                  <li key={s.key} className="flex flex-col gap-3 rounded-lg bg-muted/40 p-4 ring-1 ring-border">
+                    <p className="flex items-center justify-between gap-2 font-semibold first-letter:uppercase">
+                      {s.label} <Pill tone={photo ? "good" : "warn"}>{photo ? "Done" : "To do"}</Pill>
+                    </p>
+                    {photo ? (
+                      <>
+                        <img src={photo.srcSmall} alt={photo.caption || s.label} className="aspect-[4/3] w-full rounded-lg bg-line object-cover" loading="lazy" />
+                        {photo.caption && <p className="text-sm text-muted-foreground">{photo.caption}</p>}
+                        <ConfirmAction action={removeSitePhoto} fields={{ space: s.key }} label="Remove photo"
+                          title="Remove this photo?" description="The space shows its placeholder again. The photo is kept and can be uploaded again." confirmLabel="Remove" />
+                      </>
+                    ) : (
+                      <p className="rounded-lg bg-card px-3 py-6 text-center text-sm text-muted-foreground ring-1 ring-border">No photo yet</p>
+                    )}
+                    <PhotoUpload action={setSitePhoto} fields={{ space: s.key }} buttonLabel="Save photo" compact={!!photo} />
+                  </li>
+                );
+              })}
+          </ul>
+        </Panel>
+      ))}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { Button } from "@/components/shadcn/button";
 import { Field, inputClass } from "@/components/ui";
 
 /** Read and tidy a story, record consent, then publish, decline or hide it. */
-export function StoryEditor({ story: s, photo }: { story: ReviewStory; photo: string | null }) {
+export function StoryEditor({ story: s, photo, causes = [] }: { story: ReviewStory; photo: string | null; causes?: { id: string; title: string }[] }) {
   const [state, action, pending] = useActionState(async (prev: ActionState, fd: FormData) => {
     const result = await saveStory(prev, fd);
     if (result?.ok) toast.success(result.message);
@@ -32,6 +32,19 @@ export function StoryEditor({ story: s, photo }: { story: ReviewStory; photo: st
           <input id="subjectYear" name="subjectYear" defaultValue={s.subject_year_left ?? ""} inputMode="numeric" maxLength={4} className={inputClass} />
         </Field>
       </div>
+      {s.kind === "impact" && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Initiative" name="causeId">
+            <select id="causeId" name="causeId" defaultValue={s.cause_id ?? ""} className={inputClass}>
+              <option value="">None</option>
+              {causes.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+            </select>
+          </Field>
+          <Field label="Short video (YouTube link)" name="videoUrl" error={err("videoUrl")}>
+            <input id="videoUrl" name="videoUrl" defaultValue={s.video_url ?? ""} maxLength={200} placeholder="https://youtu.be/…" className={inputClass} />
+          </Field>
+        </div>
+      )}
       <Field label="Title" name="title" error={err("title")}>
         <input id="title" name="title" defaultValue={s.title} maxLength={120} className={inputClass} />
       </Field>
@@ -61,13 +74,13 @@ export function StoryEditor({ story: s, photo }: { story: ReviewStory; photo: st
         <label className="flex items-start gap-2 font-semibold">
           <input type="checkbox" name="consent" defaultChecked={s.consent_given} disabled={s.kind === "own"} className="mt-1 size-4 accent-tea" />
           <span>
-            {s.subject_name} agreed to this story being on the website
+            {s.kind === "impact" ? "Agreement recorded (for a student: a parent or guardian, and the school)" : `${s.subject_name} agreed to this story being on the website`}
             {s.kind === "own" && <span className="block text-sm font-normal text-muted-foreground">They sent it themselves.</span>}
             {err("consent") && <span className="block text-sm text-alert">{err("consent")}</span>}
           </span>
         </label>
         {s.kind === "own" && <input type="hidden" name="consent" value="on" />}
-        {s.kind === "nomination" && (
+        {s.kind !== "own" && (
           <Field label="How they agreed" name="consentNote" hint="e.g. Agreed by phone with the Secretary, 20 Oct.">
             <input id="consentNote" name="consentNote" defaultValue={s.consent_note} maxLength={300} className={inputClass} />
           </Field>

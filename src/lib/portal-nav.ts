@@ -51,6 +51,7 @@ export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: Portal
       ...(staff.canEditSchool ? [{ href: "/admin/school", label: "The school", icon: "school" as const }] : []),
       ...(staff.isAdmin ? [{ href: "/admin/causes", label: "Causes", icon: "causes" as const }] : []),
       ...(staff.canEditStories ? [{ href: "/admin/stories", label: "Alumni stories", icon: "stories" as const, badge: newStories }] : []),
+      ...(staff.canEditImpact ? [{ href: "/admin/impact", label: "Impact", icon: "impact" as const }] : []),
       ...(staff.canManageReports ? [{ href: "/admin/reports", label: "Reports", icon: "reports" as const }] : []),
       ...(staff.canEditNews ? [{ href: "/admin/news", label: "News and events", icon: "news" as const }] : []),
       ...(staff.isAdmin ? [{ href: "/admin/site", label: "Photos and video", icon: "photos" as const }] : []),

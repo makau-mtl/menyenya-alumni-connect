@@ -19,6 +19,7 @@ export async function storyPhotoUrls(db: SupabaseClient, paths: (string | null)[
 export type PublicStory = {
   slug: string; title: string; summary: string; subject_name: string; subject_year_left: number | null;
   photo_path: string | null; photo_caption: string | null; featured: boolean; published_at: string;
+  is_impact: boolean; has_video: boolean; cause_slug: string | null; cause_title: string | null;
 };
 
 export const storyStatus: Record<string, { label: string; tone: "good" | "warn" | "muted" | "bad" | "info" }> = {
@@ -35,14 +36,19 @@ export type ReviewStory = {
   id: string; slug: string | null; kind: string; submitted_by_name: string; subject_name: string; subject_year_left: number | null;
   subject_contact: string | null; title: string; summary: string; body: string; photo_path: string | null; photo_caption: string | null;
   consent_given: boolean; consent_note: string; status: string; featured: boolean; editor_note: string; published_at: string | null; created_at: string;
+  cause_id: string | null; video_url: string | null;
 };
 
 export type StoryCardData = PublicStory & { photo: string | null };
 
 /** Published stories for the website, with photo links. Empty when the database isn't connected. */
-export async function loadPublicStories(db: SupabaseClient | null, limit = 24, featuredOnly = false): Promise<StoryCardData[]> {
+export async function loadPublicStories(
+  db: SupabaseClient | null, limit = 24, featuredOnly = false, filter: { kind?: "alumni" | "impact"; causeSlug?: string } = {},
+): Promise<StoryCardData[]> {
   if (!db) return [];
-  const { data, error } = await db.rpc("public_stories", { p_limit: limit, p_featured_only: featuredOnly });
+  const { data, error } = await db.rpc("public_stories", {
+    p_limit: limit, p_featured_only: featuredOnly, p_kind: filter.kind ?? null, p_cause_slug: filter.causeSlug ?? null,
+  });
   if (error) {
     console.error("Could not read stories", error);
     return [];

@@ -29,7 +29,9 @@ function useToastForm(action: Action, resetOnSuccess = false) {
   return { form, onSubmit, pending, err };
 }
 
-export function SchoolStatsForm({ last }: { last: { students: number; needy: number | null; supported: number | null; teachers: number | null } | null }) {
+type Fees = { feesYear: number | null; termFee: number | null; annualFee: number | null; needyAdmitted: number | null };
+
+export function SchoolStatsForm({ last, fees }: { last: { students: number; needy: number | null; supported: number | null; teachers: number | null } | null; fees: Fees | null }) {
   const { form, onSubmit, pending, err } = useToastForm(saveSchoolStats);
   const today = new Date().toISOString().slice(0, 10);
   return (
@@ -51,6 +53,24 @@ export function SchoolStatsForm({ last }: { last: { students: number; needy: num
           <input id="supported" name="supported" inputMode="numeric" defaultValue={last?.supported ?? ""} className={inputClass} />
         </Field>
       </div>
+      <fieldset className="flex flex-col gap-4 rounded-lg bg-muted/50 p-4">
+        <legend className="px-1 font-semibold">Fees and bursary figures (shown on the Bursary Fund page)</legend>
+        <p className="text-sm text-muted-foreground">From the school. Leave blank until confirmed; the website then says &ldquo;to be confirmed&rdquo;.</p>
+        <div className="grid gap-4 sm:grid-cols-4">
+          <Field label="Fees for the year" name="feesYear" error={err("feesYear")}>
+            <input id="feesYear" name="feesYear" inputMode="numeric" maxLength={4} placeholder="2027" defaultValue={fees?.feesYear ?? ""} className={inputClass} />
+          </Field>
+          <Field label="Fees per term (KES)" name="termFee" error={err("termFee")}>
+            <input id="termFee" name="termFee" inputMode="numeric" defaultValue={fees?.termFee ?? ""} className={inputClass} />
+          </Field>
+          <Field label="Fees per year (KES)" name="annualFee" error={err("annualFee")}>
+            <input id="annualFee" name="annualFee" inputMode="numeric" defaultValue={fees?.annualFee ?? ""} className={inputClass} />
+          </Field>
+          <Field label="Needy students admitted a year (average)" name="needyAdmitted" error={err("needyAdmitted")}>
+            <input id="needyAdmitted" name="needyAdmitted" inputMode="numeric" defaultValue={fees?.needyAdmitted ?? ""} className={inputClass} />
+          </Field>
+        </div>
+      </fieldset>
       <Field label="Note (optional)" name="note" error={err("note")} hint="For example: Figures from the Principal, Term 3.">
         <input id="note" name="note" maxLength={500} className={inputClass} />
       </Field>

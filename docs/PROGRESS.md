@@ -1,5 +1,22 @@
 # Progress
 
+## 18 October 2026: Menyenya Alumni Bursary Fund and impact
+
+- "Keep a child in school" is now the **Menyenya Alumni Bursary Fund** (`/causes/bursary-fund`; old links forward). Its page now covers:
+  - **The need:** needy students admitted each year, students in need today, and the fees for a year.
+  - **Who qualifies** and **how students are chosen**, in four steps: the committee sets the number, the school nominates, alumni vet each case, then bursaries are awarded and renewed.
+  - **Where the money goes:** the fund's own association account, paid straight to the school per student, and reported in the financial statements.
+  - **What your gift does:** fees for a term and for a year.
+  - Any figure the school hasn't given yet says "to be confirmed".
+- The fund now pays into its own association account ("Bursary Fund account"). Its Paybill or bank details are added once the account is opened.
+- **Admin → The school** has new fields: fees for the year, fees per term, fees per year, and the average number of needy students admitted each year.
+- **Impact:**
+  - New admin tab **Impact**: officials (administrators, the Chairman, the Secretary and the Treasurer) add dated figures to each initiative.
+  - **Impact stories**: officials write them under Alumni stories → *Write an impact story*. Each is tied to an initiative and can have a photo and a short YouTube video.
+  - A student's story needs the agreement of a parent or guardian and the school before it is published.
+- **Where impact shows:** "The difference it makes" on each initiative's page, "Our impact" on Our work, and an **Impact from our work** filter on the stories page. A story with a video plays it at the top.
+- Tests: 4 new database tests; 124 pass.
+
 ## 18 October 2026: figures and Reports and accountability
 
 - **Our community in numbers** on the home page and Who we are: members registered, classes represented, regions, pledged to the tuition block, students supported by alumni. Live totals; a figure not yet known is left out.

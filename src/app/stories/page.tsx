@@ -15,8 +15,16 @@ export const metadata: Metadata = {
 // Changes in the admin area show straight away; this is a fallback refresh.
 export const revalidate = 300;
 
-export default async function StoriesPage() {
-  const stories = await loadPublicStories(isSupabaseConfigured ? createPublicClient() : null, 60);
+const filters = [
+  { key: "all", label: "All stories" },
+  { key: "alumni", label: "Alumni journeys" },
+  { key: "impact", label: "Impact from our work" },
+] as const;
+
+export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
+  const show = (await searchParams).show;
+  const kind = show === "impact" || show === "alumni" ? show : undefined;
+  const stories = await loadPublicStories(isSupabaseConfigured ? createPublicClient() : null, 60, false, { kind });
   const [lead, ...rest] = stories;
   return (
     <>
@@ -27,9 +35,20 @@ export default async function StoriesPage() {
         <Link href="/app/stories" className={buttonClass("primary", "lg")}>Share your story</Link>
       </PageHero>
       <section className="section pt-14">
+        <nav aria-label="Filter stories" className="mb-8 flex flex-wrap gap-2">
+          {filters.map((f) => {
+            const active = (kind ?? "all") === f.key;
+            return (
+              <Link key={f.key} href={f.key === "all" ? "/stories" : `/stories?show=${f.key}`} aria-current={active ? "page" : undefined}
+                className={`rounded-full px-4 py-2 text-sm font-semibold ring-1 ${active ? "bg-ink text-white ring-ink" : "bg-card text-ink ring-line hover:ring-tea"}`}>
+                {f.label}
+              </Link>
+            );
+          })}
+        </nav>
         {!lead ? (
           <div className="rounded-2xl border-2 border-dashed border-line p-10 text-center">
-            <h2 className="text-2xl font-bold">The first stories are on their way</h2>
+            <h2 className="text-2xl font-bold">{kind === "impact" ? "Stories of impact are on their way" : "The first stories are on their way"}</h2>
             <p className="mx-auto mt-2 max-w-xl text-ink-soft">
               Members are sharing their journeys since Menyenya. Have one, or know someone whose story should be told?
             </p>

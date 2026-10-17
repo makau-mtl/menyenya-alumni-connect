@@ -10,7 +10,7 @@ import { photoSpaceKeys } from "@/content/photo-spaces";
 
 // Every action checks who is signed in; the database rules check again on every write.
 
-type Need = "admin" | "news" | "shop" | "school" | "stories" | "reports";
+type Need = "admin" | "news" | "shop" | "school" | "stories" | "reports" | "impact";
 
 async function staffFor(need: Need): Promise<Staff | string> {
   const staff = await getStaff();
@@ -19,6 +19,7 @@ async function staffFor(need: Need): Promise<Staff | string> {
   if (need === "news" && !staff.canEditNews) return "Only administrators and the Secretary can change news.";
   if (need === "school" && !staff.canEditSchool) return "Only administrators and the school liaison can change the school's figures.";
   if (need === "shop" && !staff.canManageShop) return "Only administrators, the Secretary and the Treasurer can manage merchandise.";
+  if (need === "impact" && !staff.canEditImpact) return "Only the officials can change impact figures.";
   if (need === "reports" && !staff.canManageReports) return "Only the Treasurer, the Chairman and administrators can manage reports.";
   if (need === "stories" && !staff.canEditStories) return "Only administrators, the Secretary and the Chairman can review stories.";
   return staff;
@@ -859,6 +860,10 @@ const schoolStatsSchema = z.object({
   supported: count("Numbers only."),
   teachers: count("Numbers only."),
   note: z.string().trim().max(500, "Keep the note under 500 characters."),
+  feesYear: count("Enter a year, e.g. 2027.").refine((v) => v === null || (v >= 2020 && v <= 2100), "Enter a year, e.g. 2027."),
+  termFee: count("Numbers only, in shillings."),
+  annualFee: count("Numbers only, in shillings."),
+  needyAdmitted: count("Numbers only."),
 });
 
 /** Records the school's latest figures. Earlier figures are kept as history. */
@@ -868,12 +873,15 @@ export async function saveSchoolStats(_prev: ActionState, formData: FormData): P
   const parsed = schoolStatsSchema.safeParse({
     asOf: String(formData.get("asOf") ?? ""), students: String(formData.get("students") ?? ""), needy: String(formData.get("needy") ?? ""),
     supported: String(formData.get("supported") ?? ""), teachers: String(formData.get("teachers") ?? ""), note: String(formData.get("note") ?? ""),
+    feesYear: String(formData.get("feesYear") ?? ""), termFee: String(formData.get("termFee") ?? ""),
+    annualFee: String(formData.get("annualFee") ?? ""), needyAdmitted: String(formData.get("needyAdmitted") ?? ""),
   });
   if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
   const v = parsed.data;
   const { data: me } = await staff.supabase.rpc("current_person_id");
   const { error } = await staff.supabase.from("school_stats").insert({
     as_of: v.asOf, students: v.students, needy_students: v.needy, supported_by_alumni: v.supported, teachers: v.teachers, note: v.note, recorded_by: me ?? null,
+    fees_year: v.feesYear, term_fee_kes: v.termFee || null, annual_fee_kes: v.annualFee || null, needy_admitted_per_year: v.needyAdmitted,
   });
   if (error) {
     console.error(error);
@@ -881,7 +889,8 @@ export async function saveSchoolStats(_prev: ActionState, formData: FormData): P
   }
   revalidatePath("/app", "layout");
   revalidatePath("/admin/school");
-  return { ok: true, message: "Figures saved. Members see them on their dashboard." };
+  refreshSite();
+  return { ok: true, message: "Figures saved. Members see them on their dashboard; totals and fees show on the website." };
 }
 
 const resultSchema = z.object({
@@ -1030,6 +1039,13 @@ export async function saveStory(_prev: ActionState, formData: FormData): Promise
     editor_note: v.editorNote,
     featured: formData.get("featured") === "on",
   };
+  if (formData.has("causeId")) row.cause_id = String(formData.get("causeId") || "") || null;
+  if (formData.has("videoUrl")) {
+    const raw = String(formData.get("videoUrl") ?? "").trim();
+    const vid = raw ? youtubeId(raw) : null;
+    if (raw && !vid) return fail("Check the highlighted fields.", { videoUrl: "Paste a YouTube link, e.g. https://youtu.be/…" });
+    row.video_url = vid ? `https://youtu.be/${vid}` : null;
+  }
   if (formData.get("removePhoto") === "on") row.photo_path = null;
   if (intent === "publish") {
     if (!consent) return fail("Tick that the person agreed before publishing.", { consent: "Needed before publishing." });
@@ -1104,4 +1120,107 @@ export async function setReportStatus(formData: FormData): Promise<void> {
   const { error } = await staff.supabase.from("reports").update({ status }).eq("id", String(formData.get("id") ?? ""));
   if (error) console.error(error);
   refreshSite();
+}
+
+const impactFigureSchema = z.object({
+  id: z.union([z.literal(""), z.string().uuid()]),
+  causeId: z.string().uuid("Choose the initiative."),
+  value: z.string().trim().min(1, "Enter the figure, e.g. 12 or KES 384,000.").max(24, "Keep the figure short."),
+  label: z.string().trim().min(3, "Say what it counts, e.g. students on bursaries in 2027.").max(80),
+  asOf: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the date these figures are correct to."),
+  note: z.string().trim().max(200),
+});
+
+/** Add or correct an impact figure. Typed by officials and dated; it should match the annual reports. */
+export async function saveImpactFigure(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("impact");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = impactFigureSchema.safeParse(Object.fromEntries(["id", "causeId", "value", "label", "asOf", "note"].map((k) => [k, String(formData.get(k) ?? "")])));
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const row = { cause_id: v.causeId, value: v.value, label: v.label, as_of: v.asOf, note: v.note };
+  const table = staff.supabase.from("impact_figures");
+  let error;
+  if (v.id) ({ error } = await table.update(row).eq("id", v.id));
+  else {
+    const { data: last } = await staff.supabase.from("impact_figures").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+    ({ error } = await table.insert({ ...row, sort_order: (last?.sort_order ?? 0) + 10 }));
+  }
+  if (error) {
+    console.error(error);
+    return fail("The figure could not be saved.");
+  }
+  refreshSite();
+  redirect("/admin/impact?saved=1");
+}
+
+export async function setImpactFigureStatus(formData: FormData): Promise<void> {
+  const staff = await staffFor("impact");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  if (!["published", "draft", "archived"].includes(status)) return;
+  await staff.supabase.from("impact_figures").update({ status }).eq("id", String(formData.get("id") ?? ""));
+  refreshSite();
+}
+
+export async function moveImpactFigure(formData: FormData): Promise<void> {
+  const staff = await staffFor("impact");
+  if (typeof staff === "string") return;
+  const id = String(formData.get("id") ?? "");
+  const { data: me } = await staff.supabase.from("impact_figures").select("cause_id").eq("id", id).maybeSingle();
+  if (!me) return;
+  const { data: rows } = await staff.supabase.from("impact_figures").select("id").eq("cause_id", me.cause_id).neq("status", "archived").order("sort_order");
+  const list = rows ?? [];
+  const i = list.findIndex((r) => r.id === id);
+  const j = formData.get("direction") === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  await Promise.all(list.map((r, n) => staff.supabase.from("impact_figures").update({ sort_order: (n + 1) * 10 }).eq("id", r.id)));
+  refreshSite();
+}
+
+const impactStorySchema = z.object({
+  causeId: z.string().uuid("Choose the initiative."),
+  subjectName: z.string().trim().min(2, "Who is it about? A first name only for a student, e.g. Wanjiku, Form 3.").max(120),
+  title: z.string().trim().min(5, "Give the story a title.").max(120),
+  summary: z.string().trim().max(280),
+  body: z.string().trim().min(50, "Tell a little more (at least a few sentences).").max(8000),
+  videoUrl: z.string().trim().max(200),
+  photoCaption: z.string().trim().max(200),
+});
+
+/** Officials write an impact story for an initiative. It starts waiting for review (consent recorded before publishing). */
+export async function createImpactStory(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("stories");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = impactStorySchema.safeParse(Object.fromEntries(["causeId", "subjectName", "title", "summary", "body", "videoUrl", "photoCaption"].map((k) => [k, String(formData.get(k) ?? "")])));
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const vid = v.videoUrl ? youtubeId(v.videoUrl) : null;
+  if (v.videoUrl && !vid) return fail("Check the highlighted fields.", { videoUrl: "Paste a YouTube link, e.g. https://youtu.be/…" });
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  if (!me) return fail("Your account isn't linked to a member record yet, so it can't write stories.");
+  let photoPath: string | null = null;
+  const large = formData.get("large");
+  const small = formData.get("small");
+  if (large instanceof File && large.size > 0 && small instanceof File) {
+    photoPath = `${me}/${crypto.randomUUID()}`;
+    for (const [file, size] of [[large, "1600"], [small, "800"]] as const) {
+      if (file.size > 2 * 1024 * 1024 || !["image/webp", "image/jpeg"].includes(file.type)) return fail("The photo couldn't be used. Try a JPG or PNG.");
+      const { error } = await staff.supabase.storage.from("story-photos").upload(`${photoPath}-${size}.webp`, file, { contentType: file.type, upsert: false });
+      if (error) {
+        console.error(error);
+        return fail("The photo could not be saved. Please try again.");
+      }
+    }
+  }
+  const { data, error } = await staff.supabase.from("alumni_stories").insert({
+    kind: "impact", submitted_by: me, subject_name: v.subjectName, title: v.title, summary: v.summary, body: v.body,
+    cause_id: v.causeId, video_url: vid ? `https://youtu.be/${vid}` : null, photo_path: photoPath, photo_caption: photoPath ? v.photoCaption || null : null,
+  }).select("id").single();
+  if (error) {
+    console.error(error);
+    return fail("The story could not be saved.");
+  }
+  redirect(`/admin/stories/${data.id}?created=1`);
 }

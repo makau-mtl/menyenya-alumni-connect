@@ -20,6 +20,7 @@ Buttons that are hard to undo (Remove, End role, Merge, closing registration) as
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
+| Impact | Administrators, the Chairman, the Secretary and the Treasurer | Impact figures for each initiative |
 | Reports | The Treasurer (financial), the Chairman (moral report), administrators | Annual reports on the Reports and accountability page |
 | Alumni stories | Administrators, the Secretary and the Chairman | Review, publish and feature stories members share |
 | The school | Administrators and the school liaison | The school's figures, results and priorities members see |
@@ -213,3 +214,13 @@ Members send stories from **Share a story** in their account. They appear in **A
 5. **Withdraw** takes a report off the website. Nothing is deleted.
 
 For the Bursary Fund, the financial statements should show what was paid to the school, for how many students, and for which term or year.
+
+## Bursary Fund figures
+
+**Admin → The school** (administrators and the school liaison). When the school gives them, fill in *Fees for the year*, *Fees per term*, *Fees per year* and *Needy students admitted a year (average)*, then save. The Bursary Fund page shows them straight away; until then it says "to be confirmed". The process text (who qualifies, how students are chosen) is proposed wording; send changes to the developer.
+
+## Impact figures and stories
+
+- **Figures: Admin → Impact.** Choose the initiative, type the figure (e.g. "12" or "KES 384,000"), what it counts ("students on bursaries in 2027") and the date it is correct to. Keep figures in line with the annual reports. Use the arrows to order them, Hide to take one off for a while, Remove when it is out of date.
+- **Stories: Admin → Alumni stories → Write an impact story.** Choose the initiative, say who it is about (for a student: first name and form only), write the story, and add a photo and a YouTube link if you have them. To use a video, first upload it to the association's YouTube channel ("Unlisted" is fine), then paste its link.
+- On the next screen, record the agreement before publishing. **For a current student you need a parent or guardian and the school to agree, and a face is shown only with that agreement.** Then press **Approve and publish**.

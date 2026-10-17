@@ -18,12 +18,19 @@ export const channels: PaymentChannel[] = [
     paybillNumber: null, // opened after registration
     accountDisplayName: "Menyenya SDA High School Alumni Association account",
   },
+  {
+    id: "association-bursary",
+    name: "Bursary Fund account",
+    holder: "association",
+    paybillNumber: null,
+    accountDisplayName: "Menyenya Alumni Bursary Fund account (association)",
+  },
 ];
 
 export const funds: Fund[] = [
   { id: "tuition-block-fund", name: "Tuition Block Fund", channelId: "bom-tuition" },
   { id: "general-fund", name: "General Fund", channelId: "association" },
-  { id: "needy-students-fund", name: "Needy Students Fund", channelId: "association" },
+  { id: "needy-students-fund", name: "Menyenya Alumni Bursary Fund", channelId: "association-bursary" },
 ];
 
 export const causes: Cause[] = [
@@ -87,12 +94,13 @@ export const causes: Cause[] = [
     readiness: [],
   },
   {
-    slug: "keep-a-child-in-school",
-    title: "Keep a child in school",
-    summary: "Help a student whose family cannot meet school fees stay in class. Students are never named publicly.",
+    slug: "bursary-fund",
+    title: "Menyenya Alumni Bursary Fund",
+    summary: "Bursaries that keep bright students from struggling families in class. Paid straight to the school, for students vetted by alumni.",
     story: [
-      "Some students at Menyenya miss school because fees are unpaid. This fund helps them stay in class.",
-      "Students are chosen with the school, and their names are never shown publicly.",
+      "Every year Menyenya admits students whose families cannot keep up with school fees. Some miss weeks of lessons; some never finish. Talent is everywhere, but opportunity is not.",
+      "The Menyenya Alumni Bursary Fund removes that barrier. Each bursary pays a student's fees for the full year, straight to the school, so they can stay in class and focus on learning.",
+      "Removing barriers to education gives these students hope, and gives Menyenya the chance to do what it does best: shape young people who go on to lift their families and communities.",
     ],
     kind: "ongoing_fund",
     fundId: "needy-students-fund",

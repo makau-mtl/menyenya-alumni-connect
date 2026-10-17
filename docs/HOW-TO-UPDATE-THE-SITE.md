@@ -232,3 +232,7 @@ For the Bursary Fund, the financial statements should show what was paid to the 
 - **Video:** upload the film to the association's YouTube channel ("Unlisted" is fine), paste its link, say what it is (e.g. "Message from the Chairman", "Project video") and, if one person speaks, who (e.g. "Peter Ondieki, Class of 2012"). One video per initiative; 1 to 2 minutes is best, with subtitles. For a building project, the strongest film shows today's classrooms, a walk-through of the 3D design, the architect, the Chairman and an alumnus, and ends with a clear ask.
 - **Photos:** for each photo choose what it shows: *The design* (drawings, 3D views, floor plans), *Today* (the need), *Progress*, *Impact* or *Other*. The first photo is the cover.
 - **Ready to market:** the checklist at the top shows what is missing. A new initiative can't be set to Preparing, Live or Construction until it has a video and at least three photos.
+
+## Streams and dormitories
+
+**Admin → Settings → Streams and dormitories** (administrators). Type the names separated by commas and press Add. Fix spelling with Rename. Hide one that shouldn't be chosen any more; members who already chose it keep it. Members choose theirs under **My profile → My Menyenya**.

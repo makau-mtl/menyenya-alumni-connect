@@ -7,7 +7,7 @@ import { getStaff } from "@/lib/admin/staff";
 import { memberPhotoUrl } from "@/lib/members/photos";
 import { applySignInPhoto, removeMemberPhoto, uploadMemberPhoto } from "@/app/app/actions";
 import { PhotoUpload } from "@/components/admin/photo-upload";
-import { ChoicesForm, WorkForm } from "@/components/member/profile-forms";
+import { ChoicesForm, SchoolLifeForm, WorkForm } from "@/components/member/profile-forms";
 import { PageHeader, Panel } from "@/components/portal/page-parts";
 import { Button } from "@/components/shadcn/button";
 
@@ -27,16 +27,18 @@ export default async function ProfilePage() {
   if (!member.registered) redirect("/join");
   if (member.membershipStatus === "terminated") redirect("/app");
   const staff = await getStaff();
-  const hasAdmin = Boolean(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases));
+  const hasAdmin = Boolean(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases || staff.canEditStories || staff.canManageReports || staff.canEditImpact));
 
-  const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
+  const [{ data: p }, { data: consentRows }, { data: skillRows }, { data: dorms }, { data: streams }] = await Promise.all([
     member.supabase
       .from("member_profiles")
-      .select("contact_visibility, gender, headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, membership_levels(can_mentor, can_request_mentor)")
+      .select("contact_visibility, gender, headline, occupation_status, profession, employer_or_business, products_services, skills, linkedin_url, profile_link, social_links, willing_to_volunteer, mentoring_offer, photo_path, stream_id, dorm_ids, membership_levels(can_mentor, can_request_mentor)")
       .eq("person_id", member.personId!)
       .single(),
     member.supabase.from("consents").select("purpose, granted, created_at").order("created_at", { ascending: false }),
     member.supabase.from("skills").select("name").eq("active", true).order("name"),
+    member.supabase.from("school_dorms").select("id, name").eq("status", "published").order("sort_order").order("name"),
+    member.supabase.from("school_streams").select("id, name").eq("status", "published").order("sort_order").order("name"),
   ]);
   const skillOptions = (skillRows ?? []).map((r) => r.name);
   const providerName = member.provider === "google" ? "Google" : member.provider === "linkedin_oidc" ? "LinkedIn" : null;
@@ -55,7 +57,7 @@ export default async function ProfilePage() {
           actions={hasAdmin ? <Button asChild variant="outline" className="md:hidden"><Link href="/admin">Open the admin area</Link></Button> : undefined}
         />
         <nav aria-label="Sections" className="flex flex-wrap gap-2">
-          {[["#photo", "Photo"], ["#work", "Work and links"], ["#choices", "Privacy choices"], ["#terminate", "Terminate membership"]].map(([href, label]) => (
+          {[["#photo", "Photo"], ["#work", "Work and links"], ["#menyenya", "My Menyenya"], ["#choices", "Privacy choices"], ["#terminate", "Terminate membership"]].map(([href, label]) => (
             <a key={href} href={href} className="rounded-full bg-card px-3 py-1 text-sm font-semibold ring-1 ring-border hover:ring-tea">{label}</a>
           ))}
         </nav>
@@ -114,6 +116,14 @@ export default async function ProfilePage() {
             canRequestMentor: flags?.can_request_mentor ?? false,
           }}
         />
+      </Section>
+
+      <Section id="menyenya" title="My Menyenya" intro="Optional. Your stream and the dormitories you slept in help old friends find you, and help the association understand its members. Fellow members see them on your card.">
+        {(dorms ?? []).length + (streams ?? []).length === 0 ? (
+          <p className="text-muted-foreground">The lists of streams and dormitories are being prepared. Check back soon.</p>
+        ) : (
+          <SchoolLifeForm streams={streams ?? []} dorms={dorms ?? []} current={{ stream: p?.stream_id ?? null, dorms: p?.dorm_ids ?? [] }} />
+        )}
       </Section>
 
       <Section id="choices" title="Privacy choices" intro={<>Change these whenever you like. See the <Link href="/privacy" className="underline">privacy policy</Link>.</>}>

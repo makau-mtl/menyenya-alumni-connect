@@ -14,9 +14,14 @@ export default async function MemberCardPage({ params }: Props) {
   const member = await getMember();
   if (!member) redirect(`/login?next=/app/directory/${id}`);
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const { data } = await member.supabase.rpc("directory_member", { p_person: id });
-  const m = (data as (CardMember & { photo_path: string | null })[] | null)?.[0];
-  if (!m) notFound();
+  const [{ data }, { data: life }] = await Promise.all([
+    member.supabase.rpc("directory_member", { p_person: id }),
+    member.supabase.rpc("member_school_life", { p_person: id }),
+  ]);
+  const found = (data as (CardMember & { photo_path: string | null })[] | null)?.[0];
+  if (!found) notFound();
+  const school = (life as { stream: string | null; dorms: string[] }[] | null)?.[0];
+  const m = { ...found, stream: school?.stream ?? null, dorms: school?.dorms ?? [] };
   const photo = await memberPhotoUrl(member.supabase, m.photo_path, "large");
   return (
     <div>

@@ -566,3 +566,22 @@ export async function shareStory(_prev: ActionState, formData: FormData): Promis
       : "Thank you! The officials will contact them and ask before anything goes on the website.",
   );
 }
+
+/** Stream and dormitories (optional). The database checks they come from the lists. */
+export async function saveSchoolLife(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const uuid = /^[0-9a-f-]{36}$/;
+  const stream = String(formData.get("stream") ?? "");
+  const dorms = [...new Set(formData.getAll("dorms").map(String))].filter((d) => uuid.test(d));
+  if (dorms.length > 6) return fail("Choose up to six dormitories.");
+  const { error } = await m.supabase
+    .from("member_profiles")
+    .update({ stream_id: uuid.test(stream) ? stream : null, dorm_ids: dorms })
+    .eq("person_id", m.personId!);
+  if (error) {
+    console.error(error);
+    return fail("Your choices could not be saved. Please try again.");
+  }
+  return done("Saved.");
+}

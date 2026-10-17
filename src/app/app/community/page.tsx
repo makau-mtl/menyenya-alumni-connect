@@ -29,11 +29,13 @@ function Stat({ label, value, href }: { label: string; value: number; href: stri
 export default async function CommunityPage() {
   const member = await getMember();
   if (!member?.registered) redirect("/login?next=/app/community");
-  const [{ data }, { data: mine }] = await Promise.all([
+  const [{ data }, { data: lifeData }, { data: mine }] = await Promise.all([
     member.supabase.rpc("community_breakdown"),
+    member.supabase.rpc("school_life_breakdown"),
     member.supabase.from("member_profiles").select("year_left, clusters(name)").eq("person_id", member.personId!).single(),
   ]);
   const b = data as Breakdown | null;
+  const life = (lifeData ?? { streams: [], dorms: [] }) as { streams: { id: string; name: string; count: number | null }[]; dorms: { id: string; name: string; count: number | null }[] };
   if (!b) redirect("/app");
   const myClass = mine?.year_left ? `Class of ${mine.year_left}` : undefined;
   const myRegion = (mine?.clusters as unknown as { name: string } | null)?.name;
@@ -88,6 +90,22 @@ export default async function CommunityPage() {
             )}
           </CardContent>
         </Card>
+        {life.dorms.length > 0 && (
+          <Card className="gap-4">
+            <CardHeader><CardTitle className="text-lg">By dormitory</CardTitle><CardDescription>Where members slept. Fewer than 5 shown as &ldquo;fewer than 5&rdquo;.</CardDescription></CardHeader>
+            <CardContent>
+              <BarList rows={life.dorms.map((d) => ({ label: d.name, value: d.count, href: `/app/directory?dorm=${d.id}` }))} />
+            </CardContent>
+          </Card>
+        )}
+        {life.streams.length > 0 && (
+          <Card className="gap-4">
+            <CardHeader><CardTitle className="text-lg">By stream</CardTitle></CardHeader>
+            <CardContent>
+              <BarList rows={life.streams.map((d) => ({ label: d.name, value: d.count, href: `/app/directory?stream=${d.id}` }))} />
+            </CardContent>
+          </Card>
+        )}
         <Card className="gap-4">
           <CardHeader><CardTitle className="text-lg">New members by month</CardTitle><CardDescription>The last 12 months</CardDescription></CardHeader>
           <CardContent>

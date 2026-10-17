@@ -1263,3 +1263,29 @@ export async function saveCauseVideo(_prev: ActionState, formData: FormData): Pr
   refreshSite();
   return { ok: true, message: remove ? "Video removed." : "Saved. The video shows on the website now." };
 }
+
+// Pick lists for "My Menyenya": streams and dormitories ------------------------------------------
+const pickTables = { stream: "school_streams", dorm: "school_dorms" } as const;
+
+/** Add, rename, hide or show a stream or dormitory. Items are never deleted (members may have chosen them). */
+export async function savePickItem(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const kind = String(formData.get("kind") ?? "") as keyof typeof pickTables;
+  const table = pickTables[kind];
+  if (!table) return;
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim().slice(0, 60);
+  const status = String(formData.get("status") ?? "");
+  if (id && ["published", "archived"].includes(status)) {
+    await staff.supabase.from(table).update({ status }).eq("id", id);
+  } else if (id && name) {
+    await staff.supabase.from(table).update({ name }).eq("id", id);
+  } else if (!id && name) {
+    const names = name.split(/[,\n]/).map((n) => n.trim()).filter(Boolean).slice(0, 40);
+    const { error } = await staff.supabase.from(table).insert(names.map((n) => ({ name: n })));
+    if (error) console.error(error);
+  }
+  revalidatePath("/admin/settings");
+  revalidatePath("/app", "layout");
+}

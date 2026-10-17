@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
-import { saveChoices, saveWelfareContact, saveWork } from "@/app/app/actions";
+import { saveChoices, saveSchoolLife, saveWelfareContact, saveWork } from "@/app/app/actions";
 import type { ActionState } from "@/lib/admin/staff";
 import { phoneCountries } from "@/lib/phone";
 import { occupationOptions } from "@/lib/registration";
@@ -200,6 +200,40 @@ export function ChoicesForm({ current, contactVisibility }: { current: Record<st
           </span>
         </label>
       ))}
+      <SaveRow saving={saving} state={state} />
+    </form>
+  );
+}
+
+/** Stream and dormitories (optional), from the lists the administrators keep. */
+export function SchoolLifeForm({ streams, dorms, current }: {
+  streams: { id: string; name: string }[]; dorms: { id: string; name: string }[]; current: { stream: string | null; dorms: string[] };
+}) {
+  const { state, saving, onSubmit } = useForm(saveSchoolLife);
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      {streams.length > 0 && (
+        <label className="flex max-w-sm flex-col gap-1.5 font-semibold">
+          Stream
+          <select name="stream" defaultValue={current.stream ?? ""} className={inputClass}>
+            <option value="">Not saying</option>
+            {streams.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </label>
+      )}
+      {dorms.length > 0 && (
+        <fieldset>
+          <legend className="font-semibold">Dormitories you slept in</legend>
+          <p className="text-sm text-ink-soft">Tick all that apply.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {dorms.map((d) => (
+              <label key={d.id} className="flex cursor-pointer items-center gap-2 rounded-full bg-card px-3 py-1.5 text-sm font-semibold ring-1 ring-border has-[:checked]:bg-tea-tint has-[:checked]:ring-tea">
+                <input type="checkbox" name="dorms" value={d.id} defaultChecked={current.dorms.includes(d.id)} className="accent-tea" /> {d.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       <SaveRow saving={saving} state={state} />
     </form>
   );

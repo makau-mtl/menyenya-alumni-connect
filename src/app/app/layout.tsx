@@ -1,15 +1,34 @@
 import type { Metadata } from "next";
-import { getPortalNav } from "@/lib/portal-nav";
-import { PortalShell } from "@/components/portal/portal-shell";
+import { getMember } from "@/lib/members/session";
+import { getStaff } from "@/lib/admin/staff";
+import { MemberNav, type MemberTab } from "@/components/member/member-nav";
+import { Toaster } from "@/components/shadcn/sonner";
 
 export const metadata: Metadata = { title: { default: "My account", template: "%s | My account" }, robots: { index: false } };
 export const dynamic = "force-dynamic";
 
+// Members use the platform inside the website: the site header and footer stay, with these tabs underneath.
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
-  const { groups, user } = await getPortalNav();
+  const member = await getMember();
+  let tabs: MemberTab[] = [];
+  if (member?.registered && member.membershipStatus !== "terminated") {
+    const [{ data: waiting }, staff] = await Promise.all([member.supabase.rpc("confirmations_waiting"), getStaff()]);
+    const confirm = (waiting as unknown[] | null)?.length ?? 0;
+    tabs = [
+      { href: "/app", label: "Dashboard", icon: "dashboard" },
+      { href: "/app/profile", label: "My profile", icon: "profile" },
+      { href: "/app/directory", label: "Member directory", icon: "directory" },
+      ...(confirm ? [{ href: "/app/confirm", label: "Confirm members", icon: "confirm" as const, badge: confirm }] : []),
+      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop)
+        ? [{ href: "/admin", label: "Admin area", icon: "admin" as const }]
+        : []),
+    ];
+  }
   return (
-    <PortalShell groups={groups} user={user}>
-      {children}
-    </PortalShell>
+    <>
+      {tabs.length > 0 && <MemberNav tabs={tabs} />}
+      <div className="section pb-16 pt-8 lg:pt-10">{children}</div>
+      <Toaster position="top-center" richColors />
+    </>
   );
 }

@@ -6,8 +6,13 @@ import type { NavGroup, PortalUser } from "@/components/portal/portal-shell";
 
 /** The side menu for the member portal and admin area, based on who is signed in. */
 export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: PortalUser }> {
+  // Used by the admin workspace. Members reach their own pages through the website.
   const [member, staff] = await Promise.all([getMember(), getStaff()]);
   const groups: NavGroup[] = [];
+  const myAccount: NavGroup["items"] = [
+    { href: "/app", label: "My account", icon: "dashboard" },
+    { href: "/", label: "Back to the website", icon: "home" },
+  ];
   let user: PortalUser = { name: member?.fullName ?? staff?.email ?? "Member", email: member?.email ?? staff?.email ?? "", photo: null, subtitle: null };
 
   if (member?.registered && member.membershipStatus !== "terminated") {
@@ -22,18 +27,7 @@ export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: Portal
       photo: await memberPhotoUrl(member.supabase, p?.photo_path ?? null, "small"),
       subtitle: cat === "alumnus" && p?.year_left ? `Class of ${p.year_left}` : "Friend of the alumni",
     };
-    groups.push({
-      label: "Member",
-      root: "/app",
-      items: [
-        { href: "/app", label: "Dashboard", icon: "dashboard" },
-        { href: "/app/profile", label: "My profile", icon: "profile" },
-        { href: "/app/directory", label: "Member directory", icon: "directory" },
-        ...(confirm ? [{ href: "/app/confirm", label: "Confirm members", icon: "confirm" as const, badge: confirm }] : []),
-      ],
-    });
-  } else if (member) {
-    groups.push({ label: "Member", root: "/app", items: [{ href: "/app", label: "My account", icon: "dashboard" }] });
+    myAccount.push(...(confirm ? [{ href: "/app/confirm", label: "Confirm members", icon: "confirm" as const, badge: confirm }] : []));
   }
 
   if (staff) {
@@ -58,5 +52,6 @@ export async function getPortalNav(): Promise<{ groups: NavGroup[]; user: Portal
     ];
     if (items.length) groups.push({ label: "Administration", root: "/admin", items });
   }
+  groups.push({ label: "Leave admin", root: "/app", items: myAccount });
   return { groups, user };
 }

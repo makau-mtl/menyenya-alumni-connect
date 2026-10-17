@@ -35,7 +35,8 @@ function initials(name: string) {
 
 export function PortalShell({ groups, user, children }: { groups: NavGroup[]; user: PortalUser; children: React.ReactNode }) {
   const path = usePathname();
-  const isActive = (href: string, root: string) => (href === root ? path === root : path === href || path.startsWith(`${href}/`));
+  const isActive = (href: string, root: string) =>
+    href === "/" ? false : href === root ? path === root : path === href || path.startsWith(`${href}/`);
   const current = groups.flatMap((g) => g.items.map((i) => ({ ...i, root: g.root }))).find((i) => isActive(i.href, i.root));
   const area = groups.find((g) => path === g.root || path.startsWith(`${g.root}/`))?.label;
 
@@ -43,11 +44,14 @@ export function PortalShell({ groups, user, children }: { groups: NavGroup[]; us
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link href="/app" className="flex items-center gap-2 rounded-md px-2 py-2 group-data-[collapsible=icon]:justify-center">
-            <span className="text-xl leading-none tracking-tight text-white group-data-[collapsible=icon]:hidden">
-              <span className="font-black">mhs</span>
-              <span className="font-black text-gold">.</span>
-              <span>alumni</span>
+          <Link href="/admin" className="flex items-center gap-2 rounded-md px-2 py-2 group-data-[collapsible=icon]:justify-center">
+            <span className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
+              <span className="text-xl tracking-tight text-white">
+                <span className="font-black">mhs</span>
+                <span className="font-black text-gold">.</span>
+                <span>alumni</span>
+              </span>
+              <span className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-gold">Admin</span>
             </span>
             <span className="hidden size-8 items-center justify-center rounded-lg bg-white/10 font-black text-white group-data-[collapsible=icon]:flex">
               m<span className="text-gold">.</span>

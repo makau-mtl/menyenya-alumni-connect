@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 
-/** The public website's banner, header and footer. The member portal and admin area have their own layout. */
+/** The website's banner, header and footer. Members use the platform inside the website; only the admin area has its own workspace. */
 export function SiteChrome({ header, footer, children }: { header: React.ReactNode; footer: React.ReactNode; children: React.ReactNode }) {
   const path = usePathname();
-  const portal = path === "/app" || path.startsWith("/app/") || path === "/admin" || path.startsWith("/admin/");
-  if (portal) return <>{children}</>;
+  const workspace = path === "/admin" || path.startsWith("/admin/");
+  if (workspace) return <>{children}</>;
   return (
     <>
       <p className="bg-gold-tint px-4 py-1.5 text-center text-xs text-ink sm:text-sm">

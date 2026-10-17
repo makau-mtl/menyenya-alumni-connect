@@ -56,7 +56,7 @@ function Stat({ icon: Icon, label, value, note, tone = "default", href }: {
 export function Dashboard({ d }: { d: DashboardData }) {
   const tuitionPct = d.tuition ? Math.min(100, Math.round((d.tuition.pledged / d.tuition.target) * 100)) : 0;
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-8">
+    <div className="flex flex-col gap-8">
       {/* Greeting */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -74,8 +74,7 @@ export function Dashboard({ d }: { d: DashboardData }) {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline"><Link href="/app/directory"><Users /> Directory</Link></Button>
-          <Button asChild><Link href="/pledge/tuition-block"><Gift /> Make a pledge</Link></Button>
+                    <Button asChild><Link href="/pledge/tuition-block"><Gift /> Make a pledge</Link></Button>
         </div>
       </div>
 

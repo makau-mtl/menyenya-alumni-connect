@@ -18,7 +18,7 @@ export function MembershipCard({ c }: { c: MembershipCardData }) {
   return (
     <section
       aria-label="Membership card"
-      className="relative isolate w-full overflow-hidden rounded-2xl bg-ink p-5 text-white shadow-[0_18px_40px_-18px_rgba(23,40,59,0.7)] sm:max-w-md"
+      className="relative isolate flex w-full flex-col justify-between overflow-hidden rounded-2xl bg-ink p-5 text-white shadow-[0_18px_40px_-18px_rgba(23,40,59,0.7)] sm:max-w-md lg:max-w-none"
     >
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(125deg,#17283b_0%,#1f3a52_55%,#2e6b4f_100%)]" />
       <svg aria-hidden className="absolute inset-0 -z-10 h-full w-full text-white opacity-[0.05]">

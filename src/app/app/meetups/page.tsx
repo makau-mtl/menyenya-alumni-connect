@@ -5,7 +5,7 @@ import { MeetupForm } from "@/components/member/connections";
 import { MeetupCard, type Meetup } from "@/components/member/meetup-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
 
-export const metadata: Metadata = { title: "Who's around?" };
+export const metadata: Metadata = { title: "Hapa kuna form?" };
 
 export default async function MeetupsPage() {
   const member = await getMember();
@@ -20,8 +20,8 @@ export default async function MeetupsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">Meet up</p>
-        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Who&rsquo;s around?</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">Who&rsquo;s around?</p>
+        <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Hapa kuna form?</h1>
         <p className="mt-2 max-w-2xl text-ink-soft">
           Going to be somewhere? Drop your pin and see which alumni can join you, from a nyama choma to coffee after
           church. Share only the town or area here; agree the exact place with those who are in.
@@ -29,9 +29,9 @@ export default async function MeetupsPage() {
       </div>
       <div className="grid gap-8 lg:grid-cols-[1fr_24rem] lg:items-start">
         <section aria-label="Upcoming meet-ups" className="flex flex-col gap-3">
-          <h2 className="text-xl font-bold">Coming up</h2>
+          <h2 className="text-xl font-bold">Forms coming up</h2>
           {meetups.length === 0 ? (
-            <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">Nothing planned yet. Be the first to drop your pin.</p>
+            <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">Hakuna form bado. Be the first to drop your pin.</p>
           ) : (
             meetups.map((m) => <MeetupCard key={m.id} m={m} />)
           )}

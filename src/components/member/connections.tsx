@@ -63,7 +63,7 @@ export function MeetupForm({ hasClass, region }: { hasClass: boolean; region: st
   return (
     <form ref={form} onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <Field label="What's the plan?" name="title" error={err("title")} hint="For example: Nyama choma, or Coffee after church.">
+        <Field label="Form ni gani? (What's the plan?)" name="title" error={err("title")} hint="For example: Nyama choma, or chai after church.">
           <input id="title" name="title" required maxLength={100} className={inputClass} />
         </Field>
       </div>
@@ -91,7 +91,7 @@ export function MeetupForm({ hasClass, region }: { hasClass: boolean; region: st
           {region && <label className="flex items-center gap-2"><input type="radio" name="audience" value="region" className="size-4 accent-tea" /> {region} region</label>}
         </div>
       </fieldset>
-      <Button type="submit" disabled={pending} className="self-start sm:col-span-2" size="lg">{pending ? "Posting…" : "Post it"}</Button>
+      <Button type="submit" disabled={pending} className="self-start sm:col-span-2" size="lg">{pending ? "Posting…" : "Weka form!"}</Button>
     </form>
   );
 }

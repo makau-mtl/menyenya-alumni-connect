@@ -123,7 +123,6 @@ export default async function MemberHome() {
   if (standing?.awaiting_confirmation) actions.push({ icon: "info", label: "Your membership is waiting for confirmation", detail: "A confirmer will check your details soon." });
   else if (standing?.in_grace) actions.push({ icon: "renew", urgent: true, label: `Renew for ${standing.this_year}`, detail: `Pay by 31 March to stay active and keep your vote.` });
   else if (standing?.standing === "inactive" && standing.fees_on) actions.push({ icon: "renew", urgent: true, label: `Become active for ${standing.this_year}`, detail: "Pay this year's membership to vote and take part in decisions." });
-  if (pct < 100) actions.push({ icon: "profile", href: "/app/profile", label: "Complete your profile", detail: `${pct}% done. Classmates find you more easily with a photo and summary.` });
   const confirmCount = (waiting as unknown[] | null)?.length ?? 0;
   if (confirmer && confirmCount) actions.push({ icon: "confirm", href: "/app/confirm", label: "Members to confirm", count: confirmCount, urgent: true });
   const unrated = pri.filter((x) => !x.my_importance).length;
@@ -151,6 +150,16 @@ export default async function MemberHome() {
       standingLabel: standing?.awaiting_confirmation ? "Awaiting confirmation" : standing?.standing === "active" ? "Active" : "Inactive",
       since: p?.registered_at ? new Date(p.registered_at).getFullYear() : null,
     },
+    profile: {
+      pct,
+      selfLink: `/app/directory/${member.personId}`,
+      checks: [
+        { label: "A passport-style photo", done: checks[0], href: "/app/profile#photo" },
+        { label: "A one-line summary", done: checks[1], href: "/app/profile#work" },
+        { label: "Your LinkedIn link", done: checks[2], href: "/app/profile#work" },
+        { label: "Your skills", done: checks[3], href: "/app/profile#work" },
+      ],
+    },
     actions,
     myClass: alumnus && stats
       ? {
@@ -169,8 +178,8 @@ export default async function MemberHome() {
     community: stats
       ? {
           total: stats.total, alumni: stats.alumni, friends: stats.friends, classes: stats.classes_represented,
-          topClasses: stats.top_classes.map((c) => ({ label: `Class of ${c.year}`, value: c.count })),
-          regions: stats.regions.map((r) => ({ label: r.name, value: r.count })),
+          topClasses: stats.top_classes.map((c) => ({ label: `Class of ${c.year}`, value: c.count, href: `/app/directory?year=${c.year}` })),
+          regions: stats.regions.map((r) => ({ label: r.name, value: r.count, href: `/app/directory?region=${encodeURIComponent(r.name)}` })),
           myRegion: stats.my_region,
           gender: { female: stats.female, male: stats.male, answered: stats.gender_answered },
         }

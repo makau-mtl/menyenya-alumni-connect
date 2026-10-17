@@ -7,7 +7,8 @@
 - **New pages:** The school today (rate each priority 1–5 and comment), Meet-ups, Memories, Raise a case for support.
 - **New admin tabs:** The school (figures, results, priorities and members' views), Cases for support (conversation, internal notes, status; opening a case is logged).
 - **Profile:** optional gender (only overall figures). **Confirm members** shows only for configured confirmers.
-- Tests: 15 new database tests; 112 pass.
+- After review: "Complete your profile" now sits beside the membership card; meet-ups speak a little Sheng ("Hapa kuna form?", "Niko in!", "Weka form!"); figures are clickable, with a new **Members in numbers** page (every class, region, decade, women and men, new members by month), each opening the matching member list.
+- Tests: 16 new database tests; 113 pass.
 
 ## 17 October 2026: membership standing (Active / Inactive)
 

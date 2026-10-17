@@ -324,7 +324,7 @@ export async function createMeetup(_prev: ActionState, formData: FormData): Prom
     return fail("Your meet-up could not be posted. Please try again.");
   }
   revalidatePath("/app", "layout");
-  return done("Posted. Members can now say they're in.");
+  return done("Form imewekwa! Members can now say they're in.");
 }
 
 /** "I'm in" or "Not going" for a meet-up. */

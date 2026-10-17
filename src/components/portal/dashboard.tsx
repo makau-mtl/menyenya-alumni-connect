@@ -8,6 +8,7 @@ import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Progress } from "@/components/shadcn/progress";
 import { MembershipCard, type MembershipCardData } from "@/components/member/membership-card";
+import { ProfileProgress, type ProfileProgressData } from "@/components/member/profile-progress";
 import { BarList } from "./bar-list";
 import { ClassGroupForm } from "@/components/member/connections";
 import { MeetupCard, type Meetup } from "@/components/member/meetup-card";
@@ -19,6 +20,7 @@ export type DashboardData = {
   firstName: string;
   greeting: string;
   card: MembershipCardData;
+  profile: ProfileProgressData;
   actions: ActionItem[];
   myClass: {
     label: string; year: number; count: number; rank: number | null; of: number; directory: string; invite: string; joined: number;
@@ -29,8 +31,8 @@ export type DashboardData = {
   memories: { id: string; photo: string | null; caption: string; name: string }[];
   community: {
     total: number; alumni: number; friends: number; classes: number;
-    topClasses: { label: string; value: number }[];
-    regions: { label: string; value: number | null }[];
+    topClasses: { label: string; value: number; href?: string }[];
+    regions: { label: string; value: number | null; href?: string }[];
     myRegion: string | null;
     gender: { female: number | null; male: number | null; answered: number } | null;
   } | null;
@@ -64,13 +66,20 @@ function SectionTitle({ eyebrow, title, action }: { eyebrow: string; title: stri
   );
 }
 
-function Figure({ label, value, note }: { label: string; value: string; note?: string }) {
-  return (
-    <div className="rounded-xl bg-card p-4 ring-1 ring-border">
-      <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+function Figure({ label, value, note, href }: { label: string; value: string; note?: string; href?: string }) {
+  const body = (
+    <>
+      <p className="flex items-center justify-between gap-2 text-sm font-semibold text-muted-foreground">
+        {label} {href && <ArrowRight className="size-4 opacity-0 transition group-hover:opacity-100" />}
+      </p>
       <p className="mt-1 font-display text-3xl font-bold leading-none">{value}</p>
       {note && <p className="mt-1.5 text-xs text-muted-foreground">{note}</p>}
-    </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="group rounded-xl bg-card p-4 ring-1 ring-border transition hover:ring-tea">{body}</Link>
+  ) : (
+    <div className="rounded-xl bg-card p-4 ring-1 ring-border">{body}</div>
   );
 }
 
@@ -89,15 +98,16 @@ export function Dashboard({ d }: { d: DashboardData }) {
   const g = d.community?.gender;
   return (
     <div className="flex flex-col gap-12">
-      {/* Greeting and membership card */}
-      <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
-        <div className="order-2 lg:order-1">
+      {/* Greeting, membership card and profile */}
+      <div className="flex flex-col gap-5">
+        <div>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">{d.greeting}</p>
           <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Welcome back, {d.firstName}</h1>
           <p className="mt-2 max-w-xl text-ink-soft">Here is what&rsquo;s happening with you, your class and the school.</p>
         </div>
-        <div className="order-1 lg:order-2 lg:w-[26rem]">
+        <div className="grid items-stretch gap-4 lg:grid-cols-[28rem_1fr]">
           <MembershipCard c={d.card} />
+          <ProfileProgress p={d.profile} />
         </div>
       </div>
 
@@ -199,8 +209,8 @@ export function Dashboard({ d }: { d: DashboardData }) {
       {/* Who's around? */}
       <section className="flex flex-col gap-5">
         <SectionTitle
-          eyebrow="Meet up"
-          title="Who's around?"
+          eyebrow="Who's around?"
+          title="Hapa kuna form?"
           action={<Button asChild><Link href="/app/meetups"><MapPin /> Drop your pin</Link></Button>}
         />
         {d.meetups.length ? (
@@ -209,7 +219,7 @@ export function Dashboard({ d }: { d: DashboardData }) {
           </div>
         ) : (
           <p className="rounded-xl border-2 border-dashed border-border p-6 text-muted-foreground">
-            Going to be in town? Post where you&rsquo;ll be and see which alumni can join you for nyama choma or a cup of tea.
+            Uko mtaa gani wikendi hii? Drop your pin tuone nani yuko around for nyama choma, chai or a catch-up.
           </p>
         )}
       </section>
@@ -244,16 +254,16 @@ export function Dashboard({ d }: { d: DashboardData }) {
       {/* Community in numbers */}
       {d.community && (
         <section className="flex flex-col gap-5">
-          <SectionTitle eyebrow="Our community" title="Members in numbers" action={<Link href="/app/directory" className="text-sm font-semibold text-tea hover:underline">Member directory</Link>} />
+          <SectionTitle eyebrow="Our community" title="Members in numbers" action={<Link href="/app/community" className="text-sm font-semibold text-tea hover:underline">All the figures</Link>} />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Figure label="Members" value={whole.format(d.community.total)} />
-            <Figure label="Alumni" value={whole.format(d.community.alumni)} />
-            <Figure label="Friends of the alumni" value={whole.format(d.community.friends)} />
-            <Figure label="Classes represented" value={whole.format(d.community.classes)} />
+            <Figure label="Members" value={whole.format(d.community.total)} href="/app/community" />
+            <Figure label="Alumni" value={whole.format(d.community.alumni)} href="/app/directory?category=alumnus" />
+            <Figure label="Friends of the alumni" value={whole.format(d.community.friends)} href="/app/directory?category=friend" />
+            <Figure label="Classes represented" value={whole.format(d.community.classes)} href="/app/community#classes" />
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="gap-4">
-              <CardHeader><CardTitle className="text-lg">Most registered classes</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between"><CardTitle className="text-lg">Most registered classes</CardTitle><Link href="/app/community#classes" className="text-sm font-semibold text-tea hover:underline">All classes</Link></CardHeader>
               <CardContent>{d.community.topClasses.length ? <BarList rows={d.community.topClasses} highlight={d.myClass?.label} /> : <p className="text-muted-foreground">Not enough members yet.</p>}</CardContent>
             </Card>
             <Card className="gap-4">
@@ -282,9 +292,9 @@ export function Dashboard({ d }: { d: DashboardData }) {
         <section className="flex flex-col gap-5">
           <SectionTitle eyebrow="Menyenya SDA High School" title="The school today" action={<Link href="/app/school" className="text-sm font-semibold text-tea hover:underline">More about the school</Link>} />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Figure label="Students" value={d.school.students !== null ? whole.format(d.school.students) : "—"} note={d.school.asOf ? `As of ${d.school.asOf}` : undefined} />
-            <Figure label="Students in need" value={d.school.needy !== null ? whole.format(d.school.needy) : "—"} />
-            <Figure label="Supported by alumni" value={d.school.supported !== null ? whole.format(d.school.supported) : "—"} />
+            <Figure label="Students" value={d.school.students !== null ? whole.format(d.school.students) : "—"} note={d.school.asOf ? `As of ${d.school.asOf}` : undefined} href="/app/school" />
+            <Figure label="Students in need" value={d.school.needy !== null ? whole.format(d.school.needy) : "—"} href="/app/school" />
+            <Figure label="Supported by alumni" value={d.school.supported !== null ? whole.format(d.school.supported) : "—"} href="/causes" />
             <Figure label={d.school.measure ?? "Latest results"} value={d.school.results.at(-1) ? `${d.school.results.at(-1)!.value}${d.school.results.at(-1)!.grade ? ` (${d.school.results.at(-1)!.grade})` : ""}` : "—"} note={d.school.results.at(-1)?.label} />
           </div>
           <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">

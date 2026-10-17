@@ -91,4 +91,16 @@ describe("member dashboard", () => {
       expect((await db.query<{ c: boolean }>("select public.is_confirmer() as c")).rows[0].c).toBe(false);
     });
   });
+
+  it("gives members the full breakdown, and nobody else", async () => {
+    await as(db, { user: members[2].user }, async () => {
+      const b = (await db.query<{ b: Record<string, unknown> }>("select public.community_breakdown() as b")).rows[0].b;
+      expect(b.classes).toEqual([{ year: 2010, count: 4 }, { year: 2004, count: 3 }]);
+      expect(b.male).toBeNull();
+      expect((b.joined_by_month as unknown[]).length).toBe(1);
+    });
+    await as(db, "anon", async () => {
+      await expect(db.query("select public.community_breakdown()")).rejects.toThrow(/permission denied/);
+    });
+  });
 });

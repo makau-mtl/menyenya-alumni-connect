@@ -33,21 +33,21 @@ export function MeetupCard({ m, compact = false }: { m: Meetup; compact?: boolea
         </p>
         {!compact && m.note && <p className="mt-2 text-sm">{m.note}</p>}
         <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-tea">
-          <Users className="size-4" /> {Number(m.going_count)} going{m.going_names.length ? `: ${m.going_names.join(", ")}` : ""}
+          <Users className="size-4" /> {Number(m.going_count)} {Number(m.going_count) === 1 ? "yuko in" : "wako in"}{m.going_names.length ? `: ${m.going_names.join(", ")}` : ""}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {m.mine ? (
             <form action={cancelMeetup}>
               <input type="hidden" name="id" value={m.id} />
-              <Button size="sm" variant="outline">Cancel this meet-up</Button>
+              <Button size="sm" variant="outline">Cancel form</Button>
             </form>
           ) : (
             <form action={respondMeetup}>
               <input type="hidden" name="id" value={m.id} />
               {m.i_am_going ? (
-                <Button size="sm" variant="outline" name="going" value="no">I can&rsquo;t make it</Button>
+                <Button size="sm" variant="outline" name="going" value="no">Siwezi make it</Button>
               ) : (
-                <Button size="sm" name="going" value="yes">I&rsquo;m in</Button>
+                <Button size="sm" name="going" value="yes">Niko in!</Button>
               )}
             </form>
           )}

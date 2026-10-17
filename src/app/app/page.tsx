@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
+import { memberPhotoUrl } from "@/lib/members/photos";
 import { getStaff } from "@/lib/admin/staff";
 import { buttonClass } from "@/components/ui";
 import { rejoinMembership } from "@/app/app/actions";
@@ -67,7 +68,7 @@ export default async function MemberHome() {
     member.supabase.rpc("my_standing"),
     member.supabase
       .from("member_profiles")
-      .select("year_left, photo_path, headline, linkedin_url, skills, clusters(name), membership_levels(name), member_categories(key, name)")
+      .select("year_left, photo_path, registered_at, headline, linkedin_url, skills, clusters(name), membership_levels(name), member_categories(key, name)")
       .eq("person_id", member.personId!)
       .single(),
     getCause("tuition-block").catch(() => null),
@@ -95,11 +96,14 @@ export default async function MemberHome() {
   const data: DashboardData = {
     firstName: (member.fullName ?? "").split(/\s+/)[0] || "there",
     greeting: hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening",
-    chips: [
-      ...(alumnus ? [{ icon: "class" as const, label: `Class of ${p!.year_left}` }] : cat ? [{ icon: "class" as const, label: cat.name }] : []),
-      ...(region ? [{ icon: "region" as const, label: region }] : []),
-      ...(level ? [{ icon: "level" as const, label: `${level} level` }] : []),
-    ],
+    card: {
+      name: member.fullName ?? "",
+      photo: await memberPhotoUrl(member.supabase, p?.photo_path ?? null, "small"),
+      lines: [alumnus ? `Class of ${p!.year_left}` : cat?.name ?? "", region ? `${region} region` : "", level ? `${level} level` : ""].filter(Boolean),
+      active: standing?.standing ? standing.standing === "active" : null,
+      standingLabel: standing?.awaiting_confirmation ? "Awaiting confirmation" : standing?.standing === "active" ? "Active" : "Inactive",
+      since: p?.registered_at ? new Date(p.registered_at).getFullYear() : null,
+    },
     standing: standing ? standingText(standing) : null,
     profile: { pct: Math.round((checks.filter((c) => c.done).length / checks.length) * 100), checks },
     classmates: {

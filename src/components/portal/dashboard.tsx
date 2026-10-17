@@ -1,17 +1,17 @@
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, Building2, CalendarDays, Check, CircleUserRound, Gift, Handshake, MapPin, Search, ShoppingBag,
-  Sparkles, UserPen, Users, Vote,
+  ArrowRight, BadgeCheck, Building2, CalendarDays, Check, CircleUserRound, Gift, Handshake, Search, ShoppingBag, UserPen, Users, Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
 import { Badge } from "@/components/shadcn/badge";
 import { Button } from "@/components/shadcn/button";
 import { Progress } from "@/components/shadcn/progress";
+import { MembershipCard, type MembershipCardData } from "@/components/member/membership-card";
 
 export type DashboardData = {
   firstName: string;
   greeting: string;
-  chips: { icon: "class" | "region" | "level"; label: string }[];
+  card: MembershipCardData;
   standing: { active: boolean; title: string; detail: string } | null;
   profile: { pct: number; checks: { label: string; done: boolean }[] };
   classmates: { label: string; count: number; href: string } | null;
@@ -22,7 +22,6 @@ export type DashboardData = {
 
 const kes = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 });
 const day = new Intl.DateTimeFormat("en-KE", { day: "numeric", month: "short", timeZone: "Africa/Nairobi" });
-const chipIcons = { class: Users, region: MapPin, level: Sparkles };
 
 const quickLinks = [
   { href: "/app/profile", label: "Update my details", icon: UserPen },
@@ -57,24 +56,16 @@ export function Dashboard({ d }: { d: DashboardData }) {
   const tuitionPct = d.tuition ? Math.min(100, Math.round((d.tuition.pledged / d.tuition.target) * 100)) : 0;
   return (
     <div className="flex flex-col gap-8">
-      {/* Greeting */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+      {/* Greeting and membership card */}
+      <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
+        <div className="order-2 lg:order-1">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">{d.greeting}</p>
           <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Welcome back, {d.firstName}</h1>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {d.chips.map((c) => {
-              const Icon = chipIcons[c.icon];
-              return (
-                <Badge key={c.label} variant="outline" className="gap-1.5 rounded-full bg-card px-3 py-1 text-sm font-semibold">
-                  <Icon className="size-3.5 text-tea" /> {c.label}
-                </Badge>
-              );
-            })}
-          </div>
+          <p className="mt-2 max-w-xl text-ink-soft">Here is what&rsquo;s happening with you and the association.</p>
+          <Button asChild className="mt-4"><Link href="/pledge/tuition-block"><Gift /> Make a pledge</Link></Button>
         </div>
-        <div className="flex flex-wrap gap-2">
-                    <Button asChild><Link href="/pledge/tuition-block"><Gift /> Make a pledge</Link></Button>
+        <div className="order-1 lg:order-2 lg:w-[26rem]">
+          <MembershipCard c={d.card} />
         </div>
       </div>
 

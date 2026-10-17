@@ -6,6 +6,7 @@
 - **Vision:** a Menyenya where every student has what they need to excel, and every alumnus belongs to a network that opens doors for life.
 - **What we do** now has four parts matching the mission: Stay connected, Back the school, Support students, Grow together. A new photo space (the school compound or a school project) is in Admin → Site photos.
 - Still marked as a draft for the officials to approve.
+
 ## 17 October 2026: one look across the platform
 
 - Every admin screen (Overview, Members, Duplicates, Roles, Settings, Our people, Sponsors and partners, Merchandise, Causes, News, Site photos, The school, Cases) and the member pages (Confirm members, Member directory, a member's profile, My profile, Leave the association) now use the same page heading, cards, tables, status labels and buttons as the dashboard.

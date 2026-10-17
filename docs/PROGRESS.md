@@ -1,5 +1,22 @@
 # Progress
 
+## 18 October 2026: a video and a design gallery for every initiative
+
+- **Video:**
+  - Each initiative has **one short video**, shown large at the top of its page and in place of the photo on the Our work list, so people can watch before pressing Learn more.
+  - The caption says what it is ("Message from the lead architect", "Project video") and, optionally, who is speaking ("Peter Ondieki, Class of 2012").
+  - Videos come from YouTube and load only when tapped, which keeps pages fast on mobile data.
+  - Until a video is added, a neat "Video to come" space shows.
+- **Photos in groups:**
+  - Each photo is marked as *The design*, *Today (the need)*, *Progress*, *Impact* or *Other*.
+  - On building projects, "The design" comes first, and its first picture is shown large.
+  - Tap any photo to see it full screen; swipe or use the arrows.
+- **Ready to market:** each initiative's admin page has a checklist (summary, story, video, cover photo, three photos, design photos, impact figures).
+  - A **new** initiative can't go public until it has a video with its caption and at least three photos.
+  - The tuition block, the Alumni Fund and the Bursary Fund are exempt; the checklist is a guide for them.
+- Managed by administrators (Admin → Causes → the initiative).
+- Tests: 2 new database tests; 126 pass.
+
 ## 18 October 2026: Menyenya Alumni Bursary Fund and impact
 
 - "Keep a child in school" is now the **Menyenya Alumni Bursary Fund** (`/causes/bursary-fund`; old links forward). Its page now covers:

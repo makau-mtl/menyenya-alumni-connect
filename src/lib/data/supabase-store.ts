@@ -33,10 +33,13 @@ type CauseRow = {
   recurring_periods: string[];
   suggested_pledges: Cause["suggestedPledges"];
   funds: { key: string } | null;
+  video_url: string | null;
+  video_title: string | null;
+  video_speaker: string | null;
 };
 
 const causeColumns =
-  "slug, title, summary, story, components, readiness, kind, target_amount, lifecycle, pledges_enabled, preset_amounts, recurring_periods, suggested_pledges, funds(key)";
+  "slug, title, summary, story, components, readiness, kind, target_amount, lifecycle, pledges_enabled, preset_amounts, recurring_periods, suggested_pledges, funds(key), video_url, video_title, video_speaker";
 
 function toCause(r: CauseRow): Cause {
   return {
@@ -54,6 +57,9 @@ function toCause(r: CauseRow): Cause {
     suggestedPledges: r.suggested_pledges ?? [],
     components: r.components ?? [],
     readiness: r.readiness ?? [],
+    video: r.video_url && r.video_title
+      ? { youtubeId: r.video_url.replace("https://youtu.be/", ""), title: r.video_title, speaker: r.video_speaker }
+      : null,
   };
 }
 
@@ -183,12 +189,12 @@ function contentUnavailable<T>(what: string, error: unknown, fallback: T): T {
   return fallback;
 }
 
-type CausePhotoRow = { id: string; path: string; caption: string; status: CausePhoto["status"]; sort_order: number };
+type CausePhotoRow = { id: string; path: string; caption: string; status: CausePhoto["status"]; sort_order: number; purpose: CausePhoto["purpose"] };
 
 export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
   const { data, error } = await createPublicClient()
     .from("cause_photos")
-    .select("id, path, caption, status, sort_order, causes!inner(slug)")
+    .select("id, path, caption, status, sort_order, purpose, causes!inner(slug)")
     .eq("causes.slug", slug)
     .order("sort_order")
     .order("created_at");
@@ -198,6 +204,7 @@ export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
     id: r.id,
     status: r.status,
     sortOrder: r.sort_order,
+    purpose: r.purpose ?? "general",
   }));
 }
 

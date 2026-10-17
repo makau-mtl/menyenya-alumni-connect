@@ -107,6 +107,7 @@ export async function updateCause(_prev: ActionState, formData: FormData): Promi
     })
     .eq("slug", c.slug)
     .select("slug");
+  if (error?.code === "22023") return fail(`Not yet: ${error.message}.`, { lifecycle: "Complete the launch kit first (see the checklist)." });
   if (error || !data?.length) {
     if (error) console.error("Cause update failed", error);
     return fail("The changes could not be saved. Only administrators can edit causes.");
@@ -153,6 +154,9 @@ export async function changeCausePhoto(formData: FormData): Promise<void> {
 
   if (change === "caption") {
     await photos.update({ caption: String(formData.get("caption") ?? "").trim().slice(0, 200) }).eq("id", id);
+  } else if (change === "purpose") {
+    const purpose = String(formData.get("purpose") ?? "");
+    if (["design", "today", "progress", "impact", "general"].includes(purpose)) await photos.update({ purpose }).eq("id", id);
   } else if (change === "hide" || change === "show") {
     await photos.update({ status: change === "hide" ? "archived" : "published" }).eq("id", id);
   } else if (change === "cover") {
@@ -1223,4 +1227,39 @@ export async function createImpactStory(_prev: ActionState, formData: FormData):
     return fail("The story could not be saved.");
   }
   redirect(`/admin/stories/${data.id}?created=1`);
+}
+
+const causeVideoSchema = z.object({
+  slug: z.string().regex(/^[a-z0-9-]+$/),
+  url: z.string().trim().max(200),
+  title: z.string().trim().max(80),
+  speaker: z.string().trim().max(100),
+});
+
+/** Set, change or remove an initiative's video and its caption. */
+export async function saveCauseVideo(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = causeVideoSchema.safeParse(Object.fromEntries(["slug", "url", "title", "speaker"].map((k) => [k, String(formData.get(k) ?? "")])));
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const remove = formData.get("remove") === "yes";
+  const id = remove ? null : youtubeId(v.url);
+  if (!remove) {
+    const errors: Record<string, string> = {};
+    if (!id) errors.url = "Paste the YouTube link, e.g. https://youtu.be/…";
+    if (v.title.length < 3) errors.title = "Say what the video is, e.g. Message from the Chairman.";
+    if (v.speaker && v.speaker.length < 2) errors.speaker = "Too short.";
+    if (Object.keys(errors).length) return fail("Check the highlighted fields.", errors);
+  }
+  const { error } = await staff.supabase
+    .from("causes")
+    .update(remove ? { video_url: null, video_title: null, video_speaker: null } : { video_url: `https://youtu.be/${id}`, video_title: v.title, video_speaker: v.speaker || null })
+    .eq("slug", v.slug);
+  if (error) {
+    console.error(error);
+    return fail("The video could not be saved.");
+  }
+  refreshSite();
+  return { ok: true, message: remove ? "Video removed." : "Saved. The video shows on the website now." };
 }

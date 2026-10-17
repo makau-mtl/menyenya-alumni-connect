@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getMember } from "@/lib/members/session";
 import { MEMBER_PHOTO_BUCKET, memberPhotoFile } from "@/lib/members/photos";
 import { MEMORY_BUCKET, memoryFile } from "@/lib/members/memories";
+import { STORY_BUCKET, storyFile } from "@/lib/stories";
 import { importProviderPhoto } from "@/lib/members/provider-photo";
 import { toInternational } from "@/lib/phone";
 import { occupationOptions, type Occupation } from "@/lib/registration";
@@ -481,4 +482,87 @@ export async function replyToCase(formData: FormData): Promise<void> {
   if (!body) return;
   await m.supabase.from("case_updates").insert({ case_id: String(formData.get("id") ?? ""), author_id: m.personId, body });
   revalidatePath("/app/support");
+}
+
+const storySchema = z.object({
+  kind: z.enum(["own", "nomination"]),
+  subjectName: z.string().trim().max(120),
+  subjectYear: z.union([z.literal(""), z.string().regex(/^(19[6-9]\d|20\d\d)$/, "Enter four digits, e.g. 2009.")]),
+  subjectContact: z.string().trim().max(120),
+  title: z.string().trim().min(5, "Give the story a short title.").max(120, "Keep the title under 120 characters."),
+  summary: z.string().trim().max(280, "Keep this under 280 characters."),
+  body: z.string().trim().min(50, "Tell us a little more (at least a few sentences).").max(8000, "Keep the story under 8,000 characters."),
+  photoCaption: z.string().trim().max(200),
+});
+
+/** Share your own story, or suggest someone else's. Officials review it before anything is public. */
+export async function shareStory(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = storySchema.safeParse({
+    kind: formData.get("kind") === "nomination" ? "nomination" : "own",
+    subjectName: String(formData.get("subjectName") ?? ""),
+    subjectYear: String(formData.get("subjectYear") ?? "").trim(),
+    subjectContact: String(formData.get("subjectContact") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    summary: String(formData.get("summary") ?? ""),
+    body: String(formData.get("body") ?? ""),
+    photoCaption: String(formData.get("photoCaption") ?? ""),
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const i of parsed.error.issues) errors[String(i.path[0])] ??= i.message;
+    return fail("Please fix the highlighted fields.", errors);
+  }
+  const v = parsed.data;
+  let subjectName = v.subjectName;
+  let subjectYear = v.subjectYear ? Number(v.subjectYear) : null;
+  if (v.kind === "own") {
+    const { data: p } = await m.supabase.from("member_profiles").select("year_left").eq("person_id", m.personId!).single();
+    subjectName = m.fullName ?? subjectName;
+    subjectYear = p?.year_left ?? null;
+  } else if (subjectName.length < 2) {
+    return fail("Please fix the highlighted fields.", { subjectName: "Who is the story about?" });
+  }
+
+  let photoPath: string | null = null;
+  const large = formData.get("large");
+  const small = formData.get("small");
+  if (large instanceof File && large.size > 0) {
+    for (const f of [large, small]) {
+      if (!(f instanceof File) || f.size === 0 || f.size > 2 * 1024 * 1024 || !["image/webp", "image/jpeg"].includes(f.type)) {
+        return fail("The photo couldn't be used. Try a JPG or PNG.");
+      }
+    }
+    photoPath = `${m.personId}/${crypto.randomUUID()}`;
+    for (const [file, size] of [[large, "large"], [small as File, "small"]] as const) {
+      const { error } = await m.supabase.storage.from(STORY_BUCKET).upload(storyFile(photoPath, size), file, { contentType: file.type, cacheControl: "3600", upsert: false });
+      if (error) {
+        console.error("Story photo upload failed", error);
+        return fail("The photo could not be saved. Please try again.");
+      }
+    }
+  }
+
+  const { error } = await m.supabase.from("alumni_stories").insert({
+    kind: v.kind,
+    submitted_by: m.personId,
+    subject_name: subjectName,
+    subject_year_left: subjectYear,
+    subject_contact: v.kind === "nomination" ? v.subjectContact || null : null,
+    title: v.title,
+    summary: v.summary,
+    body: v.body,
+    photo_path: photoPath,
+    photo_caption: photoPath ? v.photoCaption || null : null,
+  });
+  if (error) {
+    console.error(error);
+    return fail(error.message.includes("five stories") ? "You have shared five stories today. Please try again tomorrow." : "Your story could not be sent. Please try again.");
+  }
+  return done(
+    v.kind === "own"
+      ? "Thank you! The officials will read your story and let you know before it goes on the website."
+      : "Thank you! The officials will contact them and ask before anything goes on the website.",
+  );
 }

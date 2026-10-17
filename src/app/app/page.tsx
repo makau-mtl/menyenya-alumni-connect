@@ -222,18 +222,20 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (!staff) return [];
   const count = async (table: string, column: string, value: string) =>
     (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
-  const [enquiries, orders, dupes, reported, cases] = await Promise.all([
+  const [enquiries, orders, dupes, reported, cases, stories] = await Promise.all([
     staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
     staff.canManageShop ? count("merch_orders", "status", "new") : 0,
     staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
     staff.isAdmin ? count("memory_reports", "status", "open") : 0,
     staff.canHandleCases ? count("support_cases", "status", "submitted") : 0,
+    staff.canEditStories ? count("alumni_stories", "status", "submitted") : 0,
   ]);
   const out: ActionItem[] = [];
   if (enquiries) out.push({ icon: "admin", href: "/admin/support", label: "New sponsor and partner enquiries", count: enquiries });
   if (orders) out.push({ icon: "admin", href: "/admin/shop", label: "New merchandise orders", count: orders });
   if (cases) out.push({ icon: "admin", href: "/admin/cases", label: "New cases for support", count: cases, urgent: true });
   if (reported) out.push({ icon: "admin", href: "/app/memories?reported=1", label: "Reported memories to review", count: reported, urgent: true });
+  if (stories) out.push({ icon: "admin", href: "/admin/stories", label: "Alumni stories to review", count: stories });
   if (dupes) out.push({ icon: "admin", href: "/admin/duplicates", label: "Possible duplicate records", count: dupes });
   return out;
 }

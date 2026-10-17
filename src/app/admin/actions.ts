@@ -10,7 +10,7 @@ import { photoSpaceKeys } from "@/content/photo-spaces";
 
 // Every action checks who is signed in; the database rules check again on every write.
 
-type Need = "admin" | "news" | "shop" | "school";
+type Need = "admin" | "news" | "shop" | "school" | "stories";
 
 async function staffFor(need: Need): Promise<Staff | string> {
   const staff = await getStaff();
@@ -19,6 +19,7 @@ async function staffFor(need: Need): Promise<Staff | string> {
   if (need === "news" && !staff.canEditNews) return "Only administrators and the Secretary can change news.";
   if (need === "school" && !staff.canEditSchool) return "Only administrators and the school liaison can change the school's figures.";
   if (need === "shop" && !staff.canManageShop) return "Only administrators, the Secretary and the Treasurer can manage merchandise.";
+  if (need === "stories" && !staff.canEditStories) return "Only administrators, the Secretary and the Chairman can review stories.";
   return staff;
 }
 
@@ -983,4 +984,69 @@ export async function handlerReply(formData: FormData): Promise<void> {
   }
   revalidatePath(`/admin/cases/${id}`);
   revalidatePath("/admin/cases");
+}
+
+const storyEditSchema = z.object({
+  id: z.string().uuid(),
+  subjectName: z.string().trim().min(2, "Whose story is it?").max(120),
+  subjectYear: z.union([z.literal(""), z.string().regex(/^(19[6-9]\d|20\d\d)$/, "Four digits, e.g. 2009.")]),
+  title: z.string().trim().min(5, "Give the story a title.").max(120),
+  summary: z.string().trim().max(280, "Keep this under 280 characters."),
+  body: z.string().trim().min(50, "The story is too short.").max(8000),
+  photoCaption: z.string().trim().max(200),
+  consentNote: z.string().trim().max(300),
+  editorNote: z.string().trim().max(1000),
+});
+
+/** Save edits to a story; optionally publish, decline, hide or feature it in the same step. */
+export async function saveStory(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const staff = await staffFor("stories");
+  if (typeof staff === "string") return fail(staff);
+  const parsed = storyEditSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    subjectName: String(formData.get("subjectName") ?? ""),
+    subjectYear: String(formData.get("subjectYear") ?? "").trim(),
+    title: String(formData.get("title") ?? ""),
+    summary: String(formData.get("summary") ?? ""),
+    body: String(formData.get("body") ?? ""),
+    photoCaption: String(formData.get("photoCaption") ?? ""),
+    consentNote: String(formData.get("consentNote") ?? ""),
+    editorNote: String(formData.get("editorNote") ?? ""),
+  });
+  if (!parsed.success) return fail("Check the highlighted fields.", fieldErrors(parsed.error));
+  const v = parsed.data;
+  const consent = formData.get("consent") === "on";
+  const intent = String(formData.get("intent") ?? "save");
+  const row: Record<string, unknown> = {
+    subject_name: v.subjectName,
+    subject_year_left: v.subjectYear ? Number(v.subjectYear) : null,
+    title: v.title,
+    summary: v.summary,
+    body: v.body,
+    photo_caption: v.photoCaption || null,
+    consent_given: consent,
+    consent_note: v.consentNote,
+    editor_note: v.editorNote,
+    featured: formData.get("featured") === "on",
+  };
+  if (formData.get("removePhoto") === "on") row.photo_path = null;
+  if (intent === "publish") {
+    if (!consent) return fail("Tick that the person agreed before publishing.", { consent: "Needed before publishing." });
+    row.status = "published";
+  }
+  if (intent === "decline") row.status = "declined";
+  if (intent === "hide") row.status = "archived";
+  const { error } = await staff.supabase.from("alumni_stories").update(row).eq("id", v.id);
+  if (error) {
+    console.error(error);
+    return fail("The story could not be saved.");
+  }
+  refreshSite();
+  const messages: Record<string, string> = {
+    publish: "Published. It is now on the website.",
+    decline: "Marked as not published.",
+    hide: "Hidden from the website.",
+    save: "Saved.",
+  };
+  return { ok: true, message: messages[intent] ?? "Saved." };
 }

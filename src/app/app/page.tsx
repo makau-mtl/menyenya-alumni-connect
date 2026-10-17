@@ -1,20 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
 import { getStaff } from "@/lib/admin/staff";
-import { memberPhotoUrl } from "@/lib/members/photos";
 import { buttonClass } from "@/components/ui";
 import { rejoinMembership } from "@/app/app/actions";
-import { StandingCard } from "@/components/member/standing-card";
-
-const statusLabel: Record<string, string> = {
-  registered: "Registered. Your details will be confirmed by the association.",
-  verified: "Verified member",
-  active: "Active member",
-  lapsed: "Membership lapsed",
-  terminated: "Membership terminated",
-};
+import { standingText, type Standing } from "@/components/member/standing-card";
+import { Dashboard, type DashboardData } from "@/components/portal/dashboard";
+import { getCause, getCauseProgress, listNews } from "@/lib/data";
+import type { Member } from "@/lib/members/session";
 
 export default async function MemberHome() {
   const member = await getMember();
@@ -70,90 +63,73 @@ export default async function MemberHome() {
     );
   }
 
-  const { data: standingRows } = await member.supabase.rpc("my_standing");
-  const standing = (standingRows as Parameters<typeof StandingCard>[0]["s"][] | null)?.[0] ?? null;
-  const { data: p } = await member.supabase
-    .from("member_profiles")
-    .select("year_left, membership_status, photo_path, headline, linkedin_url, profession, skills, clusters(name), membership_levels(name), member_categories(key, name)")
-    .eq("person_id", member.personId!)
-    .single();
-  const photo = await memberPhotoUrl(member.supabase, p?.photo_path ?? null, "small");
+  const [{ data: standingRows }, { data: p }, block, news] = await Promise.all([
+    member.supabase.rpc("my_standing"),
+    member.supabase
+      .from("member_profiles")
+      .select("year_left, photo_path, headline, linkedin_url, skills, clusters(name), membership_levels(name), member_categories(key, name)")
+      .eq("person_id", member.personId!)
+      .single(),
+    getCause("tuition-block").catch(() => null),
+    listNews().catch(() => []),
+  ]);
+  const standing = (standingRows as Standing[] | null)?.[0] ?? null;
+  const cat = p?.member_categories as unknown as { key: string; name: string } | null;
+  const region = (p?.clusters as unknown as { name: string } | null)?.name;
+  const level = (p?.membership_levels as unknown as { name: string } | null)?.name;
+  const alumnus = cat?.key === "alumnus" && Boolean(p?.year_left);
+
+  const [{ data: mates }, progress, tasks] = await Promise.all([
+    member.supabase.rpc("directory_search", alumnus ? { p_year: p!.year_left, p_limit: 1 } : { p_limit: 1 }),
+    block ? getCauseProgress(block.slug).catch(() => null) : Promise.resolve(null),
+    staffTasks(staff, member.supabase),
+  ]);
   const checks = [
     { done: !!p?.photo_path, label: "A passport-style photo" },
     { done: !!p?.headline, label: "A one-line summary of what you do" },
     { done: !!p?.linkedin_url, label: "Your LinkedIn link" },
     { done: (p?.skills?.length ?? 0) > 0, label: "Your skills" },
   ];
-  const pct = Math.round((checks.filter((c) => c.done).length / checks.length) * 100);
-  const cat = p?.member_categories as unknown as { key: string; name: string } | null;
-  const region = (p?.clusters as unknown as { name: string } | null)?.name;
-  const level = (p?.membership_levels as unknown as { name: string } | null)?.name;
+  const hour = Number(new Intl.DateTimeFormat("en-KE", { hour: "numeric", hourCycle: "h23", timeZone: "Africa/Nairobi" }).format(new Date()));
 
-  return (
-    <div className="flex flex-col gap-10">
-      <div className="flex flex-wrap items-center gap-5">
-        {photo ? (
-          <img src={photo} alt="" className="size-20 rounded-full object-cover" />
-        ) : (
-          <span aria-hidden className="flex size-20 items-center justify-center rounded-full bg-tea-tint font-display text-2xl font-bold text-tea">
-            {(member.fullName ?? "").split(" ").map((w: string) => w[0]).slice(0, 2).join("")}
-          </span>
-        )}
-        <div>
-          <h1 className="text-4xl font-bold">{member.fullName}</h1>
-          <dl className="mt-3 flex flex-wrap gap-y-2 text-[0.95rem]">
-            {[
-              { k: cat?.key === "alumnus" ? "Class" : "Membership", v: cat?.key === "alumnus" ? `Class of ${p?.year_left}` : cat?.name },
-              { k: "Regional cluster", v: region },
-              { k: "Membership level", v: level },
-            ]
-              .filter((x) => x.v)
-              .map((x) => (
-                <div key={x.k} className="mr-6">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{x.k}</dt>
-                  <dd className="font-semibold">{x.v}</dd>
-                </div>
-              ))}
-          </dl>
-        </div>
-      </div>
+  const data: DashboardData = {
+    firstName: (member.fullName ?? "").split(/\s+/)[0] || "there",
+    greeting: hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening",
+    chips: [
+      ...(alumnus ? [{ icon: "class" as const, label: `Class of ${p!.year_left}` }] : cat ? [{ icon: "class" as const, label: cat.name }] : []),
+      ...(region ? [{ icon: "region" as const, label: region }] : []),
+      ...(level ? [{ icon: "level" as const, label: `${level} level` }] : []),
+    ],
+    standing: standing ? standingText(standing) : null,
+    profile: { pct: Math.round((checks.filter((c) => c.done).length / checks.length) * 100), checks },
+    classmates: {
+      label: alumnus ? `Class of ${p!.year_left}` : "Members",
+      count: Number((mates as { total: number }[] | null)?.[0]?.total ?? 0),
+      href: alumnus ? `/app/directory?year=${p!.year_left}` : "/app/directory",
+    },
+    tuition: block?.targetAmount && progress ? { pledged: progress.pledged, received: progress.received, target: block.targetAmount } : null,
+    news: news.slice(0, 3).map((n) => ({ slug: n.slug, title: n.title, date: n.date, kind: n.kind })),
+    tasks,
+  };
+  return <Dashboard d={data} />;
+}
 
-      {standing ? (
-        <StandingCard s={standing} verification={null} />
-      ) : (
-        <p className="max-w-2xl rounded-md bg-tea-tint px-4 py-3">{statusLabel[p?.membership_status ?? "registered"]}</p>
-      )}
-
-      <section className="max-w-2xl rounded-xl border border-line bg-surface p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="text-2xl font-bold">Your profile</h2>
-          <p className="font-semibold text-tea">{pct}% complete</p>
-        </div>
-        <div aria-hidden className="mt-3 h-2 rounded-full bg-line">
-          <div className="h-2 rounded-full bg-tea" style={{ width: `${pct}%` }} />
-        </div>
-        <ul className="mt-5 flex flex-col gap-2">
-          {checks.map((c) => (
-            <li key={c.label} className="flex items-center gap-3">
-              <span aria-hidden className={`flex size-6 items-center justify-center rounded-full text-sm font-bold ${c.done ? "bg-tea text-white" : "border-2 border-line"}`}>
-                {c.done ? "✓" : ""}
-              </span>
-              <span className={c.done ? "" : "text-ink-soft"}>{c.label}<span className="sr-only">{c.done ? " (done)" : " (to do)"}</span></span>
-            </li>
-          ))}
-        </ul>
-        <Link href="/app/profile" className={`${buttonClass("primary")} mt-6`}>
-          {pct < 100 ? "Continue building my profile" : "Edit my profile"}
-        </Link>
-      </section>
-
-      <section className="max-w-2xl">
-        <h2 className="text-2xl font-bold">Coming in January</h2>
-        <p className="mt-2 text-ink-soft">
-          The member directory with photos and filters, your giving history, and events in your class and region.
-        </p>
-        {staffLink && <div className="mt-6">{staffLink}</div>}
-      </section>
-    </div>
-  );
+/** Counts of things waiting for this person in the admin area (empty for ordinary members). */
+async function staffTasks(staff: Awaited<ReturnType<typeof getStaff>>, db: Member["supabase"]) {
+  const tasks: DashboardData["tasks"] = [];
+  const { data: waiting } = await db.rpc("confirmations_waiting");
+  const confirm = (waiting as unknown[] | null)?.length ?? 0;
+  if (confirm) tasks.push({ label: "Members to confirm", count: confirm, href: "/app/confirm" });
+  if (!staff) return tasks;
+  const count = async (table: string, column: string, value: string) =>
+    (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
+  const [enquiries, orders, dupes] = await Promise.all([
+    staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
+    staff.canManageShop ? count("merch_orders", "status", "new") : 0,
+    staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
+  ]);
+  if (enquiries) tasks.push({ label: "New sponsor and partner enquiries", count: enquiries, href: "/admin/support" });
+  if (orders) tasks.push({ label: "New merchandise orders", count: orders, href: "/admin/shop" });
+  if (dupes) tasks.push({ label: "Possible duplicate records", count: dupes, href: "/admin/duplicates" });
+  return tasks;
 }

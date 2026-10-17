@@ -86,13 +86,14 @@ export default async function MemberHome() {
       db.rpc("is_confirmer"),
       db.rpc("confirmations_waiting"),
     ]);
-  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }, { data: memoryRows }, { data: myCases }] = await Promise.all([
+  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }, { data: memoryRows }, { data: myCases }, { data: volunteerRows }] = await Promise.all([
     db.rpc("my_invite_link"),
     db.rpc("my_invites_joined"),
     db.rpc("my_class_group"),
     db.rpc("upcoming_meetups", { p_limit: 3 }),
     db.rpc("memory_feed", { p_limit: 6 }),
     db.from("support_cases").select("id, reference, title, status").eq("person_id", member.personId!).neq("status", "closed"),
+    db.rpc("volunteer_board"),
   ]);
   const mem = (memoryRows ?? []) as MemoryRow[];
   const memUrls = await memoryUrls(db, mem.map((r) => r.photo_path), "small");
@@ -133,6 +134,13 @@ export default async function MemberHome() {
         ? { icon: "info", href: "/app/support", label: `Reply on your case ${c.reference}`, detail: c.title, urgent: true }
         : { icon: "info", href: "/app/support", label: `Your case ${c.reference} is ${c.status === "submitted" ? "sent" : "being reviewed"}`, detail: c.title },
     );
+  }
+  // Volunteer opportunities that need this member's skills.
+  const mySkills = new Set(((p?.skills ?? []) as string[]).map((x) => x.toLowerCase()));
+  for (const v of ((volunteerRows ?? []) as { title: string; status: string; skills: string[]; i_signed_up: boolean }[])) {
+    if (v.status === "open" && !v.i_signed_up && v.skills.some((x) => mySkills.has(x.toLowerCase()))) {
+      actions.push({ icon: "info", href: "/app/opportunities/volunteer", label: "Your skills are needed", detail: v.title });
+    }
   }
   actions.push(...(await staffActions(staff)));
 
@@ -222,13 +230,14 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (!staff) return [];
   const count = async (table: string, column: string, value: string) =>
     (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
-  const [enquiries, orders, dupes, reported, cases, stories] = await Promise.all([
+  const [enquiries, orders, dupes, reported, cases, stories, oppReports] = await Promise.all([
     staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
     staff.canManageShop ? count("merch_orders", "status", "new") : 0,
     staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
     staff.isAdmin ? count("memory_reports", "status", "open") : 0,
     staff.canHandleCases ? count("support_cases", "status", "submitted") : 0,
     staff.canEditStories ? count("alumni_stories", "status", "submitted") : 0,
+    staff.isAdmin ? count("opportunity_reports", "status", "open") : 0,
   ]);
   const out: ActionItem[] = [];
   if (enquiries) out.push({ icon: "admin", href: "/admin/support", label: "New sponsor and partner enquiries", count: enquiries });
@@ -236,6 +245,7 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (cases) out.push({ icon: "admin", href: "/admin/cases", label: "New cases for support", count: cases, urgent: true });
   if (reported) out.push({ icon: "admin", href: "/app/memories?reported=1", label: "Reported memories to review", count: reported, urgent: true });
   if (stories) out.push({ icon: "admin", href: "/admin/stories", label: "Alumni stories to review", count: stories });
+  if (oppReports) out.push({ icon: "admin", href: "/app/opportunities/jobs?show=all", label: "Reported jobs or business posts", count: oppReports, urgent: true });
   if (dupes) out.push({ icon: "admin", href: "/admin/duplicates", label: "Possible duplicate records", count: dupes });
   return out;
 }

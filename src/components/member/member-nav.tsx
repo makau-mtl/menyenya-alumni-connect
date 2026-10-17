@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BadgeCheck, Images, LayoutDashboard, MapPin, Settings2, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Briefcase, Images, LayoutDashboard, MapPin, Settings2, UserRound, Users } from "lucide-react";
 
-const icons = { dashboard: LayoutDashboard, profile: UserRound, directory: Users, confirm: BadgeCheck, admin: Settings2, meetups: MapPin, memories: Images };
+const icons = { dashboard: LayoutDashboard, profile: UserRound, directory: Users, confirm: BadgeCheck, admin: Settings2, meetups: MapPin, memories: Images, opportunities: Briefcase };
 /** `phone: false` keeps a tab off the phone bar (it is reached another way there, e.g. the action centre). */
 export type MemberTab = { href: string; label: string; short: string; icon: keyof typeof icons; badge?: number; phone?: boolean };
 

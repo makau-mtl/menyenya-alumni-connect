@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  ArrowRight, BadgeCheck, BookOpen, Images, Building2, CalendarDays, CheckCircle2, CircleUserRound, Gift, GraduationCap, Handshake, HeartHandshake,
+  ArrowRight, BadgeCheck, BookOpen, Briefcase, Store, Images, Building2, CalendarDays, CheckCircle2, CircleUserRound, Gift, GraduationCap, Handshake, HeartHandshake,
   MapPin, Megaphone, MessageCircle, Search, ShoppingBag, Trophy, UserPen, UserPlus, Users, Vote,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/shadcn/card";
@@ -92,6 +92,8 @@ const quickLinks = [
   { href: "/app/school", label: "The school today", icon: GraduationCap },
   { href: "/app/support", label: "Raise a case for support", icon: HeartHandshake },
   { href: "/app/stories", label: "Share a story", icon: BookOpen },
+  { href: "/app/opportunities/jobs", label: "Find or share a job", icon: Briefcase },
+  { href: "/app/opportunities/business", label: "Alumni businesses", icon: Store },
 ];
 
 export function Dashboard({ d }: { d: DashboardData }) {

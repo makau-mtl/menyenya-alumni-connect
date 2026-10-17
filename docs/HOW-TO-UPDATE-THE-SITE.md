@@ -20,6 +20,7 @@ Buttons that are hard to undo (Remove, End role, Merge, closing registration) as
 | Our people | Administrators | Leadership and secretariat positions on the Our people page |
 | Sponsors and partners | Administrators | Enquiries from organisations, sponsor and partner logos, sponsorship options |
 | Merchandise | Administrators, the Secretary and the Treasurer | Merchandise items and orders |
+| Reports | The Treasurer (financial), the Chairman (moral report), administrators | Annual reports on the Reports and accountability page |
 | Alumni stories | Administrators, the Secretary and the Chairman | Review, publish and feature stories members share |
 | The school | Administrators and the school liaison | The school's figures, results and priorities members see |
 | Cases for support | Administrators, the Chairman, Welfare Coordinator, school liaison, Secretary | Cases members raise |
@@ -200,3 +201,15 @@ Members send stories from **Share a story** in their account. They appear in **A
 3. Press **Approve and publish**. It appears on the Alumni stories page straight away.
 4. To put it on the home page, tick **Show on the home page** and save. Up to three stories show there.
 5. To take a story down, press **Hide from the website**. To turn one down, press **Don't publish** and write the reason in the notes. Nothing is deleted.
+
+## Annual reports
+
+**Admin → Reports.** The Treasurer publishes financial reports; the Chairman publishes the moral report.
+
+1. Under *Upload a report*, choose the kind and the year it covers, give it a clear title (e.g. "Financial statements for the year ended 31 December 2026") and a few plain-language lines of summary.
+2. Choose the PDF (up to 15 MB) and press **Save as draft**. Press **Open PDF** to check it.
+3. Press **Publish**. It appears on the Reports and accountability page straight away.
+4. Found a mistake in the PDF? On the published report, press **Upload a new version**. When you publish it, the old one is kept and marked as an earlier version.
+5. **Withdraw** takes a report off the website. Nothing is deleted.
+
+For the Bursary Fund, the financial statements should show what was paid to the school, for how many students, and for which term or year.

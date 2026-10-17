@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 /* eslint-disable @next/next/no-img-element */
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { placeOrder } from "@/app/shop/actions";
@@ -104,7 +105,7 @@ export function Shop({ items }: { items: ShopItem[] }) {
           <li>Then pay through the association&rsquo;s official Paybill shown on this website, using <strong>{state.reference}</strong> as the account number.</li>
           <li>Collect your items. Keep your reference until then.</li>
         </ol>
-        <p className="mt-6 text-sm text-ink-soft">We never ask anyone to send money to a personal phone number.</p>
+        <p className="mt-6 text-sm text-ink-soft">We never ask anyone to send money to a personal phone number. <Link href="/reports" className="font-semibold underline">Where your money goes</Link>.</p>
       </div>
     );
   }

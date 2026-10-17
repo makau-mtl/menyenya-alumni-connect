@@ -365,7 +365,7 @@ Paid and balance for a pledge are always **computed** from `payment_allocations`
 
 Payments that cannot be matched (e.g. wrong Paybill account number) are allocated to `unallocated` and appear in an **admin suspense queue** for manual matching.
 
-**`disbursements`** — money out of a fund (append-only).
+**`disbursements`** — *Not built (decided 18 Oct 2026): money paid out is reported in the Treasurer's financial statements, not recorded on the platform.* Kept here for reference only: money out of a fund (append-only).
 | Column | Type | Notes |
 |---|---|---|
 | fund_id | UUID → funds | |
@@ -610,14 +610,17 @@ Recurring gifts: create `recurring_gifts`; a daily job emails a reminder with a 
 - Push (PWA): approvals waiting, new event in your cohort/cluster, chat mentions (Phase 3).
 - All sends go through `notifications` (queued, then sent by a job); never sent inline in a request that could fail the user's action.
 
-### 6.10 Transparency page & reports (Sprint 9)
+### 6.10 Reports and accountability (decided 18 Oct 2026; built)
 
-- Public transparency page per cause and association-wide: pledged, received, spent (by category), balance, construction/progress updates with dated photos, MOU and fund policy documents, audited reports.
-- Admin reports (CSV + PDF): pledges and balances, payments by period, defaulters/overdue pledges, by cohort, by cluster, by membership level, donor categories (individual, alumni, company, church, SACCO…), fund balances.
-- Annual financial report generator (Phase 2): income, expenditure, balance per fund/initiative → publish as page + PDF.
+- **Money in is recorded, money out is reported.** Gifts and pledge payments are recorded when the M-Pesa payment through the official Paybill confirms (receipts, pledge tracking, "received" figures). Money paid out (to the school, contractors, bursaries) is **not** tracked on the platform; it is set out in the Treasurer's annual financial statements (for the Bursary Fund: amount paid to the school, number of beneficiaries, period covered). No live fund balances.
+- Public page `/reports` (under Who we are, in the footer, and linked as "Where your money goes" from giving pages): how gifts are handled, tuition block pledged and received so far (live), and annual reports by year.
+- `reports` table: kind (`financial` by the Treasurer, `moral` by the Chairman, `other`), year, title, summary, PDF in a private `reports` bucket (up to 15 MB, uploaded from the browser straight to storage). Draft → published; a new version replaces the old one, which stays available as an earlier version; withdraw (archive) instead of delete. PDFs open through `/reports/[id]/file` (short-lived link).
+- Initiatives may show typed "as at" figures entered by officials (Part B), never computed balances.
+- Admin CSV exports (pledges, payments by period, overdue pledges, by cohort/cluster/level, donor categories) remain planned.
 
 **AC**
-- Every figure reconciles: sum of allocations per fund − disbursements = fund balance (automated test + nightly check).
+- Visitors see published reports only; drafts only by report publishers; files follow the report's status.
+- The Treasurer cannot publish a moral report and the Chairman cannot publish a financial report; administrators can publish any.
 
 ### 6.11 Cohort and cluster dashboards (Sprint 9)
 
@@ -766,7 +769,7 @@ Admins can manage: member categories and their required fields; membership level
 - **Database tests:** RLS — prove a cohort rep cannot read another cohort; a member cannot read others' next of kin; anonymous visitors cannot read anything private. Run against a test Supabase database.
 - **End-to-end (Playwright):** registration (alumnus and friend), donation (record-only), pledge + tracking with OTP, manual payment entry and allocation, receipt email queued, rep verification.
 - **Payment tests:** replay Daraja callback twice → one payment; unknown BillRefNumber → suspense queue. Use recorded sample payloads; never call live M-Pesa in tests.
-- **Reconciliation test:** randomised payments/allocations/disbursements → fund balances always equal in − out.
+- **Reconciliation test:** randomised payments/allocations → totals received per fund always equal the confirmed payments.
 - CI on GitHub Actions: lint, type-check, unit tests, migration check, E2E on preview deployment.
 
 ---
@@ -855,6 +858,9 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 17 Oct 2026 | Under Ways to support: a **Corporate sponsorships** page (sponsorship packages editable by administrators, amounts left blank until leadership approves them) and a **Strategic partnerships** page, both showcasing institutional sponsors and partners (logos managed in the admin area), modelled on trees.org/support/corporate-sponsors. |
 | 17 Oct 2026 | **Alumni merchandise** now as a catalogue plus order requests (item, size, quantity, pickup); the secretariat confirms and the buyer pays through the official Paybill. The full shop with checkout stays in Phase 4. |
 | 17 Oct 2026 | Platform layout: members use the platform inside the website (site header and footer stay; tabs under the header on laptops; an app-style bottom bar on phones; a digital membership card on the dashboard). Administrators work in a separate workspace with a side menu. Built with shadcn/ui in the brand colours. |
+| 18 Oct 2026 | **Our community in numbers** on the home page and Who we are: members, classes, regions, tuition block pledged, students supported by alumni (live totals only). |
+| 18 Oct 2026 | **Money in, money out**: gifts coming in stay recorded on the platform (transparency, receipts); money paid out (including to the school for the tuition block and bursaries) is reported only in the annual financial statements. Reports page: the Treasurer publishes financial reports, the Chairman the moral report. |
+| 18 Oct 2026 | **Menyenya Alumni Bursary Fund** replaces "Keep a child in school" (need-based; "bursary" rather than "scholarship"). The fund is opened before students are identified; awards are paid straight to the school's fees account per student, full year only. Each year the committee states how many bursaries the fund can support; the school nominates the neediest students; an alumni bursary committee vets and awards; renewal yearly on continued need, attendance and conduct. Process offline. Fee figures and the average number of needy students admitted each year to be confirmed by the school. Menyenya Alumni Fund kept. |
 | 17 Oct 2026 | **Offline use**: a small hand-written service worker keeps recently opened pages (not admin, sign-in, forms, profile, cases) for offline viewing with an offline notice, shows an offline page otherwise, and clears saved pages on sign-out. |
 | 17 Oct 2026 | **Alumni stories**: members share their own story or nominate someone; administrators, the Secretary and the Chairman approve; a story is public only once approved and the person it is about has agreed (recorded). Public /stories page, a page per story, up to three on the home page. |
 | 17 Oct 2026 | Mission: "To maintain lifelong connections between Menyenya alumni and our alma mater, support current students, and build a trusted network for career and personal growth." Vision: "A Menyenya where every student has what they need to excel, and every alumnus belongs to a network that opens doors for life." What we do: Stay connected, Back the school, Support students, Grow together. Draft until the officials approve. |

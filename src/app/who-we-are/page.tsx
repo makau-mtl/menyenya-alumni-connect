@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { mission, pillars } from "@/content/site";
+import { getPublicFigures } from "@/lib/figures";
+import { CommunityFigures } from "@/components/community-figures";
 import { SitePhoto } from "@/components/site-photo";
 import { DraftNote } from "@/components/page-hero";
 import { buttonClass } from "@/components/ui";
@@ -10,7 +12,10 @@ export const metadata: Metadata = {
   description: "The mission, vision, values and story of the Menyenya SDA High School Alumni Association.",
 };
 
-export default function WhoWeArePage() {
+// Figures are live; refresh them every few minutes.
+export const revalidate = 300;
+
+export default async function WhoWeArePage() {
   return (
     <>
       {/* Mission hero */}
@@ -66,6 +71,11 @@ export default function WhoWeArePage() {
           ))}
         </div>
       </section>
+
+      {/* Our community in numbers */}
+      <div className="mt-20 lg:mt-28">
+        <CommunityFigures f={await getPublicFigures()} />
+      </div>
 
       {/* Vision and values */}
       <section className="mt-20 bg-surface py-20 lg:mt-28">

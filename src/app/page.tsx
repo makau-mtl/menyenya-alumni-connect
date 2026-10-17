@@ -14,6 +14,8 @@ import { StoryCard } from "@/components/stories/story-card";
 import { loadPublicStories } from "@/lib/stories";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/server";
+import { getPublicFigures } from "@/lib/figures";
+import { CommunityFigures } from "@/components/community-figures";
 
 // Progress figures refresh at least once a minute; pledges also refresh them straight away.
 export const revalidate = 60;
@@ -21,12 +23,13 @@ export const revalidate = 60;
 export default async function HomePage() {
   const block = await getCause("tuition-block");
   if (!block || !block.targetAmount) notFound();
-  const [progress, chairVideoId, news, supporters, stories] = await Promise.all([
+  const [progress, chairVideoId, news, supporters, stories, figures] = await Promise.all([
     getCauseProgress(block.slug),
     getChairVideoId(),
     listNews(),
     getSupporters({ featuredOnly: true }),
     loadPublicStories(isSupabaseConfigured ? createPublicClient() : null, 3),  // featured first, then the latest
+    getPublicFigures(),
   ]);
 
   return (
@@ -116,6 +119,11 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Our community in numbers */}
+      <div className="mt-20 lg:mt-28">
+        <CommunityFigures f={figures} />
+      </div>
 
       {/* Featured project */}
       <section className="mt-20 bg-surface py-20 lg:mt-28 lg:py-24">

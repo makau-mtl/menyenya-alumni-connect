@@ -60,7 +60,7 @@ export default async function DonatePage() {
 
       <p className="mt-10 rounded-lg bg-tea-tint p-5">
         <strong>Your gift is protected.</strong> Tuition block gifts go to the school Board of Management&rsquo;s project
-        account. We never ask anyone to send money to a personal phone number.
+        account. We never ask anyone to send money to a personal phone number. <Link href="/reports" className="font-semibold underline">Where your money goes</Link>.
       </p>
     </div>
   );

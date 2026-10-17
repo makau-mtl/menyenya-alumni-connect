@@ -7,7 +7,9 @@ export type Meetup = {
   organiser_name: string; organiser_class: number | null; mine: boolean; going_count: number; i_am_going: boolean; going_names: string[];
 };
 
-const dateFmt = new Intl.DateTimeFormat("en-KE", { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Nairobi" });
+const weekday = new Intl.DateTimeFormat("en-KE", { weekday: "short", timeZone: "Africa/Nairobi" });
+const dayNum = new Intl.DateTimeFormat("en-KE", { day: "numeric", timeZone: "Africa/Nairobi" });
+const month = new Intl.DateTimeFormat("en-KE", { month: "short", timeZone: "Africa/Nairobi" });
 const audienceLabel: Record<string, string> = { everyone: "All members", class: "Class only", region: "Region only" };
 
 export function MeetupCard({ m, compact = false }: { m: Meetup; compact?: boolean }) {
@@ -15,9 +17,9 @@ export function MeetupCard({ m, compact = false }: { m: Meetup; compact?: boolea
   return (
     <article className="flex gap-4 rounded-xl bg-card p-4 ring-1 ring-border">
       <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-ink py-2 text-white">
-        <span className="text-xs font-semibold uppercase text-gold">{dateFmt.format(date).split(" ")[0]}</span>
-        <span className="font-display text-2xl font-bold leading-none">{date.getDate()}</span>
-        <span className="text-xs uppercase">{new Intl.DateTimeFormat("en-KE", { month: "short" }).format(date)}</span>
+        <span className="text-xs font-semibold uppercase text-gold">{weekday.format(date)}</span>
+        <span className="font-display text-2xl font-bold leading-none">{dayNum.format(date)}</span>
+        <span className="text-xs uppercase">{month.format(date)}</span>
       </div>
       <div className="min-w-0 flex-1">
         <p className="font-display text-lg font-bold leading-snug">{m.title}</p>

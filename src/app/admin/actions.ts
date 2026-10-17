@@ -962,3 +962,23 @@ export async function movePriority(formData: FormData): Promise<void> {
   revalidatePath("/app", "layout");
   revalidatePath("/admin/school");
 }
+
+// Cases for support (handlers) ----------------------------------------------------------------------------
+
+export async function handlerReply(formData: FormData): Promise<void> {
+  const staff = await getStaff();
+  if (!staff?.canHandleCases) return;
+  const id = String(formData.get("id") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
+  const internal = formData.get("internal") === "on";
+  const { data: me } = await staff.supabase.rpc("current_person_id");
+  if (body) {
+    await staff.supabase.from("case_updates").insert({ case_id: id, author_id: me, body, visible_to_raiser: !internal });
+  }
+  const status = String(formData.get("status") ?? "");
+  if (["submitted", "under_review", "responded", "closed"].includes(status)) {
+    await staff.supabase.from("support_cases").update({ status, handled_by: me ?? null }).eq("id", id);
+  }
+  revalidatePath(`/admin/cases/${id}`);
+  revalidatePath("/admin/cases");
+}

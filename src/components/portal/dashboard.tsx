@@ -81,6 +81,7 @@ const quickLinks = [
   { href: "/track", label: "Track my pledge", icon: CalendarDays },
   { href: "/shop", label: "Order merchandise", icon: ShoppingBag },
   { href: "/app/school", label: "The school today", icon: GraduationCap },
+  { href: "/app/support", label: "Raise a case for support", icon: HeartHandshake },
 ];
 
 export function Dashboard({ d }: { d: DashboardData }) {

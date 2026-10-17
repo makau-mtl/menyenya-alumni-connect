@@ -10,13 +10,14 @@ export const getStaff = cache(async () => {
   const supabase = await createSessionClient();
   const { data: claims } = await supabase.auth.getClaims();
   if (!claims?.claims) return null;
-  const [admin, finance, news, verifier, shop, school] = await Promise.all([
+  const [admin, finance, news, verifier, shop, school, cases] = await Promise.all([
     supabase.rpc("is_admin"),
     supabase.rpc("is_finance"),
     supabase.rpc("can_edit_news"),
     supabase.rpc("has_role", { role_key: "verifier" }),
     supabase.rpc("can_manage_shop"),
     supabase.rpc("can_edit_school"),
+    supabase.rpc("can_handle_cases"),
   ]);
   return {
     supabase,
@@ -27,6 +28,7 @@ export const getStaff = cache(async () => {
     isVerifier: verifier.data === true,
     canManageShop: shop.data === true,
     canEditSchool: school.data === true,
+    canHandleCases: cases.data === true,
   };
 });
 

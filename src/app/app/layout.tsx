@@ -26,7 +26,7 @@ export default async function MemberLayout({ children }: { children: React.React
       { href: "/app/memories", label: "Memories", short: "Memories", icon: "memories" },
       { href: "/app/profile", label: "My profile", short: "Profile", icon: "profile" },
       ...(confirmer ? [{ href: "/app/confirm", label: "Confirm members", short: "Confirm", icon: "confirm" as const, badge: confirm || undefined, phone: false }] : []),
-      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool)
+      ...(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases)
         ? [{ href: "/admin", label: "Admin area", short: "Admin", icon: "admin" as const, phone: false }]
         : []),
     ];

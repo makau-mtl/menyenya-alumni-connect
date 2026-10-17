@@ -437,3 +437,48 @@ export async function setMemoryStatus(formData: FormData): Promise<void> {
   }
   revalidatePath("/app", "layout");
 }
+
+// Cases for support ------------------------------------------------------------------------------------
+
+const caseSchema = z.object({
+  kind: z.enum(["member_in_need", "needy_student", "project_idea", "other"], { message: "Choose what the case is about." }),
+  title: z.string().trim().min(3, "Give it a short title.").max(120, "Keep the title under 120 characters."),
+  details: z.string().trim().min(10, "Tell us a little more (at least a sentence).").max(4000, "Keep this under 4,000 characters."),
+  helpNeeded: z.string().trim().max(1000, "Keep this under 1,000 characters."),
+  mayShare: z.boolean(),
+});
+
+export async function raiseCase(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const m = await memberOrError();
+  if (typeof m === "string") return fail(m);
+  const parsed = caseSchema.safeParse({
+    kind: formData.get("kind") ?? "", title: formData.get("title") ?? "", details: formData.get("details") ?? "",
+    helpNeeded: formData.get("helpNeeded") ?? "", mayShare: formData.get("mayShare") === "on",
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const i of parsed.error.issues) errors[String(i.path[0])] ??= i.message;
+    return fail("Please fix the highlighted fields.", errors);
+  }
+  const v = parsed.data;
+  const { data, error } = await m.supabase
+    .from("support_cases")
+    .insert({ person_id: m.personId, kind: v.kind, title: v.title, details: v.details, help_needed: v.helpNeeded, may_share: v.mayShare })
+    .select("reference")
+    .single();
+  if (error) {
+    console.error(error);
+    return fail("Your case could not be sent. Please try again.");
+  }
+  revalidatePath("/app", "layout");
+  return done(`Sent. Your reference is ${data.reference}. You'll see replies here.`);
+}
+
+export async function replyToCase(formData: FormData): Promise<void> {
+  const m = await memberOrError();
+  if (typeof m === "string") return;
+  const body = String(formData.get("body") ?? "").trim().slice(0, 4000);
+  if (!body) return;
+  await m.supabase.from("case_updates").insert({ case_id: String(formData.get("id") ?? ""), author_id: m.personId, body });
+  revalidatePath("/app/support");
+}

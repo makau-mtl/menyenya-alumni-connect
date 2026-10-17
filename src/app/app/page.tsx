@@ -86,12 +86,13 @@ export default async function MemberHome() {
       db.rpc("is_confirmer"),
       db.rpc("confirmations_waiting"),
     ]);
-  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }, { data: memoryRows }] = await Promise.all([
+  const [{ data: inviteToken }, { data: joined }, { data: group }, { data: meetups }, { data: memoryRows }, { data: myCases }] = await Promise.all([
     db.rpc("my_invite_link"),
     db.rpc("my_invites_joined"),
     db.rpc("my_class_group"),
     db.rpc("upcoming_meetups", { p_limit: 3 }),
     db.rpc("memory_feed", { p_limit: 6 }),
+    db.from("support_cases").select("id, reference, title, status").eq("person_id", member.personId!).neq("status", "closed"),
   ]);
   const mem = (memoryRows ?? []) as MemoryRow[];
   const memUrls = await memoryUrls(db, mem.map((r) => r.photo_path), "small");
@@ -127,6 +128,13 @@ export default async function MemberHome() {
   if (confirmer && confirmCount) actions.push({ icon: "confirm", href: "/app/confirm", label: "Members to confirm", count: confirmCount, urgent: true });
   const unrated = pri.filter((x) => !x.my_importance).length;
   if (unrated) actions.push({ icon: "vote", href: "/app/school#priorities", label: "Give your view on the school's priorities", detail: `${unrated} ${unrated === 1 ? "priority" : "priorities"} to rate` });
+  for (const c of (myCases ?? []) as { reference: string; title: string; status: string }[]) {
+    actions.push(
+      c.status === "responded"
+        ? { icon: "info", href: "/app/support", label: `Reply on your case ${c.reference}`, detail: c.title, urgent: true }
+        : { icon: "info", href: "/app/support", label: `Your case ${c.reference} is ${c.status === "submitted" ? "sent" : "being reviewed"}`, detail: c.title },
+    );
+  }
   actions.push(...(await staffActions(staff)));
 
   const latest = (schoolRows ?? [])[0] as { as_of: string; students: number; needy_students: number | null; supported_by_alumni: number | null } | undefined;
@@ -205,15 +213,17 @@ async function staffActions(staff: Awaited<ReturnType<typeof getStaff>>): Promis
   if (!staff) return [];
   const count = async (table: string, column: string, value: string) =>
     (await staff.supabase.from(table).select("id", { count: "exact", head: true }).eq(column, value)).count ?? 0;
-  const [enquiries, orders, dupes, reported] = await Promise.all([
+  const [enquiries, orders, dupes, reported, cases] = await Promise.all([
     staff.isAdmin ? count("support_enquiries", "status", "new") : 0,
     staff.canManageShop ? count("merch_orders", "status", "new") : 0,
     staff.isAdmin || staff.isVerifier ? count("duplicate_flags", "status", "open") : 0,
     staff.isAdmin ? count("memory_reports", "status", "open") : 0,
+    staff.canHandleCases ? count("support_cases", "status", "submitted") : 0,
   ]);
   const out: ActionItem[] = [];
   if (enquiries) out.push({ icon: "admin", href: "/admin/support", label: "New sponsor and partner enquiries", count: enquiries });
   if (orders) out.push({ icon: "admin", href: "/admin/shop", label: "New merchandise orders", count: orders });
+  if (cases) out.push({ icon: "admin", href: "/admin/cases", label: "New cases for support", count: cases, urgent: true });
   if (reported) out.push({ icon: "admin", href: "/app/memories?reported=1", label: "Reported memories to review", count: reported, urgent: true });
   if (dupes) out.push({ icon: "admin", href: "/admin/duplicates", label: "Possible duplicate records", count: dupes });
   return out;

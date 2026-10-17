@@ -28,7 +28,7 @@ export default async function ProfilePage() {
   if (!member.registered) redirect("/join");
   if (member.membershipStatus === "terminated") redirect("/app");
   const staff = await getStaff();
-  const hasAdmin = Boolean(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool));
+  const hasAdmin = Boolean(staff && (staff.isAdmin || staff.isFinance || staff.canEditNews || staff.isVerifier || staff.canManageShop || staff.canEditSchool || staff.canHandleCases));
 
   const [{ data: p }, { data: consentRows }, { data: skillRows }] = await Promise.all([
     member.supabase

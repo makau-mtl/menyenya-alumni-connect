@@ -747,7 +747,7 @@ Every job is idempotent (safe to re-run) and logs its run.
 
 ## 13. PWA & Performance
 
-- Installable (manifest with association icons and name), offline page, cache of recently viewed pages and the member's own profile.
+- Installable (manifest with association icons and name), offline page, cache of recently viewed pages (built 17 Oct 2026, `public/sw.js`). The member's own profile is **not** kept offline because it holds next of kin (restricted data); the dashboard and membership card are. Saved pages are cleared on sign-out.
 - Web Push for approvals, events and (later) chat.
 - Images: compressed in the browser before upload (max ~1600px, WebP/JPEG), responsive sizes, lazy-loaded. Video: YouTube embeds only.
 - Target: usable on a low-end Android phone on 3G; keep JavaScript bundles small; avoid heavy libraries.
@@ -855,6 +855,7 @@ Phases 2–4 are broken into milestones at the end of M11, in the same format.
 | 17 Oct 2026 | Under Ways to support: a **Corporate sponsorships** page (sponsorship packages editable by administrators, amounts left blank until leadership approves them) and a **Strategic partnerships** page, both showcasing institutional sponsors and partners (logos managed in the admin area), modelled on trees.org/support/corporate-sponsors. |
 | 17 Oct 2026 | **Alumni merchandise** now as a catalogue plus order requests (item, size, quantity, pickup); the secretariat confirms and the buyer pays through the official Paybill. The full shop with checkout stays in Phase 4. |
 | 17 Oct 2026 | Platform layout: members use the platform inside the website (site header and footer stay; tabs under the header on laptops; an app-style bottom bar on phones; a digital membership card on the dashboard). Administrators work in a separate workspace with a side menu. Built with shadcn/ui in the brand colours. |
+| 17 Oct 2026 | **Offline use**: a small hand-written service worker keeps recently opened pages (not admin, sign-in, forms, profile, cases) for offline viewing with an offline notice, shows an offline page otherwise, and clears saved pages on sign-out. |
 | 17 Oct 2026 | **Alumni stories**: members share their own story or nominate someone; administrators, the Secretary and the Chairman approve; a story is public only once approved and the person it is about has agreed (recorded). Public /stories page, a page per story, up to three on the home page. |
 | 17 Oct 2026 | Mission: "To maintain lifelong connections between Menyenya alumni and our alma mater, support current students, and build a trusted network for career and personal growth." Vision: "A Menyenya where every student has what they need to excel, and every alumnus belongs to a network that opens doors for life." What we do: Stay connected, Back the school, Support students, Grow together. Draft until the officials approve. |
 | 17 Oct 2026 | All portal screens (admin and member) share one design: page heading, cards, tables, status labels; actions that are hard to undo ask for confirmation first. Next: alumni stories on the public site, then offline use of the installed app. |

@@ -1,5 +1,13 @@
 # Progress
 
+## 17 October 2026: offline use of the installed app
+
+- Pages you have opened recently still open with no connection (on phones and computers), with a bar at the top: "You're offline. Saved pages may be out of date…".
+- Pages not saved show a friendly **You're offline** screen with **Try again**.
+- Never saved: the admin area, sign-in, registration, pledging and giving, My profile (next of kin), cases for support, Confirm members and Leave the association.
+- Signing out removes the saved pages from the device.
+- Up to 40 pages are kept; the app's own files are kept so it opens fast on slow data. No new services or libraries.
+
 ## 17 October 2026: Alumni stories
 
 - New public page **Alumni stories** (`/stories`, under Who we are and in the footer): a lead story with a large photo, then the rest as cards, and a page for each story with "More stories". The home page shows up to three (those marked for the home page first).

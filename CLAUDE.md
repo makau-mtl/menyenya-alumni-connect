@@ -32,3 +32,4 @@ Next.js 16 (App Router), React 19, TypeScript 6 (move to 7 once typescript-eslin
 - `npm run lint` / `npm run typecheck`
 - Database changes: add a new SQL file in `supabase/migrations/` (timestamped name); never edit an applied migration. `npm test` applies all migrations to a local Postgres (PGlite) with a Supabase stand-in (`tests/db/supabase-stub.sql`) and runs the access-rule tests.
 - Migrations reach Supabase through the **Database** GitHub workflow on `main`. Setup: `docs/SETUP-SUPABASE.md`.
+- Preview builds (and the first production build after a merge) read the live database **before** new migrations are applied. Pages built at build time must not fail when a new column or table is missing: fall back (see `missingColumn` in `src/lib/data/supabase-store.ts`) or treat the error as "no data yet".

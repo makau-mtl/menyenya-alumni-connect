@@ -38,8 +38,11 @@ type CauseRow = {
   video_speaker: string | null;
 };
 
-const causeColumns =
-  "slug, title, summary, story, components, readiness, kind, target_amount, lifecycle, pledges_enabled, preset_amounts, recurring_periods, suggested_pledges, funds(key), video_url, video_title, video_speaker";
+const causeColumns: string =
+  "slug, title, summary, story, components, readiness, kind, target_amount, lifecycle, pledges_enabled, preset_amounts, recurring_periods, suggested_pledges, funds(key)";
+// Added 18 Oct 2026. Until that database change is applied (it runs when a change is merged), pages fall back to the columns above.
+const causeMediaColumns: string = `${causeColumns}, video_url, video_title, video_speaker`;
+const missingColumn = (e: { code?: string } | null) => e?.code === "42703";
 
 function toCause(r: CauseRow): Cause {
   return {
@@ -64,13 +67,17 @@ function toCause(r: CauseRow): Cause {
 }
 
 export async function listCauses(): Promise<Cause[]> {
-  const { data, error } = await createPublicClient().from("causes").select(causeColumns).order("sort_order");
+  const db = createPublicClient();
+  let { data, error } = await db.from("causes").select(causeMediaColumns).order("sort_order");
+  if (missingColumn(error)) ({ data, error } = await db.from("causes").select(causeColumns).order("sort_order"));
   if (error) throw error;
   return (data as unknown as CauseRow[]).map(toCause);
 }
 
 export async function getCause(slug: string): Promise<Cause | null> {
-  const { data, error } = await createPublicClient().from("causes").select(causeColumns).eq("slug", slug).maybeSingle();
+  const db = createPublicClient();
+  let { data, error } = await db.from("causes").select(causeMediaColumns).eq("slug", slug).maybeSingle();
+  if (missingColumn(error)) ({ data, error } = await db.from("causes").select(causeColumns).eq("slug", slug).maybeSingle());
   if (error) throw error;
   return data ? toCause(data as unknown as CauseRow) : null;
 }
@@ -192,12 +199,10 @@ function contentUnavailable<T>(what: string, error: unknown, fallback: T): T {
 type CausePhotoRow = { id: string; path: string; caption: string; status: CausePhoto["status"]; sort_order: number; purpose: CausePhoto["purpose"] };
 
 export async function listCausePhotos(slug: string): Promise<CausePhoto[]> {
-  const { data, error } = await createPublicClient()
-    .from("cause_photos")
-    .select("id, path, caption, status, sort_order, purpose, causes!inner(slug)")
-    .eq("causes.slug", slug)
-    .order("sort_order")
-    .order("created_at");
+  const query = (columns: string) =>
+    createPublicClient().from("cause_photos").select(columns).eq("causes.slug", slug).order("sort_order").order("created_at");
+  let { data, error } = await query("id, path, caption, status, sort_order, purpose, causes!inner(slug)");
+  if (missingColumn(error)) ({ data, error } = await query("id, path, caption, status, sort_order, causes!inner(slug)"));
   if (error) return contentUnavailable("cause photos", error, []);
   return (data as unknown as CausePhotoRow[]).map((r) => ({
     ...toPhoto(r.path, r.caption),

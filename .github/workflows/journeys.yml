@@ -1,0 +1,50 @@
+# Automatic checks of the main journeys (register, profile, directory, jobs, stories, volunteering)
+# in a real browser, against a local copy of the database started in Docker. Free on GitHub.
+name: Journeys
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  journeys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start a local database with all migrations
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,postgres-meta,mailpit
+      - name: Read the local connection details
+        run: |
+          supabase status -o env > .supabase.env
+          set -a; . ./.supabase.env; set +a
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${ANON_KEY:-$PUBLISHABLE_KEY}" >> "$GITHUB_ENV"
+          echo "E2E_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "E2E_SERVICE_KEY=${SERVICE_ROLE_KEY:-$SECRET_KEY}" >> "$GITHUB_ENV"
+          echo "E2E_DB_URL=$DB_URL" >> "$GITHUB_ENV"
+          rm .supabase.env
+      - run: npm run build
+      - name: Start the website
+        run: |
+          npx next start -p 3000 -H 127.0.0.1 > next.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:3000 > /dev/null && break; sleep 1; done
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - if: failure()
+        run: tail -100 next.log
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: journeys-report
+          path: playwright-report
+          retention-days: 7

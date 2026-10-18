@@ -158,7 +158,7 @@ describe("finishing registration", () => {
     const token = link.rows[0].token;
     await as(db, "anon", async () => {
       const info = await db.query<{ label: string; year_left: number }>("select * from public.invite_info($1)", [token]);
-      expect(info.rows[0]).toEqual({ label: "Class of 2008", year_left: 2008 });
+      expect(info.rows[0]).toEqual({ label: "Class of 2008", year_left: 2008, tester: false });
       expect((await db.query("select * from public.invite_links")).rows).toEqual([]);
     });
     const u = await createLogin(db, "invited@example.com");

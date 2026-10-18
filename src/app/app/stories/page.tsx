@@ -24,6 +24,7 @@ export default async function MemberStoriesPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
+        back={{ href: "/app", label: "Dashboard" }}
         eyebrow="Alumni stories"
         title="Share a story"
         description="Your journey since Menyenya, or someone else's: a classmate who made it, a teacher who changed lives. Good stories inspire students and bring alumni home."

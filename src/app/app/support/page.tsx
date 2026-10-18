@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
@@ -34,6 +35,7 @@ export default async function SupportPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
+        <Link href="/app" className="mb-2 block text-sm font-semibold text-tea hover:underline">← Dashboard</Link>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">We look out for each other</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-4xl">Raise a case for support</h1>
         <p className="mt-2 max-w-2xl text-ink-soft">

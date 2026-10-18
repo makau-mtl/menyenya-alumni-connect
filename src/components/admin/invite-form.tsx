@@ -1,11 +1,13 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { createInviteLink } from "@/app/admin/actions";
 import { Field, buttonClass, inputClass } from "@/components/ui";
 
 export function InviteForm({ years }: { years: number[] }) {
   const [state, action, saving] = useActionState(createInviteLink, null);
+  useToastResult(state);
   return (
     <form
       onSubmit={(e) => {

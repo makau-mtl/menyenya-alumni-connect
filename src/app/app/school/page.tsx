@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getMember } from "@/lib/members/session";
@@ -26,6 +27,7 @@ export default async function SchoolPage() {
   return (
     <div className="flex flex-col gap-10">
       <div>
+        <Link href="/app" className="mb-2 block text-sm font-semibold text-tea hover:underline">← Dashboard</Link>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">Menyenya SDA High School</p>
         <h1 className="mt-1 text-3xl font-bold sm:text-4xl">The school today</h1>
         <p className="mt-2 max-w-2xl text-ink-soft">Figures shared by the school, and the priorities the association is working on with it. Tell us how important each one is to you.</p>

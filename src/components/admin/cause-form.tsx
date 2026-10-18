@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { updateCause } from "@/app/admin/actions";
 import { lifecycleLabels } from "@/lib/admin/labels";
 import type { Component, ReadinessItem } from "@/lib/types";
@@ -23,6 +24,7 @@ const smallButton = "rounded-md border border-line px-2.5 py-1 text-sm font-semi
 
 export function CauseForm({ cause }: { cause: CauseFormValues }) {
   const [state, action, saving] = useActionState(updateCause, null);
+  useToastResult(state);
   const [components, setComponents] = useState<Component[]>(cause.components);
   const [readiness, setReadiness] = useState<ReadinessItem[]>(cause.readiness);
   const err = state?.errors ?? {};

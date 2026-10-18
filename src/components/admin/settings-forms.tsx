@@ -1,6 +1,7 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { assignRole, saveMemberSettings } from "@/app/admin/actions";
 import { Field, buttonClass, inputClass } from "@/components/ui";
 import { useState } from "react";
@@ -13,6 +14,7 @@ const roleLabels: Record<string, string> = {
 };
 
 function Save({ pending, state, label = "Save" }: { pending: boolean; state: { ok?: boolean; message?: string } | null; label?: string }) {
+  useToastResult(state);
   return (
     <div className="flex flex-wrap items-center gap-4">
       <button type="submit" disabled={pending} className={buttonClass("primary")}>{pending ? "Saving…" : label}</button>

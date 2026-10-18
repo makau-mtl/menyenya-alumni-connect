@@ -1,11 +1,13 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { saveChairVideo } from "@/app/admin/actions";
 import { Field, buttonClass, inputClass } from "@/components/ui";
 
 export function VideoForm({ current }: { current: string | null }) {
   const [state, action, saving] = useActionState(saveChairVideo, null);
+  useToastResult(state);
   return (
     <form
       onSubmit={(e) => {

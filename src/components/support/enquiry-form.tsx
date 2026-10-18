@@ -1,11 +1,13 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { sendEnquiry } from "@/app/support/actions";
 import { buttonClass, Field, inputClass } from "@/components/ui";
 
 export function EnquiryForm({ kind, packages, packageLabel }: { kind: "sponsor" | "partner"; packages: { id: string; name: string }[]; packageLabel: string }) {
   const [state, action, pending] = useActionState(sendEnquiry, null);
+  useToastResult(state);
   const err = state?.errors ?? {};
   const invalid = (k: string) => (err[k] ? { "aria-invalid": true as const, "aria-describedby": `${k}-error` } : {});
 

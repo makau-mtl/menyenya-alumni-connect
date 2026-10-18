@@ -17,7 +17,7 @@ export default async function CohortsPage() {
   const decades = [...new Set(classes.map((c) => Math.floor(c.year / 10) * 10))];
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader eyebrow="Cohorts" title="Every cohort" description="Each year group has its own page with its members, cohort rep, meet-ups and memories." />
+      <PageHeader back={{ href: "/app", label: "Dashboard" }} eyebrow="Cohorts" title="Every cohort" description="Each year group has its own page with its members, cohort rep, meet-ups and memories." />
       {decades.map((d) => (
         <section key={d}>
           <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-tea">{d}s</h2>

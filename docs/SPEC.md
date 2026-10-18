@@ -753,6 +753,7 @@ Every job is idempotent (safe to re-run) and logs its run.
 ## 13. PWA & Performance
 
 - Installable (manifest with association icons and name), offline page, cache of recently viewed pages (built 17 Oct 2026, `public/sw.js`). The member's own profile is **not** kept offline because it holds next of kin (restricted data); the dashboard and membership card are. Saved pages are cleared on sign-out.
+- Feedback after saving (18 Oct 2026): every save shows a toast at the top of the screen as well as an inline message; multi-section pages (My profile) offer "Next: <section>" and a **Done** button back to the dashboard; pages outside the main menu have a "← Dashboard" back link.
 - Web Push for approvals, events and (later) chat.
 - Images: compressed in the browser before upload (max ~1600px, WebP/JPEG), responsive sizes, lazy-loaded. Video: YouTube embeds only.
 - Target: usable on a low-end Android phone on 3G; keep JavaScript bundles small; avoid heavy libraries.

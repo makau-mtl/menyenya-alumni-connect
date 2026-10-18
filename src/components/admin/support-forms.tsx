@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { startTransition, useActionState, useState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { savePackage, saveSupporter } from "@/app/admin/actions";
 import { buttonClass, Field, inputClass } from "@/components/ui";
 import { usePhoto } from "./use-photo";
@@ -41,6 +42,7 @@ function Actions({ pending, editing, label, message }: { pending: boolean; editi
 
 export function SupporterForm({ initial, packages }: { initial: SupporterValues; packages: { id: string; name: string; kind: Kind }[] }) {
   const [state, action, pending] = useActionState(saveSupporter, null);
+  useToastResult(state);
   const [kind, setKind] = useState<Kind>(initial.kind);
   const { photo, busy, error: photoError, choose, addTo } = usePhoto([800, 400]);
   const err = state?.errors ?? {};
@@ -109,6 +111,7 @@ export function SupporterForm({ initial, packages }: { initial: SupporterValues;
 
 export function PackageForm({ initial }: { initial: PackageValues }) {
   const [state, action, pending] = useActionState(savePackage, null);
+  useToastResult(state);
   const err = state?.errors ?? {};
   const invalid = useInvalid(err);
   return (

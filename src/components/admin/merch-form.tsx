@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { saveMerchItem } from "@/app/admin/actions";
 import { buttonClass, Field, inputClass } from "@/components/ui";
 import { usePhoto } from "./use-photo";
@@ -15,6 +16,7 @@ export const emptyMerch: MerchValues = { id: "", name: "", description: "", pric
 
 export function MerchForm({ initial }: { initial: MerchValues }) {
   const [state, action, pending] = useActionState(saveMerchItem, null);
+  useToastResult(state);
   const { photo, busy, error: photoError, choose, addTo } = usePhoto([1200, 600]);
   const err = state?.errors ?? {};
   const invalid = (k: string) => (err[k] ? { "aria-invalid": true as const, "aria-describedby": `${k}-error` } : {});

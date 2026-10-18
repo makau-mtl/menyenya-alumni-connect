@@ -42,6 +42,10 @@ test("a member completes My Menyenya and finds a classmate", async ({ page }) =>
   await page.locator("#menyenya").getByText("Livingstone").click();
   await page.locator("#menyenya").getByRole("button", { name: "Save" }).click();
   await expect(page.locator("#menyenya").getByRole("status")).toHaveText("Saved.");
+  // After saving, the member is shown where to go next and can finish.
+  await expect(page.locator("#menyenya").getByRole("button", { name: /Next: Privacy choices/ })).toBeVisible();
+  await page.getByRole("link", { name: "Done, back to the dashboard" }).click();
+  await expect(page).toHaveURL(/\/app$/);
 
   await page.goto(`/app/directory?q=${encodeURIComponent(`Brian ${id}`)}`);
   await page.getByText(`Brian ${id}`).first().click();

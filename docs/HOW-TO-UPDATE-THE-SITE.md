@@ -168,6 +168,10 @@ Open the **Merchandise** tab (administrators, the Secretary and the Treasurer).
   3. When the items are packed, set **Ready to collect**, and **Collected** when they are picked up. Use **Cancelled** if the order falls through.
   Add a note each time (e.g. "Paid 3,200, M-Pesa QJK…"). Collected and cancelled orders are hidden; *Show collected and cancelled too* brings them back.
 
+## Did it save?
+
+Every *Save* shows a short message at the top of the screen ("Saved.", or what needs fixing) and the same message next to the button. On *My profile*, after a section saves you get a link to the next section, and **Done** takes you back to the dashboard.
+
 ## The admin workspace
 
 The admin area now has its own menu on the left. Gold numbers show what is waiting. At the bottom, *Leave admin* takes you back to your account or the website. On a phone, open the menu with the button at the top left.

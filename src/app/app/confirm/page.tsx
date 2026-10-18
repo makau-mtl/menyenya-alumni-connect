@@ -25,6 +25,7 @@ export default async function ConfirmPage() {
   return (
     <div className="flex max-w-4xl flex-col gap-8">
       <PageHeader
+        back={{ href: "/app", label: "Dashboard" }}
         eyebrow="My account"
         title="Confirm members"
         description="People waiting for you to confirm they belong. Confirm those you recognise. If something looks wrong, say what needs checking; they stay waiting and the note is kept."

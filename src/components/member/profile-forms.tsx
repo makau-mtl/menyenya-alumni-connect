@@ -1,6 +1,8 @@
 "use client";
 
 import { startTransition, useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useToastResult } from "@/components/use-toast-result";
 import { saveChoices, saveSchoolLife, saveWelfareContact, saveWork } from "@/app/app/actions";
 import type { ActionState } from "@/lib/admin/staff";
 import { phoneCountries } from "@/lib/phone";
@@ -21,7 +23,17 @@ function useForm(action: Action) {
   return { state, saving, onSubmit, err: (k: string) => state?.errors?.[k] };
 }
 
-function SaveRow({ saving, state }: { saving: boolean; state: ActionState }) {
+/** Where to go after a section saves: the next section on the page, or another page. */
+type Next = { label: string; href: string };
+
+function SaveRow({ saving, state, next }: { saving: boolean; state: ActionState; next?: Next }) {
+  const router = useRouter();
+  const go = () => {
+    if (!next) return;
+    if (next.href.startsWith("#")) document.querySelector(next.href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    else router.push(next.href);
+  };
+  useToastResult(state, next ? { label: next.label, onClick: go } : undefined);
   return (
     <div className="flex flex-wrap items-center gap-4">
       <button type="submit" disabled={saving} className={buttonClass("primary")}>
@@ -31,6 +43,9 @@ function SaveRow({ saving, state }: { saving: boolean; state: ActionState }) {
         <p role="status" className={`font-semibold ${state.ok ? "text-tea" : "text-alert"}`}>
           {state.message}
         </p>
+      )}
+      {state?.ok && next && (
+        <button type="button" onClick={go} className="font-semibold text-tea underline underline-offset-4">{next.label} →</button>
       )}
     </div>
   );
@@ -129,7 +144,7 @@ export function WorkForm({ v, skillOptions }: { v: WorkValues; skillOptions: str
         <input type="checkbox" name="willing_to_volunteer" defaultChecked={v.willing_to_volunteer} className="mt-1.5 size-4 accent-tea" />
         <span>I&rsquo;m willing to volunteer my time or skills for the association&rsquo;s projects</span>
       </label>
-      <SaveRow saving={saving} state={state} />
+      <SaveRow saving={saving} state={state} next={{ label: "Next: My Menyenya", href: "#menyenya" }} />
     </form>
   );
 }
@@ -200,7 +215,7 @@ export function ChoicesForm({ current, contactVisibility }: { current: Record<st
           </span>
         </label>
       ))}
-      <SaveRow saving={saving} state={state} />
+      <SaveRow saving={saving} state={state} next={{ label: "Done: back to the dashboard", href: "/app" }} />
     </form>
   );
 }
@@ -234,7 +249,7 @@ export function SchoolLifeForm({ streams, dorms, current }: {
           </div>
         </fieldset>
       )}
-      <SaveRow saving={saving} state={state} />
+      <SaveRow saving={saving} state={state} next={{ label: "Next: Privacy choices", href: "#choices" }} />
     </form>
   );
 }

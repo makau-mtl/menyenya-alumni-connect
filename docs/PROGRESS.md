@@ -1,5 +1,12 @@
 # Progress
 
+## 18 October 2026: clearer navigation after saving (testing feedback)
+
+- Every save now shows a message at the top of the screen (hard to miss) as well as next to the button, across member and admin forms.
+- **My profile:** after a section saves, a link takes you on to the next section (Work → My Menyenya → Privacy choices → back to the dashboard). A **Done** button sits at the top and the bottom of the page.
+- "← Dashboard" back links on pages that are not in the main menu (Stories, Cohorts, Confirm members, Raise a case, The school today).
+- The journey check now also tests that a member can save and get back to the dashboard.
+
 ## 18 October 2026: ready for the committee testing round
 
 - **Testers' link:** Admin → Members → invite links → tick **Testers' link**. It lets people register while registration stays closed to the public. They are marked as testers; at launch their accounts and test content are cleared (anonymised and archived, never hard-deleted), and they register again for real.

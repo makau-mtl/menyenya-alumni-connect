@@ -54,7 +54,12 @@ export default async function ProfilePage() {
           eyebrow="My account"
           title="My profile"
           description="Everything here is optional. Save each section on its own."
-          actions={hasAdmin ? <Button asChild variant="outline" className="md:hidden"><Link href="/admin">Open the admin area</Link></Button> : undefined}
+          actions={
+            <div className="flex flex-wrap gap-2">
+              {hasAdmin && <Button asChild variant="outline" className="md:hidden"><Link href="/admin">Open the admin area</Link></Button>}
+              <Button asChild><Link href="/app">Done</Link></Button>
+            </div>
+          }
         />
         <nav aria-label="Sections" className="flex flex-wrap gap-2">
           {[["#photo", "Photo"], ["#work", "Work and links"], ["#menyenya", "My Menyenya"], ["#choices", "Privacy choices"], ["#terminate", "Terminate membership"]].map(([href, label]) => (
@@ -142,6 +147,9 @@ export default async function ProfilePage() {
         </p>
         <Button asChild variant="destructive" className="mt-4"><Link href="/app/terminate">Terminate membership</Link></Button>
       </section>
+      <div className="flex justify-end">
+        <Button asChild size="lg"><Link href="/app">Done, back to the dashboard</Link></Button>
+      </div>
     </div>
   );
 }

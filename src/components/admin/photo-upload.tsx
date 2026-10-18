@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import type { ActionState } from "@/lib/admin/staff";
 import { buttonClass, inputClass } from "@/components/ui";
 import { usePhoto } from "./use-photo";
@@ -29,6 +30,7 @@ export function PhotoUpload({
   chooseLabel?: string;
 }) {
   const [state, dispatch, saving] = useActionState(action, null);
+  useToastResult(state);
   const { photo, busy, error, choose, addTo, clear } = usePhoto(widths);
   const id = (Object.values(fields).join("-") || "photo").replace(/[^\w-]/g, "-");
 

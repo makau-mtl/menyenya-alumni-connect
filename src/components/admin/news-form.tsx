@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { startTransition, useActionState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { saveNews } from "@/app/admin/actions";
 import type { NewsPost } from "@/lib/types";
 import { Field, buttonClass, inputClass } from "@/components/ui";
@@ -9,6 +10,7 @@ import { usePhoto } from "./use-photo";
 
 export function NewsForm({ post }: { post: NewsPost | null }) {
   const [state, action, saving] = useActionState(saveNews, null);
+  useToastResult(state);
   const { photo, busy, error: photoError, choose, addTo } = usePhoto();
   const err = state?.errors ?? {};
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });

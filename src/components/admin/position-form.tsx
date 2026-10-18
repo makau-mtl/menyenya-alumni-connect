@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { startTransition, useActionState, useState } from "react";
+import { useToastResult } from "@/components/use-toast-result";
 import { savePosition } from "@/app/admin/actions";
 import { buttonClass, Field, inputClass } from "@/components/ui";
 import { usePhoto } from "./use-photo";
@@ -31,6 +32,7 @@ export const emptyPosition: PositionValues = {
 /** Add or change a leadership or secretariat position. */
 export function PositionForm({ initial, members }: { initial: PositionValues; members: { id: string; name: string }[] }) {
   const [state, action, pending] = useActionState(savePosition, null);
+  useToastResult(state);
   const [holder, setHolder] = useState<"member" | "other">(initial.id && !initial.personId ? "other" : "member");
   const [tenure, setTenure] = useState(initial.hasTenure);
   const { photo, busy, error: photoError, choose, addTo } = usePhoto();

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createLogin, logIn, registerInDb, sql, unique } from "./helpers";
+import { createLogin, kenyanPhone, logIn, registerInDb, sql, unique } from "./helpers";
 
 // The main journeys a member and an official take. If one of these breaks, the change isn't merged.
 
@@ -10,7 +10,7 @@ test("a new alumnus registers", async ({ page }) => {
   await expect(page).toHaveURL(/\/join/);
 
   await page.locator("#field-fullName").fill("Nora Nyaboke");
-  await page.locator("#field-phone").fill(`07${Math.floor(10000000 + Math.random() * 89999999)}`);
+  await page.locator("#field-phone").fill(kenyanPhone());
   await page.locator("#field-category").check();
   await page.getByRole("button", { name: "Continue" }).click();
 
@@ -34,8 +34,8 @@ test("a member completes My Menyenya and finds a classmate", async ({ page }) =>
   const id = unique();
   const a = await createLogin(`a-${id}@example.com`);
   const b = await createLogin(`b-${id}@example.com`);
-  registerInDb(a, `Alice ${id}`, `0711${id.length}${Date.now() % 100000}1`.slice(0, 10), 2008);
-  registerInDb(b, `Brian ${id}`, `0722${Date.now() % 1000000}`.slice(0, 10), 2008);
+  registerInDb(a, `Alice ${id}`, kenyanPhone(), 2008);
+  registerInDb(b, `Brian ${id}`, kenyanPhone(), 2008);
 
   await logIn(page, `a-${id}@example.com`);
   await page.goto("/app/profile#menyenya");
@@ -57,7 +57,7 @@ test("a member completes My Menyenya and finds a classmate", async ({ page }) =>
 test("a member posts a job and lists a business", async ({ page }) => {
   const id = unique();
   const u = await createLogin(`jobs-${id}@example.com`);
-  registerInDb(u, `Jabali ${id}`, `0733${Date.now() % 1000000}`.slice(0, 10), 2012);
+  registerInDb(u, `Jabali ${id}`, kenyanPhone(), 2012);
   await logIn(page, `jobs-${id}@example.com`);
 
   await page.goto("/app/opportunities/jobs");
@@ -84,7 +84,7 @@ test("a member posts a job and lists a business", async ({ page }) => {
 test("a member shares a story and an official publishes it", async ({ page, browser }) => {
   const id = unique();
   const u = await createLogin(`story-${id}@example.com`);
-  registerInDb(u, `Stella ${id}`, `0744${Date.now() % 1000000}`.slice(0, 10), 2003);
+  registerInDb(u, `Stella ${id}`, kenyanPhone(), 2003);
   await logIn(page, `story-${id}@example.com`);
   await page.goto("/app/stories");
   await page.getByLabel("Title").fill(`From Menyenya to medicine ${id}`);
@@ -109,8 +109,8 @@ test("the Secretary posts a way to help and a member signs up", async ({ page, b
   const id = unique();
   const sec = await createLogin(`sec-${id}@example.com`);
   const mem = await createLogin(`vol-${id}@example.com`);
-  registerInDb(sec, `Sara ${id}`, `0755${Date.now() % 1000000}`.slice(0, 10), 1999);
-  registerInDb(mem, `Victor ${id}`, `0766${Date.now() % 1000000}`.slice(0, 10), 2015);
+  registerInDb(sec, `Sara ${id}`, kenyanPhone(), 1999);
+  registerInDb(mem, `Victor ${id}`, kenyanPhone(), 2015);
   sql(`insert into public.role_assignments (person_id, role_id, scope_type)
        select p.id, r.id, 'association' from public.persons p, public.roles r where p.full_name = 'Sara ${id}' and r.key = 'secretary'`);
 

@@ -45,3 +45,6 @@ export async function logIn(page: Page, email: string, next = "/app") {
 }
 
 export const unique = () => Math.random().toString(36).slice(2, 8);
+
+/** A random, always-valid Kenyan mobile number (07 + 8 digits). */
+export const kenyanPhone = (prefix = "07") => `${prefix}${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`;

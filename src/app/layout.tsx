@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteChrome } from "@/components/site-chrome";
 import { OfflineStatus } from "@/components/offline-status";
+import { FeedbackButton } from "@/components/feedback-button";
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteChrome header={<SiteHeader />} footer={<SiteFooter />}>
           {children}
         </SiteChrome>
+        <FeedbackButton />
       </body>
     </html>
   );

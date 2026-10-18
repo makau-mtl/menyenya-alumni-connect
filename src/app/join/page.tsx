@@ -32,7 +32,7 @@ async function StartPanel({ invite }: { invite?: string }) {
       </>
     );
   }
-  if (!lists.registrationOpen && !staff?.isAdmin) {
+  if (!lists.registrationOpen && !staff?.isAdmin && !inviteInfo?.tester) {
     return (
       <>
         <p className="text-lg font-semibold">Registration opens soon.</p>

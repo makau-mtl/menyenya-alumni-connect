@@ -29,6 +29,10 @@ export function InviteForm({ years }: { years: number[] }) {
       <label className="flex items-center gap-2">
         <input type="checkbox" name="fromMe" defaultChecked className="size-4 accent-tea" /> Record me as the person who invited them
       </label>
+      <label className="flex items-start gap-2">
+        <input type="checkbox" name="tester" className="mt-1 size-4 accent-tea" />
+        <span><span className="font-semibold">Testers&rsquo; link</span><span className="block text-sm text-ink-soft">Works while registration is closed. People who join through it are marked as testers; their accounts and test content are cleared at launch.</span></span>
+      </label>
       <div className="flex flex-wrap items-center gap-4">
         <button type="submit" disabled={saving} className={buttonClass("primary")}>{saving ? "Creating…" : "Create link"}</button>
         {state?.message && <p role="status" className={`font-semibold ${state.ok ? "text-tea" : "text-alert"}`}>{state.message}</p>}

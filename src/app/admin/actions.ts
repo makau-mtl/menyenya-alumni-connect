@@ -318,17 +318,18 @@ export async function createInviteLink(_prev: ActionState, formData: FormData): 
     const { data } = await staff.supabase.from("cohorts").select("id").eq("year_left", year).maybeSingle();
     cohortId = data?.id ?? null;
   }
-  if (!label && !cohortId) return fail("Choose a class, or give the link a name.");
+  if (!label && !cohortId && formData.get("tester") !== "on") return fail("Choose a class, or give the link a name.");
   let inviter: string | null = null;
   if (formData.get("fromMe") === "on") {
     const { data } = await staff.supabase.rpc("current_person_id");
     inviter = (data as string | null) ?? null;
   }
   const { error } = await staff.supabase.from("invite_links").insert({
-    label: label || `Class of ${year}`,
+    label: label || (formData.get("tester") === "on" ? "Technical Committee testers" : `Class of ${year}`),
     cohort_id: cohortId,
     inviter_person_id: inviter,
     created_by: inviter,
+    tester: formData.get("tester") === "on",
   });
   if (error) {
     console.error(error);
@@ -1289,4 +1290,15 @@ export async function savePickItem(formData: FormData): Promise<void> {
   }
   revalidatePath("/admin/settings");
   revalidatePath("/app", "layout");
+}
+
+/** Administrators triage feedback from testers: status and a note. */
+export async function updateFeedback(formData: FormData): Promise<void> {
+  const staff = await staffFor("admin");
+  if (typeof staff === "string") return;
+  const status = String(formData.get("status") ?? "");
+  const row: Record<string, string> = { admin_note: String(formData.get("note") ?? "").trim().slice(0, 2000) };
+  if (["new", "agreed", "fixed", "wont_do"].includes(status)) row.status = status;
+  await staff.supabase.from("feedback").update(row).eq("id", String(formData.get("id") ?? ""));
+  revalidatePath("/admin/feedback");
 }
